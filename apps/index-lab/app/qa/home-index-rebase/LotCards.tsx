@@ -289,12 +289,10 @@ const CSS = `
 .lg--holo .lc-body { position: relative; z-index: 1; }
 
 /* Élite: carta con esquinas cortadas, estrellas, año como «puntaje» y stats tipo FIFA; neón abajo */
-.lg--elite { padding: 1.5px; border-radius: 0; box-shadow: none;
-  background: linear-gradient(160deg, #FFE2C2 0%, #FF9639 30%, #8460E5 70%, #FFE2C2 100%);
-  clip-path: polygon(16px 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%, 0 16px); }
+.lg--elite { padding: 1.5px; border-radius: 12px; box-shadow: 0 14px 30px -12px rgba(59,23,130,0.55);
+  background: linear-gradient(160deg, #FFE2C2 0%, #FF9639 30%, #8460E5 70%, #FFE2C2 100%); }
 .lg--elite.lc--negotiable { background: linear-gradient(160deg, #CFFDFE 0%, #00DAE0 30%, #8460E5 70%, #CFFDFE 100%); }
-.lg--elite .lg-in { background: radial-gradient(120% 70% at 50% 0%, #3B1E9A 0%, #1A0F4A 55%, #0C0626 100%);
-  clip-path: polygon(15px 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 0 100%, 0 15px); }
+.lg--elite .lg-in { border-radius: 10.5px; background: radial-gradient(120% 70% at 50% 0%, #3B1E9A 0%, #1A0F4A 55%, #0C0626 100%); }
 .lg-stars { position: absolute; inset: 0; pointer-events: none; animation: lg-twinkle 3s ease-in-out infinite;
   background-image: radial-gradient(1.5px 1.5px at 12% 18%, #fff, transparent), radial-gradient(1px 1px at 78% 12%, #fff, transparent),
     radial-gradient(1.5px 1.5px at 64% 46%, #FFE2C2, transparent), radial-gradient(1px 1px at 22% 62%, #fff, transparent),
@@ -589,7 +587,7 @@ function eliteStats(lot: LotData): [string, string][] {
  *             placa de precio con brillo metálico.
  *  · holo     card blanca con foil holográfico (lila/cyan/naranja) y reflejo que siguen al mouse, con
  *             inclinación 3D; la franja es el contador de tiempo con una luz que corre.
- *  · elite    carta oscura con esquinas cortadas y estrellas, el año como «puntaje», stats en siglas
+ *  · elite    carta oscura redondeada con estrellas, el año como «puntaje», stats en siglas
  *             (45K KM · AUT TRA · GAS COM · 5 ASI) y la franja convertida en neón con un pulso de luz.
  */
 export function FichaLegend({ lot, tier, featured, width, height, mediaFill }: {
