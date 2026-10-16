@@ -4,6 +4,7 @@ import { Header, HomepageMobile, Sidebar } from "@vmc/concorde-adapter";
 import { useEffect, useState } from "react";
 
 import HomeIndexBlock from "./HomeIndexBlock";
+import SubastasTicker from "./SubastasTicker";
 import styles from "./HomeIndexRebase.module.css";
 
 function BrandLogo() {
@@ -23,6 +24,8 @@ export default function HomeIndexRebase() {
   return (
     <>
       <div className={styles.desktopShell} data-testid="home-desktop-canvas">
+        {/* Franja «hoy en subastas»: arriba del header y de su mismo ancho (columna derecha). */}
+        <div className={styles.tickerRow}><SubastasTicker /></div>
         <Header width="100%" />
         <aside className={styles.sidebarRail} aria-label="Navegación de VMC">
           <Sidebar defaultActiveId="hoy" height={sidebarHeight} contentHeight={sidebarHeight} headerHeight={64} logo={<BrandLogo />} />
@@ -33,6 +36,7 @@ export default function HomeIndexRebase() {
       </div>
 
       <div className={styles.mobileShell}>
+        <SubastasTicker />
         <HomepageMobile />
       </div>
     </>

@@ -16,11 +16,12 @@
  *   · FichaPlus     5 variantes de la Ficha (la favorita de producto): cta (la única con botón
  *                   «Ver detalle») · precio · cuenta · compacta · social.
  *   · FichaPro      4 diseños de producto sobre la Ficha: clasica · nocturna · curva · fundido.
+ *   · FichaLegend   3 versiones «premium» de la Ficha tipo carta FIFA: leyenda · holo · elite.
  *   · GlassCard     «Cristal»: marco con degradado morado/lila, foto con borde y reflejo de vidrio y el
  *                   precio en una cápsula de vidrio.
  */
 import { useId } from "react";
-import type { JSX } from "react";
+import type { JSX, PointerEvent } from "react";
 
 export type LotData = {
   name: string; year: number; price?: string; variant: "live" | "negotiable"; live?: boolean; imageSrc: string;
@@ -231,6 +232,106 @@ const CSS = `
 .lp--nocturna .lc-chip, .lp--fundido .lc-chip { color: #fff; border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); }
 .lp--nocturna .lc-bar, .lp--fundido .lc-bar { background: rgba(255,255,255,0.16); }
 .lp--nocturna .lc-offer, .lp--fundido .lc-offer { color: #5CF0F3; }
+/* ── FichaLegend: cartas «premium» inspiradas en las cartas especiales de FIFA (Icon / Hero / TOTY) ──
+   La franja de color deja de ser decorativa: placa de precio (Leyenda), contador (Holo) o neón (Élite).
+   Se mueven siempre (pedido de producto), también con «reducir animaciones». */
+@property --lg-a { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
+@keyframes lg-spin { to { --lg-a: 360deg; } }
+@keyframes lg-sweep { 0%, 60% { transform: translateX(-160%) skewX(-20deg); } 100% { transform: translateX(330%) skewX(-20deg); } }
+@keyframes lg-shimmer { to { background-position: -200% 0; } }
+@keyframes lg-run { from { left: -30%; } to { left: 100%; } }
+@keyframes lg-twinkle { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.95; } }
+@keyframes lg-holo-idle { 0% { background-position: 0% 0%; } 100% { background-position: 100% 100%; } }
+.lg::after { display: none; }
+.lg .lc-media { overflow: hidden; }
+.lg .lc-count, .lg .lc-dots { z-index: 2; }
+.lg .lc-pill svg { flex: none; }
+.lg .lc-body { padding: 12px 8px 14px 10px; }
+.lg .lc-chips { flex-wrap: nowrap; gap: 4px; }
+.lg .lc-chip { gap: 3px; padding: 4px 5px; font-size: 9.5px; white-space: nowrap; }
+.lg .lc-stats { gap: 4px; font-size: 10.5px; white-space: nowrap; }
+.lg-in { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+.lg-shine { position: absolute; top: 0; left: 0; z-index: 1; width: 35%; height: 100%; pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent); animation: lg-sweep 4.5s ease-in-out infinite; }
+
+/* Leyenda: borde metálico que gira, destello en la foto y placa de precio brillante */
+.lg--leyenda { padding: 2px; border-radius: 12px; animation: lg-spin 6s linear infinite;
+  background: conic-gradient(from var(--lg-a), #FF9639, #FFE2C2, #8460E5, #3B1782, #8460E5, #FFE2C2, #FF9639);
+  box-shadow: 0 14px 30px -12px rgba(59,23,130,0.55); }
+.lg--leyenda.lc--negotiable { background: conic-gradient(from var(--lg-a), #00DAE0, #CFFDFE, #8460E5, #3B1782, #8460E5, #CFFDFE, #00DAE0); }
+.lg--leyenda .lg-in { border-radius: 10px; background: linear-gradient(165deg, #2A1670 0%, #170C42 55%, #0E0628 100%); }
+.lg--leyenda .lc-chip { color: #FFE2C2; border-color: rgba(255,190,130,0.35); background: rgba(255,150,57,0.08); }
+.lg--leyenda.lc--negotiable .lc-chip { color: #CFFDFE; border-color: rgba(0,218,224,0.35); background: rgba(0,218,224,0.08); }
+.lg-plaque { position: relative; flex: none; display: flex; align-items: center; gap: 8px; padding: 8px 10px; color: #fff;
+  background: linear-gradient(90deg, #BE3D00 0%, #FF9639 25%, #FFD3A1 50%, #FF9639 75%, #BE3D00 100%); background-size: 200% 100%;
+  animation: lg-shimmer 3.5s linear infinite; text-shadow: 0 1px 2px rgba(120,40,0,0.45); }
+.lc--negotiable .lg-plaque { background-image: linear-gradient(90deg, #00777A 0%, #00DAE0 25%, #B9FBFC 50%, #00DAE0 75%, #00777A 100%); text-shadow: 0 1px 2px rgba(0,80,82,0.5); }
+.lg-plaque small { display: block; font-size: 9.5px; font-weight: 600; opacity: 0.92; }
+.lg-plaque b { display: block; font-size: 18px; font-weight: 800; line-height: 1.1; white-space: nowrap; }
+.lc--negotiable .lg-plaque b { font-size: 14px; }
+
+/* Holo: brillo holográfico y reflejo que siguen al mouse, inclinación 3D; la franja es el contador */
+.lg--holo { border: 1px solid #E9E3FF; transform: perspective(700px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform 0.2s ease, box-shadow 0.2s; }
+.lg--holo:hover { transform: perspective(700px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(-3px); }
+.lg-holo { position: absolute; inset: 0; z-index: 3; pointer-events: none; background-size: 260% 260%;
+  background-image: linear-gradient(115deg, transparent 20%, rgba(132,96,229,0.22) 34%, rgba(0,218,224,0.2) 44%, rgba(255,150,57,0.2) 54%, rgba(132,96,229,0.18) 64%, transparent 78%);
+  animation: lg-holo-idle 5s ease-in-out infinite alternate; }
+.lg--holo:hover .lg-holo { animation: none; background-position: var(--mx, 50%) var(--my, 50%); }
+.lg-glare { position: absolute; inset: 0; z-index: 3; pointer-events: none; opacity: 0; transition: opacity 0.2s;
+  background: radial-gradient(circle at var(--mx, 50%) var(--my, 30%), rgba(255,255,255,0.6), transparent 45%); }
+.lg--holo:hover .lg-glare { opacity: 1; }
+.lg-track { position: relative; flex: none; height: 9px; background: #ECEAF3; overflow: hidden; }
+.lg-track > i { position: relative; display: block; height: 100%; overflow: hidden; background: linear-gradient(90deg, #ff9639, #ef852e 60%, #be3d00); }
+.lc--negotiable .lg-track > i { background: linear-gradient(90deg, #00DAE0, #008688); }
+.lg-track > i::after { content: ""; position: absolute; top: 0; width: 30%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.75), transparent); animation: lg-run 1.8s linear infinite; }
+.lg--holo .lc-body { position: relative; z-index: 1; }
+
+/* Élite: carta con esquinas cortadas, estrellas, año como «puntaje» y stats tipo FIFA; neón abajo */
+.lg--elite { padding: 1.5px; border-radius: 0; box-shadow: none;
+  background: linear-gradient(160deg, #FFE2C2 0%, #FF9639 30%, #8460E5 70%, #FFE2C2 100%);
+  clip-path: polygon(16px 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%, 0 16px); }
+.lg--elite.lc--negotiable { background: linear-gradient(160deg, #CFFDFE 0%, #00DAE0 30%, #8460E5 70%, #CFFDFE 100%); }
+.lg--elite .lg-in { background: radial-gradient(120% 70% at 50% 0%, #3B1E9A 0%, #1A0F4A 55%, #0C0626 100%);
+  clip-path: polygon(15px 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 0 100%, 0 15px); }
+.lg-stars { position: absolute; inset: 0; pointer-events: none; animation: lg-twinkle 3s ease-in-out infinite;
+  background-image: radial-gradient(1.5px 1.5px at 12% 18%, #fff, transparent), radial-gradient(1px 1px at 78% 12%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 64% 46%, #FFE2C2, transparent), radial-gradient(1px 1px at 22% 62%, #fff, transparent),
+    radial-gradient(1px 1px at 88% 70%, #fff, transparent), radial-gradient(1.5px 1.5px at 40% 86%, #FFE2C2, transparent),
+    radial-gradient(1px 1px at 55% 78%, #fff, transparent), radial-gradient(1px 1px at 8% 90%, #fff, transparent); }
+.lg--elite .lc-media { z-index: 1; background: none; }
+.lg--elite .lc-media > img { -webkit-mask-image: linear-gradient(180deg, #000 58%, transparent 100%); mask-image: linear-gradient(180deg, #000 58%, transparent 100%); }
+.lg-rating { position: absolute; top: 8px; left: 10px; z-index: 2; display: grid; justify-items: center; padding: 5px 7px; border-radius: 8px; line-height: 1;
+  color: #FFE2C2; background: rgba(16,0,48,0.62); backdrop-filter: blur(6px); border: 1px solid rgba(255,211,161,0.35); }
+.lc--negotiable .lg-rating { color: #CFFDFE; }
+.lg-rating b { font-size: 17px; font-weight: 900; }
+.lg-rating small { margin-top: 2px; font-size: 8px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+.lg--elite .lc-pills { top: auto; bottom: 6px; left: 50%; transform: translateX(-50%); }
+.lg--elite .lc-body { position: relative; z-index: 1; align-items: center; gap: 7px; padding: 6px 10px 12px; text-align: center; }
+.lg--elite .lc-name { font-size: 15px; letter-spacing: 0.04em; text-transform: uppercase; }
+.lg-divider { flex: none; width: 70%; height: 1px; background: linear-gradient(90deg, transparent, #FFD3A1, transparent); }
+.lc--negotiable .lg-divider { background: linear-gradient(90deg, transparent, #7CF3F5, transparent); }
+.lg-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; }
+.lg-stats span { display: flex; align-items: baseline; gap: 4px; }
+.lg-stats b { min-width: 30px; font-size: 14px; font-weight: 900; text-align: right; color: #fff; }
+.lg-stats small { font-size: 9px; font-weight: 700; letter-spacing: 0.08em; color: #FFD3A1; }
+.lc--negotiable .lg-stats small { color: #7CF3F5; }
+.lg--elite .lc-pricerow { justify-content: center; }
+.lg-neon { position: relative; flex: none; height: 3px; margin: 0 14px 9px; border-radius: 3px; overflow: hidden;
+  background: #FF9639; box-shadow: 0 0 10px 2px rgba(255,150,57,0.7); }
+.lc--negotiable .lg-neon { background: #00DAE0; box-shadow: 0 0 10px 2px rgba(0,218,224,0.7); }
+.lg-neon::after { content: ""; position: absolute; top: 0; width: 30%; height: 100%;
+  background: linear-gradient(90deg, transparent, #fff, transparent); animation: lg-run 2.2s linear infinite; }
+
+/* Textos en las cartas oscuras */
+.lg--leyenda .lc-name, .lg--elite .lc-name, .lg--elite .lc-price { color: #fff; }
+.lg--leyenda .lc-sub { color: rgba(255,255,255,0.72); }
+.lg--leyenda .lc-stats, .lg--leyenda .lc-time, .lg--elite .lc-time { color: rgba(255,255,255,0.88); }
+.lg--leyenda .lc-bar { background: rgba(255,255,255,0.16); }
+.lg--elite .lc-label { color: rgba(255,255,255,0.7); }
+.lg--elite .lc-offer { color: #5CF0F3; }
+.lg--leyenda .lc-body { position: relative; z-index: 1; }
 @media (prefers-reduced-motion: reduce) { .lc { transition: none; } }
 `;
 
@@ -463,6 +564,125 @@ export function FichaPro({ lot, theme, featured, width, height, mediaFill }: {
           <path d="M0 60 L0 50 C50 44 90 58 140 46 C170 40 188 36 200 38 L200 60 Z" fill={`url(#${waveId})`} opacity="0.85" />
         </svg>
       ) : null}
+    </article>
+  );
+}
+
+export type LegendTier = "leyenda" | "holo" | "elite";
+
+const noAccents = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+const abbr = (s: string) => noAccents(s).slice(0, 3).toUpperCase();
+/** Stats tipo FIFA («92 PAC»): valor corto + sigla. km → 45K KM · h → 6K HRS · t → 12 TON. */
+function eliteStats(lot: LotData): [string, string][] {
+  const m = lot.km.match(/^([\d,.]+)\s*(\S+)/);
+  const n = m ? Number(m[1].replace(/,/g, "")) : NaN;
+  const unit = m?.[2] ?? "";
+  const value = Number.isFinite(n) ? (n >= 1000 ? `${Math.round(n / 1000)}K` : String(n)) : lot.km;
+  const unitLabel = unit === "km" ? "KM" : unit === "h" ? "HRS" : unit === "t" ? "TON" : abbr(unit);
+  return [[value, unitLabel], [abbr(lot.transmission), "TRA"], [abbr(lot.fuel), "COM"], [lot.seats ? String(lot.seats) : "—", "ASI"]];
+}
+
+/**
+ * FichaLegend — 3 versiones «premium» de la Ficha, inspiradas en las cartas especiales de FIFA
+ * (borde metálico, brillo, foil holográfico, stats) con los colores de VMC:
+ *  · leyenda  borde metálico naranja/lila que gira, destello que cruza la foto y la franja convertida en
+ *             placa de precio con brillo metálico.
+ *  · holo     card blanca con foil holográfico (lila/cyan/naranja) y reflejo que siguen al mouse, con
+ *             inclinación 3D; la franja es el contador de tiempo con una luz que corre.
+ *  · elite    carta oscura con esquinas cortadas y estrellas, el año como «puntaje», stats en siglas
+ *             (45K KM · AUT TRA · GAS COM · 5 ASI) y la franja convertida en neón con un pulso de luz.
+ */
+export function FichaLegend({ lot, tier, featured, width, height, mediaFill }: {
+  lot: LotData; tier: LegendTier; featured?: boolean; width?: number | string; height?: number | string; mediaFill?: boolean;
+}): JSX.Element {
+  const live = lot.variant === "live";
+  const progress = `${Math.round((lot.progress ?? 0.4) * 100)}%`;
+  const pills = (
+    <span className="lc-pills">
+      {featured ? <span className="lc-pill lc-pill--featured">{PI.star}Destacado</span> : null}
+      {live ? (lot.live ? <span className="lc-pill lc-pill--live">{PI.live}En vivo</span> : null)
+        : <span className="lc-pill lc-pill--negotiable">{I.tag}Negociable</span>}
+    </span>
+  );
+  const time = live ? <span className="lc-time">{I.clock}Empieza en {lot.remaining ?? "02:10:00"}</span> : null;
+  const price = live
+    ? <div className="lc-pricerow"><SubasCoin size={28} /><div><p className="lc-label">{lot.price ? "Precio actual" : "Precio base"}</p><p className="lc-price">{lot.price ?? "Por definir"}</p></div></div>
+    : <span className="lc-offer">{I.hands}Haz tu oferta</span>;
+  const head = <div><p className="lc-name">{lot.name}</p><p className="lc-sub">{lot.year} · {lot.kind}</p></div>;
+  const chips = <div className="lc-chips"><span className="lc-chip">{I.gear}{lot.transmission}</span><span className="lc-chip">{I.fuel}{lot.fuel}</span></div>;
+  const stats = <div className="lc-stats"><span>{I.gauge}{lot.km}</span>{lot.seats ? <span>{I.seats}{lot.seats} asientos</span> : <span>{I.pin}{lot.city}</span>}</div>;
+  const mediaStyle = mediaFill ? { flex: 1, minHeight: 120 } : undefined;
+  const bodyStyle = mediaFill ? { flex: "none" as const } : undefined;
+
+  // Holo: el foil y el reflejo siguen al puntero; la card se inclina hacia él.
+  const onMove = (e: PointerEvent<HTMLElement>) => {
+    const el = e.currentTarget; const r = el.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width; const y = (e.clientY - r.top) / r.height;
+    el.style.setProperty("--mx", `${Math.round(x * 100)}%`); el.style.setProperty("--my", `${Math.round(y * 100)}%`);
+    el.style.setProperty("--rx", `${((0.5 - y) * 10).toFixed(2)}deg`); el.style.setProperty("--ry", `${((x - 0.5) * 12).toFixed(2)}deg`);
+  };
+  const onLeave = (e: PointerEvent<HTMLElement>) => { for (const k of ["--mx", "--my", "--rx", "--ry"]) e.currentTarget.style.removeProperty(k); };
+
+  if (tier === "elite") {
+    return (
+      <article className={`lc lg lg--elite lc--${lot.variant}`} style={sizeStyle(width, height)} aria-label={`${lot.name} ${lot.year}`}>
+        <div className="lg-in">
+          <span className="lg-stars" aria-hidden />
+          <div className="lc-media" style={mediaStyle}>
+            <img src={lot.imageSrc} alt="" />
+            <span className="lg-rating" aria-hidden><b>{lot.year}</b><small>{lot.kind}</small></span>
+            {pills}
+            <Like name={lot.name} />
+          </div>
+          <div className="lc-body" style={bodyStyle}>
+            <p className="lc-name">{lot.name}</p>
+            <span className="lg-divider" aria-hidden />
+            <div className="lg-stats">{eliteStats(lot).map(([v, l]) => <span key={l}><b>{v}</b><small>{l}</small></span>)}</div>
+            {time}
+            <span className="lc-spacer" />
+            {price}
+          </div>
+          <span className="lg-neon" aria-hidden />
+        </div>
+      </article>
+    );
+  }
+  const media = (
+    <div className="lc-media" style={mediaStyle}>
+      <img src={lot.imageSrc} alt="" />
+      {pills}
+      <Like name={lot.name} />
+      <span className="lc-count">{I.camera}1/{lot.photos}</span>
+      <Dots />
+      {tier === "leyenda" ? <span className="lg-shine" aria-hidden /> : null}
+    </div>
+  );
+  if (tier === "holo") {
+    return (
+      <article className={`lc lg lg--holo lc--${lot.variant}`} style={sizeStyle(width, height)} aria-label={`${lot.name} ${lot.year}`}
+        onPointerMove={onMove} onPointerLeave={onLeave}>
+        {media}
+        <div className="lc-body" style={bodyStyle}>{head}{chips}{stats}{time}<span className="lc-spacer" />{price}</div>
+        <span className="lg-track" aria-hidden><i style={{ width: live ? progress : "100%" }} /></span>
+        <span className="lg-holo" aria-hidden />
+        <span className="lg-glare" aria-hidden />
+      </article>
+    );
+  }
+  return (
+    <article className={`lc lg lg--leyenda lc--${lot.variant}`} style={sizeStyle(width, height)} aria-label={`${lot.name} ${lot.year}`}>
+      <div className="lg-in">
+        {media}
+        <div className="lc-body" style={bodyStyle}>
+          {head}{chips}{stats}
+          {live ? <div className="lc-bar" aria-hidden><i style={{ width: progress }} /></div> : null}
+          {time}
+        </div>
+        <div className="lg-plaque">
+          {live ? <><SubasCoin size={26} /><span><small>{lot.price ? "Precio actual" : "Precio base"}</small><b>{lot.price ?? "Por definir"}</b></span></>
+            : <>{I.hands}<b>Haz tu oferta</b></>}
+        </div>
+      </div>
     </article>
   );
 }

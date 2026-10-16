@@ -28,24 +28,19 @@ import {
 } from "@vmc/concorde-adapter";
 
 import {
-  FichaCard, FichaPlus, FichaPro, GlassCard, ImmersiveCard, LotCardStyles, ReliefCard, SummaryCard,
-  type FichaLayout, type LotData, type ProTheme,
+  FichaCard, FichaLegend, FichaPlus, FichaPro, GlassCard, ImmersiveCard, LotCardStyles, ReliefCard, SummaryCard,
+  type FichaLayout, type LegendTier, type LotData, type ProTheme,
 } from "./LotCards";
+import VmcAhora, { type FeedView } from "./VmcAhora";
 import LogoLoop from "./reactbits/LogoLoop";
 
 const FOLD_HEIGHT = 388;
-const SECONDARY_WIDTH = 236;
 const GAP = 16;
 
 const FONT = "var(--vmc-font-display, 'Plus Jakarta Sans', -apple-system, sans-serif)";
 const SHADOW = "rgba(0,0,0,0.07) 0px 0px 16px 4px"; // sombra de las secciones del homepage
 const slot: CSSProperties = { boxSizing: "border-box", height: FOLD_HEIGHT, minWidth: 0, borderRadius: 16, overflow: "hidden", fontFamily: FONT };
 
-const ACTIVITY = [
-  { status: "live" as const, label: "EN VIVO · 5 min", title: "Subasta de vehículos", detail: "Lote 12 · Empresa Industrial", imageSrc: "/demo/inventory-suv-v1.png" },
-  { status: "proxima" as const, label: "NUEVO LOTE · 18 min", title: "Excavadora Caterpillar 320", detail: "Lote 88 · Pacífico", imageSrc: "/demo/inventory-excavator-v1.png" },
-  { status: "live" as const, label: "OFERTA · 32 min", title: "Nueva oferta recibida", detail: "Lote 24 · Ford F-150", imageSrc: "/demo/inventory-mosaic-v1.png" },
-];
 
 const BENEFITS = ["Activos verificados por empresas", "Proceso transparente y seguro", "Oportunidades todos los días"];
 
@@ -249,13 +244,78 @@ const CATEGORY_CSS = `
 .hib-cats--plain .hib-cat__icon { border: 0; background: none; box-shadow: none; }
 .hib-cats--plain .hib-cat__icon svg { width: 24px; height: 24px; }
 `;
-type CategoriesView = "normal" | "plain";
+type CategoriesView = "normal" | "plain" | "premium";
 const CATEGORIES_VIEWS: { id: CategoriesView; label: string; hint: string }[] = [
   { id: "normal", label: "Normal", hint: "Ícono en caja degradada" },
   { id: "plain", label: "Sin card", hint: "Solo el ícono" },
+  { id: "premium", label: "Premium", hint: "Fondo lila, ícono en cajita y destello" },
 ];
 
+// Vista «Premium» (referencia de producto): sección con fondo lila suave, título sin corchetes y enlace
+// con flecha; cards de vidrio blanco con la foto sobre lila, ícono en cajita blanca con sombra, flecha
+// en círculo que se llena al pasar y un destello que cruza la card.
+const CATEGORY_PREMIUM_CSS = `
+.hib-pcats { box-sizing: border-box; width: 766px; padding: 18px 16px 16px; border-radius: 16px; font-family: ${FONT};
+  background: radial-gradient(120% 140% at 0% 0%, #F4EFFF 0%, #EEE8FF 45%, #F8F5FF 100%); border: 1px solid #E6DEFF;
+  box-shadow: rgba(92,56,214,0.12) 0 12px 28px -12px; }
+.hib-pcats__head { display: flex; align-items: center; justify-content: space-between; padding: 0 4px 14px; }
+.hib-pcats__head h2 { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.01em; color: #1B1442; }
+.hib-pcats__all { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 700; color: #3B1782; text-decoration: none; }
+.hib-pcats__all svg { transition: transform 0.2s; }
+.hib-pcats__all:hover svg { transform: translateX(3px); }
+.hib-pcats ul { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+.hib-pcat { position: relative; display: flex; flex-direction: column; height: 100%; overflow: hidden; border-radius: 14px; color: inherit; text-decoration: none;
+  background: rgba(255,255,255,0.88); border: 1px solid rgba(255,255,255,0.95); box-shadow: rgba(76,40,200,0.12) 0 8px 22px -8px, inset 0 1px 0 #fff;
+  transition: transform 0.2s cubic-bezier(0.3,0,0,1), box-shadow 0.2s; }
+.hib-pcat:hover { transform: translateY(-4px); box-shadow: rgba(76,40,200,0.24) 0 16px 30px -10px; }
+.hib-pcat:focus-visible { outline: 2px solid #8460e5; outline-offset: 2px; }
+.hib-pcat::before { content: ""; position: absolute; top: 0; left: -60%; z-index: 2; width: 40%; height: 100%; pointer-events: none;
+  transform: skewX(-18deg); background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent); transition: left 0.6s ease; }
+.hib-pcat:hover::before { left: 130%; }
+.hib-pcat__media { position: relative; height: 96px; margin: 6px 6px 0; overflow: hidden; border-radius: 10px;
+  background: radial-gradient(80% 90% at 50% 40%, #FFFFFF 0%, #ECE6FF 100%); }
+.hib-pcat__media img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform 0.35s ease; }
+.hib-pcat:hover .hib-pcat__media img { transform: scale(1.06); }
+.hib-pcat__media::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(236,230,255,0) 55%, rgba(236,230,255,0.6) 100%); }
+.hib-pcat__foot { flex: 1; display: grid; grid-template-columns: 30px minmax(0,1fr) 20px; gap: 6px; align-items: center; padding: 9px 6px 9px 7px; }
+.hib-pcat__icon { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 9px; background: #fff; border: 1px solid #ECE6FF;
+  box-shadow: rgba(76,40,200,0.16) 0 4px 10px; }
+.hib-pcat__icon svg { width: 20px; height: 20px; }
+.hib-pcat__txt { display: grid; min-width: 0; }
+.hib-pcat__txt b { font-size: 11.5px; line-height: 1.2; color: #1B1442; }
+.hib-pcat__txt small { font-size: 10.5px; color: #6B6880; }
+.hib-pcat__go { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; color: #4A2CE0; background: #EEE8FF;
+  transition: background 0.2s, color 0.2s; }
+.hib-pcat:hover .hib-pcat__go { color: #fff; background: linear-gradient(135deg, #8460E5, #3B1782); }
+`;
+const ARROW = <svg width="12" height="12" viewBox="0 0 20 20" aria-hidden><path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+
 function CategoryRail({ view }: { view: CategoriesView }): JSX.Element {
+  if (view === "premium") {
+    return (
+      <section className="hib-pcats" aria-labelledby="hib-pcats-title">
+        <header className="hib-pcats__head">
+          <h2 id="hib-pcats-title">Explora por categoría</h2>
+          <a href="#" className="hib-pcats__all">Ver todas las categorías{ARROW}</a>
+        </header>
+        <ul>
+          {CATEGORIES.map(({ label, count, shape, imageSrc }) => (
+            <li key={label} style={{ display: "flex" }}>
+              <a href="#" className="hib-pcat" aria-label={`${label} · ${count}`}>
+                <span className="hib-pcat__media"><img src={imageSrc} alt="" /></span>
+                <span className="hib-pcat__foot">
+                  <span className="hib-pcat__icon"><GradIcon shape={shape} /></span>
+                  <span className="hib-pcat__txt"><b>{label}</b><small>{count}</small></span>
+                  <span className="hib-pcat__go" aria-hidden>{ARROW}</span>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+        <style>{CATEGORY_PREMIUM_CSS}</style>
+      </section>
+    );
+  }
   return (
     <section aria-label="Explora por categoría" style={{ boxSizing: "border-box", width: 766, padding: "20px 16px 16px", background: "#ffffff", borderRadius: 16, boxShadow: SHADOW, fontFamily: FONT }}>
       <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 8px" }}>
@@ -395,27 +455,6 @@ function CompaniesSection({ view }: { view: CompaniesView }): JSX.Element {
   );
 }
 
-// Secondary Banner 236 × 388: tres movimientos (el cuarto no entra sin cortarse) y «Ver toda la actividad».
-function ActivityFeed(): JSX.Element {
-  return (
-    <aside aria-label="VMC ahora" style={{ ...slot, width: SECONDARY_WIDTH, flex: "none", display: "flex", flexDirection: "column", padding: "12px 12px 8px", background: "#ffffff", boxShadow: SHADOW }}>
-      <CardTitle title="VMC ahora" subtitle="" titleSize={14} />
-      <ol style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-around", margin: "4px 0 0", padding: 0, listStyle: "none" }}>
-        {ACTIVITY.map((a, i) => (
-          <li key={a.title} style={{ display: "grid", gridTemplateColumns: "52px minmax(0, 1fr)", gap: 10, alignItems: "center", padding: "8px 0", borderTop: i ? "1px solid #E1E3E2" : "none" }}>
-            <img src={a.imageSrc} alt="" style={{ width: 52, height: 52, borderRadius: 8, objectFit: "cover" }} />
-            <div style={{ display: "grid", gap: 3, minWidth: 0 }}>
-              <span><BadgeStatus variant={a.status} label={a.label} /></span>
-              <strong style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: 13, color: "#3b1782" }}>{a.title}</strong>
-              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: 11, color: "#5b5b66" }}>{a.detail}</span>
-            </div>
-          </li>
-        ))}
-      </ol>
-      <div style={{ display: "flex", justifyContent: "flex-end" }}><ProfileButton>Ver toda la actividad</ProfileButton></div>
-    </aside>
-  );
-}
 
 // El primero es el destacado; los otros seis van en 2 filas de 3 a su derecha.
 const LOTS: LotData[] = [
@@ -451,7 +490,7 @@ const CAR_LOTS = ["Hyundai Grand i10", "Toyota Agya", "Kia Sportage"];
 
 // Estilo de las cards de lote. «normal» es el OfferCard de Concorde; «ficha» e «inmersiva» son variantes
 // nuevas del lab (LotCards.tsx). En «Card gallery» con un estilo nuevo, las chicas usan la Inmersiva chica.
-type CardStyle = "normal" | "ficha" | `pro-${ProTheme}` | `ficha-${FichaLayout}` | "inmersiva" | "resumen" | "relieve" | "cristal";
+type CardStyle = "normal" | "ficha" | `pro-${ProTheme}` | `leg-${LegendTier}` | `ficha-${FichaLayout}` | "inmersiva" | "resumen" | "relieve" | "cristal";
 const CARD_STYLES: { id: CardStyle; label: string; hint: string }[] = [
   { id: "normal", label: "Normal", hint: "OfferCard de Concorde" },
   { id: "ficha", label: "Ficha", hint: "Foto + datos, precio y estado" },
@@ -459,6 +498,9 @@ const CARD_STYLES: { id: CardStyle; label: string; hint: string }[] = [
   { id: "pro-nocturna", label: "Nocturna", hint: "Azul noche y ola naranja" },
   { id: "pro-curva", label: "Curva", hint: "Foto curva, datos en cajitas" },
   { id: "pro-fundido", label: "Fundido", hint: "Foto que se funde en oscuro" },
+  { id: "leg-leyenda", label: "Leyenda", hint: "Borde que gira y placa de precio" },
+  { id: "leg-holo", label: "Holo", hint: "Foil holográfico y franja-contador" },
+  { id: "leg-elite", label: "Élite", hint: "Carta FIFA con stats y neón" },
   { id: "ficha-cta", label: "Ficha + botón", hint: "La Ficha con «Ver detalle»" },
   { id: "ficha-precio", label: "Precio primero", hint: "Precio bajo el título" },
   { id: "ficha-cuenta", label: "Cuenta regresiva", hint: "Tiempo sobre la foto" },
@@ -535,7 +577,8 @@ function LotsSection({ view, card }: { view: LotsView; card: CardStyle }): JSX.E
   const count = view === "normal" ? 4 : view === "featured" ? 4 : LOTS.length;
   // Card «grande» según el estilo elegido (en Normal, el OfferCard de Concorde).
   const big = (lot: Lot, o: { featured?: boolean; width?: number | string; height?: number | string; fill?: boolean } = {}) =>
-    card.startsWith("pro-") ? <FichaPro key={lot.name} lot={lot} theme={card.slice(4) as ProTheme} featured={o.featured} width={o.width} height={o.height} mediaFill={o.fill} />
+    card.startsWith("leg-") ? <FichaLegend key={lot.name} lot={lot} tier={card.slice(4) as LegendTier} featured={o.featured} width={o.width} height={o.height} mediaFill={o.fill} />
+      : card.startsWith("pro-") ? <FichaPro key={lot.name} lot={lot} theme={card.slice(4) as ProTheme} featured={o.featured} width={o.width} height={o.height} mediaFill={o.fill} />
       : card.startsWith("ficha-") ? <FichaPlus key={lot.name} lot={lot} layout={card.slice(6) as FichaLayout} featured={o.featured} width={o.width} height={o.height} mediaFill={o.fill} />
       : card === "ficha" ? <FichaCard key={lot.name} lot={lot} featured={o.featured} width={o.width} height={o.height} mediaFill={o.fill} />
       : card === "resumen" ? <SummaryCard key={lot.name} lot={lot} featured={o.featured} width={o.width} height={o.height} mediaFill={o.fill} />
@@ -604,6 +647,12 @@ function LotsSection({ view, card }: { view: LotsView; card: CardStyle }): JSX.E
   );
 }
 
+const FEED_VIEWS: { id: FeedView; label: string; hint: string }[] = [
+  { id: "normal", label: "Normal", hint: "Insignia, título y foto" },
+  { id: "timeline", label: "Timeline", hint: "Estilo X / Twitter" },
+  { id: "pulso", label: "Pulso", hint: "Oscuro, en directo" },
+];
+
 // Selector flotante de vistas, pegado a la derecha del bloque (fuera de los 798 del homepage). Solo QA.
 const SWITCH_CSS = `
 .hib-switches { position: absolute; top: 0; left: calc(100% + 32px); z-index: 5; display: flex; flex-direction: column; gap: 12px;
@@ -641,15 +690,17 @@ export default function HomeIndexBlock(): JSX.Element {
   const [lotsView, setLotsView] = useState<LotsView>("gallery");
   const [cardStyle, setCardStyle] = useState<CardStyle>("normal");
   const [companiesView, setCompaniesView] = useState<CompaniesView>("normal");
+  const [feedView, setFeedView] = useState<FeedView>("normal");
   const [categoriesView, setCategoriesView] = useState<CategoriesView>("normal");
   // Orden: hero + actividad · Lotes para explorar · banner de campaña · Explora por categoría · Empresas y vendedores ·
   // Tipo de oferta y Categorías.
   // Columna con el mismo margen (16) y separación (16) que el bloque de Concorde; el alto lo da el contenido.
   return (
     <div data-block="homepage" style={{ width: HOMEPAGE_WIDTH, padding: "16px 0", boxSizing: "border-box", background: "#ffffff", display: "flex", flexDirection: "column", alignItems: "center", gap: GAP }}>
-      <div style={{ width: 766, display: "flex", gap: GAP }}>
+      <div style={{ position: "relative", width: 766, display: "flex", gap: GAP }}>
         <div data-slot="principal-banner" style={{ flex: 1, minWidth: 0, display: "flex" }}><PrincipalBanner /></div>
-        <div data-slot="secondary-banner" style={{ display: "flex" }}><ActivityFeed /></div>
+        <div data-slot="secondary-banner" style={{ display: "flex" }}><VmcAhora view={feedView} /></div>
+        <Switches><ViewSwitch title="VMC ahora" options={FEED_VIEWS} value={feedView} onChange={setFeedView} /></Switches>
       </div>
       <div style={{ position: "relative" }}>
         <LotsSection view={lotsView} card={cardStyle} />
