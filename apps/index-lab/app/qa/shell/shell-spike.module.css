@@ -1,0 +1,56 @@
+.desktopShell {
+  display: flex;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.sidebarRail {
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  flex: 0 0 auto;
+}
+
+.mainColumn {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.mobileShell {
+  display: none;
+}
+
+.diagnosticContent {
+  max-width: 960px;
+  padding: 24px;
+}
+
+.diagnosticLabel {
+  font-family: monospace;
+}
+
+.measurementSection {
+  min-height: 70vh;
+  padding-block: 32px;
+}
+
+.logoPlaceholder {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.mobileBrandSlot {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (max-width: 899px) {
+  .desktopShell {
+    display: none;
+  }
+
+  .mobileShell {
+    display: block;
+  }
+}

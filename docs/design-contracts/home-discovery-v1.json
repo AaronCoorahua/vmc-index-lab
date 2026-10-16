@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "cutId": "home-discovery-v1",
+  "deliveryClass": "concept-prototype",
+  "phase": "pre-v1-baseline",
+  "concorde": {
+    "source": "config/concorde-source.json",
+    "revision": "40d1be50206021157d9d6ad81327df8ba25486a4",
+    "tree": "5d142a656dba74518e46b2c192cce946d15b075f"
+  },
+  "implementation": {
+    "entrypoint": "apps/index-lab/app/qa/home-discovery/page.tsx",
+    "files": [
+      "apps/index-lab/app/qa/home-discovery/page.tsx",
+      "apps/index-lab/app/qa/home-discovery/HomeDiscovery.tsx"
+    ]
+  },
+  "components": [
+    { "name": "Button", "sourcePath": "frontend/concorde/components/Button.tsx", "props": ["variant=primary", "variant=negotiable"], "usage": "CTAs estáticos" },
+    { "name": "BadgeStatus", "sourcePath": "frontend/concorde/components/BadgeStatus.tsx", "props": ["variant=live", "variant=proxima", "label"], "usage": "estados demostrativos del feed" },
+    { "name": "OfferCard", "sourcePath": "frontend/concorde/components/OfferCard.tsx", "props": ["variant=live", "variant=negotiable", "size=full", "size=short", "name", "year", "price", "imageSrc", "imageAlt", "interactive=false", "elevated"], "usage": "rails demostrativos" },
+    { "name": "CategoryCard", "sourcePath": "frontend/concorde/components/CategoryCard.tsx", "props": ["category", "label"], "usage": "categorías estáticas" }
+  ],
+  "foundations": {
+    "tokens": ["--vmc-font-display", "--vmc-color-vault-500", "--vmc-color-vault-700"],
+    "styleAuthority": "concorde-concept-not-current-index"
+  },
+  "localCss": {
+    "files": ["apps/index-lab/app/qa/home-discovery/HomeDiscovery.module.css"],
+    "allowed": ["layout", "responsive", "asset-placement"],
+    "waivers": []
+  },
+  "references": [
+    { "id": "HOME-REFERENCE", "status": "hierarchy-only", "voyager": "unverified" },
+    { "id": "VMC-LIVE-INDEX", "url": "https://www.vmcsubastas.com/", "reviewedAt": "2026-10-13", "status": "current-index-baseline" }
+  ],
+  "assets": [
+    { "path": "apps/index-lab/public/demo/inventory-suv-v1.png", "sha256": "6a18b2fe050362c7516126bde7cd8dc5b06988a2f85ccd032a6a979dafd01aa8", "kind": "generated-demo", "scope": "QA only", "origin": { "provider": "integrated-image-generation", "createdAt": "2026-10-13", "rights": "generated fixture; no external inventory claim" } },
+    { "path": "apps/index-lab/public/demo/inventory-excavator-v1.png", "sha256": "f2f1121da2808ca7cf8ecb7f951b0b0f863ac056016b5c4dbc76fcc71e5e88c0", "kind": "generated-demo", "scope": "QA only", "origin": { "provider": "integrated-image-generation", "createdAt": "2026-10-13", "rights": "generated fixture; no external inventory claim" } },
+    { "path": "apps/index-lab/public/demo/inventory-forklift-v1.png", "sha256": "e9df263421386063c150dbb1616aa852a64d941cac5b21219318a8a408eede65", "kind": "generated-demo", "scope": "QA only", "origin": { "provider": "integrated-image-generation", "createdAt": "2026-10-13", "rights": "generated fixture; no external inventory claim" } },
+    { "path": "apps/index-lab/public/demo/inventory-steel-v1.png", "sha256": "16783de17a2795c0607c49ea0b1d9a59b6ce69d523a1948d9d7334f10917e452", "kind": "generated-demo", "scope": "QA only", "origin": { "provider": "integrated-image-generation", "createdAt": "2026-10-13", "rights": "generated fixture; no external inventory claim" } }
+  ],
+  "approval": {
+    "owner": "Julio",
+    "approvedAt": "2026-10-13",
+    "decisionPacket": "docs/decisions/HOME-DISCOVERY-DECISION-PACKET-v1.md"
+  }
+}

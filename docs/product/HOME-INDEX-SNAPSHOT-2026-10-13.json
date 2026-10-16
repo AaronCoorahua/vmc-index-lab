@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "kind": "planning-snapshot",
+  "status": "read-only-reference-urls-captured; local-assets-and-offer-destinations-pending",
+  "capturedAt": "2026-10-13",
+  "expiresAt": "2026-10-14",
+  "source": {
+    "id": "VMC-WEB-HOME",
+    "url": "https://www.vmcsubastas.com/",
+    "retrieval": "official page reviewed through web retrieval",
+    "scope": "V1 planning only; not a live data feed"
+  },
+  "navigation": [
+    { "label": "En vivo", "href": "https://www.vmcsubastas.com/en-vivo.html", "status": "captured" },
+    { "label": "Negociable", "href": "https://www.vmcsubastas.com/negociable.html", "status": "captured" },
+    { "label": "Vehicular", "href": "https://www.vmcsubastas.com/subastas/vehicular.html", "status": "captured" },
+    { "label": "Equipos diversos", "href": "https://www.vmcsubastas.com/subastas/equiposdiversos.html", "status": "captured" },
+    { "label": "Artículos diversos", "href": "https://www.vmcsubastas.com/subastas/articulosdiversos.html", "status": "captured" },
+    { "label": "Vende tu auto", "href": "https://www.vmcsubastas.com/landing-subascars", "status": "captured" },
+    { "label": "Centro de Ayuda", "href": "https://www.vmcsubastas.com/centro-de-ayuda", "status": "captured" }
+  ],
+  "campaigns": [
+    { "label": "Publica tu auto", "href": "https://www.vmcsubastas.com/landing-subascars", "placement": "secondary-banner-after-rails", "asset": { "status": "pending-provenance-and-hash", "useInQA": false } },
+    { "label": "Subaspass", "href": "https://www.vmcsubastas.com/subaspass", "placement": "secondary-banner-after-rails", "asset": { "status": "pending-provenance-and-hash", "useInQA": false } }
+  ],
+  "categories": [
+    { "label": "Vehicular", "concordeCategory": "vehicular", "href": "https://www.vmcsubastas.com/subastas/vehicular.html" },
+    { "label": "Equipos diversos", "concordeCategory": "equipos-diversos", "href": "https://www.vmcsubastas.com/subastas/equiposdiversos.html" },
+    { "label": "Artículos diversos", "concordeCategory": "articulos-diversos", "href": "https://www.vmcsubastas.com/subastas/articulosdiversos.html" }
+  ],
+  "reviewRails": [
+    {
+      "store": "Pacífico",
+      "storeHref": "https://www.vmcsubastas.com/pacifico.html",
+      "offerCount": 2,
+      "offers": [
+        { "name": "Toyota Yaris", "year": 2022, "price": "US$ 2,799", "detailHref": null, "image": { "referenceUrl": "https://cdn.vmcsubastas.com/images/auction/63630/s_6acd4d347f629.jpeg", "mode": "external-read-only", "status": "not-copied-not-used-in-QA" } },
+        { "name": "Hyundai Grand i10", "year": 2027, "price": "US$ 2,199", "detailHref": null, "image": { "referenceUrl": "https://cdn.vmcsubastas.com/images/auction/63631/s_6acd4e95ab99d.jpeg", "mode": "external-read-only", "status": "not-copied-not-used-in-QA" } }
+      ]
+    },
+    {
+      "store": "SubasCars",
+      "storeHref": "https://www.vmcsubastas.com/subascars.html",
+      "offerCount": 6,
+      "offers": [
+        { "name": "Toyota Agya", "year": 2023, "price": null, "detailHref": null, "image": { "referenceUrl": "https://cdn.vmcsubastas.com/images/auction/63560/s_6a9b40c7c78a6.jpg", "mode": "external-read-only", "status": "not-copied-not-used-in-QA" } },
+        { "name": "Jac Refine", "year": 2022, "price": null, "detailHref": null, "image": { "referenceUrl": "https://cdn.vmcsubastas.com/images/auction/63584/s_6ac57d9db1854.jpg", "mode": "external-read-only", "status": "not-copied-not-used-in-QA" } },
+        { "name": "Volkswagen Gol Sedan", "year": 2016, "price": null, "detailHref": null, "image": { "status": "pending-provenance-and-hash" } },
+        { "name": "Great Wall Wingle 5", "year": 2014, "price": null, "detailHref": null, "image": { "status": "pending-provenance-and-hash" } }
+      ]
+    }
+  ],
+  "activity": {
+    "default": "help-fallback",
+    "reason": "The navigation and agenda expose counts and schedules but do not provide a captured activity item with a stable event identifier or direct event URL.",
+    "eligibleWhen": ["stable event id or direct URL", "title", "explicit status", "date or time", "valid capture timestamp"]
+  },
+  "integrity": {
+    "assetHashes": "pending; no remote campaign or inventory asset may enter QA before a local provenance record and SHA-256",
+    "offerDestinationMatrix": "pending; OfferCards remain static in V1",
+    "contentHash": "recorded in HOME-INDEX-SNAPSHOT-2026-10-13.sha256"
+  }
+}

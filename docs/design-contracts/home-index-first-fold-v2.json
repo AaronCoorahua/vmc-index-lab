@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "cutId": "home-index-first-fold-v2",
+  "state": "authorized-local-candidates",
+  "deliveryClass": "system-candidate",
+  "phase": "v2-tailored-design",
+  "concordeOnly": {
+    "enforced": true,
+    "exception": null
+  },
+  "concorde": {
+    "source": "config/concorde-source.json",
+    "revision": "40d1be50206021157d9d6ad81327df8ba25486a4",
+    "tree": "5d142a656dba74518e46b2c192cce946d15b075f"
+  },
+  "implementation": {
+    "state": "first-fold-only",
+    "entrypoint": "apps/index-lab/app/qa/home-index-rebase/page.tsx",
+    "files": [
+      "apps/index-lab/app/qa/home-index-rebase/page.tsx",
+      "apps/index-lab/app/qa/home-index-rebase/HomeIndexRebase.tsx",
+      "apps/index-lab/app/qa/home-index-rebase/HomeIndexRebase.module.css",
+      "apps/index-lab/app/qa/home-index-rebase/components/HomeOpportunityHero.tsx",
+      "apps/index-lab/app/qa/home-index-rebase/components/HomeOpportunityHero.module.css",
+      "apps/index-lab/app/qa/home-index-rebase/components/ActivityFeedPanel.tsx",
+      "apps/index-lab/app/qa/home-index-rebase/components/ActivityFeedPanel.module.css"
+    ]
+  },
+  "components": [
+    { "name": "Header", "sourcePath": "frontend/concorde/bloques/header/desktop/Header.tsx", "props": ["width=100%", "logo", "compact"], "usage": "bloque completo de header" },
+    { "name": "Sidebar", "sourcePath": "frontend/concorde/bloques/sidebar/desktop/Sidebar.tsx", "props": ["logo", "defaultActiveId", "height=100dvh", "contentHeight=1042"], "usage": "bloque completo de navegación" },
+    { "name": "Button", "sourcePath": "frontend/concorde/components/Button.tsx", "props": ["variant=primary"], "usage": "CTA dentro del hero local" },
+    { "name": "BadgeStatus", "sourcePath": "frontend/concorde/components/BadgeStatus.tsx", "props": ["variant=proxima", "label=GUÍA", "icon=false"], "usage": "etiqueta editorial, no evento vivo" },
+    { "name": "OfferCard", "sourcePath": "frontend/concorde/components/OfferCard.tsx", "props": ["variant", "size=full", "name", "year", "price", "imageSrc", "imageAlt", "interactive=false", "elevated"], "usage": "primer rail estático" },
+    { "name": "CardTitle", "sourcePath": "frontend/concorde/components/CardTitle.tsx", "props": ["title", "subtitle", "titleSize", "subtitleSize"], "usage": "encabezado del rail" },
+    { "name": "CategoryCard", "sourcePath": "frontend/concorde/components/CategoryCard.tsx", "props": ["category", "label"], "usage": "sección heredada no modificada" }
+  ],
+  "foundations": {
+    "tokens": ["--vmc-font-display", "--vmc-color-vault-400", "--vmc-color-vault-500", "--vmc-color-vault-700", "--vmc-color-vault-900", "--vmc-color-base-white", "--vmc-color-neutral-700", "--vmc-radius-full"],
+    "styleAuthority": "concorde"
+  },
+  "localCss": {
+    "files": [
+      "apps/index-lab/app/qa/home-index-rebase/HomeIndexRebase.module.css",
+      "apps/index-lab/app/qa/home-index-rebase/components/HomeOpportunityHero.module.css",
+      "apps/index-lab/app/qa/home-index-rebase/components/ActivityFeedPanel.module.css"
+    ],
+    "allowed": ["layout", "responsive", "asset-placement"],
+    "waivers": []
+  },
+  "localCandidates": [
+    {
+      "id": "home-opportunity-hero",
+      "files": ["apps/index-lab/app/qa/home-index-rebase/components/HomeOpportunityHero.module.css"],
+      "authorizedBy": "Julio",
+      "authorizedAt": "2026-10-13",
+      "visualDeclarations": [
+        { "property": "border-radius", "value": "20px" },
+        { "property": "font-size", "value": "clamp(2rem, 3vw, 3.25rem)" },
+        { "property": "line-height", "value": "1.04" }
+      ]
+    },
+    {
+      "id": "activity-feed-panel",
+      "files": ["apps/index-lab/app/qa/home-index-rebase/components/ActivityFeedPanel.module.css"],
+      "authorizedBy": "Julio",
+      "authorizedAt": "2026-10-13",
+      "visualDeclarations": [
+        { "property": "border-radius", "value": "20px" },
+        { "property": "font-size", "value": "1rem" },
+        { "property": "line-height", "value": "1.35" },
+        { "property": "border-bottom", "value": "1px solid var(--vmc-color-vault-400)" }
+      ]
+    }
+  ],
+  "references": [
+    { "id": "VMC-WEB-HOME", "url": "https://www.vmcsubastas.com/", "reviewedAt": "2026-10-13", "status": "read-only current-index baseline" },
+    { "id": "HOME-REFERENCE", "status": "hierarchy-and-flow-only", "record": "docs/research/HOME-REFERENCE-RECORD.md" }
+  ],
+  "assets": [
+    { "path": "apps/index-lab/public/assets/brand/logo-voyager.svg", "sha256": "b81cbec124ff72c427936e4e4398f9e2b6955db234cc2c60d100186ab44a74e1", "kind": "canonical-vmc-brand-asset", "scope": "QA only; copied from the pinned Concorde source for browser delivery", "origin": { "provider": "pinned-concorde", "sourcePath": "widget/logo-voyager.svg", "revision": "40d1be50206021157d9d6ad81327df8ba25486a4", "createdAt": "2026-10-12", "rights": "VMC internal brand asset; QA reuse only" } },
+    { "path": "apps/index-lab/public/demo/inventory-suv-v1.png", "sha256": "6a18b2fe050362c7516126bde7cd8dc5b06988a2f85ccd032a6a979dafd01aa8", "kind": "generated-illustrative-fixture", "scope": "QA only; does not represent current inventory", "origin": { "provider": "integrated-image-generation", "createdAt": "2026-10-13", "rights": "generated fixture" } },
+    { "path": "apps/index-lab/public/demo/inventory-excavator-v1.png", "sha256": "f2f1121da2808ca7cf8ecb7f951b0b0f863ac056016b5c4dbc76fcc71e5e88c0", "kind": "generated-illustrative-fixture", "scope": "QA only; does not represent current inventory", "origin": { "provider": "integrated-image-generation", "createdAt": "2026-10-13", "rights": "generated fixture" } }
+  ],
+  "approval": {
+    "owner": "Julio",
+    "state": "authorized-local-v2-candidates-2026-10-13",
+    "componentMap": "docs/design-system/HOME-INDEX-FIRST-FOLD-V2-COMPONENT-MAP.md",
+    "decisionPacket": "docs/decisions/HOME-INDEX-FIRST-FOLD-V2-DECISION-PACKET.md"
+  }
+}

@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "cutId": "home-index-concorde-only-v1",
+  "state": "active-reference-composition",
+  "deliveryClass": "system-candidate",
+  "phase": "v2-tailored-design",
+  "concordeOnly": {
+    "enforced": true,
+    "exception": {
+      "status": "explicitly-approved",
+      "requestedBy": "Julio",
+      "requestedAt": "2026-10-13",
+      "requestRecord": "Conversación Home: crear componentes a raíz de Concorde y sus tokens cuando falte el bloque; ejecutar la reinterpretación de la referencia.",
+      "scope": "Home QA: hero fotográfico con controles, feed de actividad y banner editorial; la composición usa los bloques completos Header 798 px + Sidebar 226 px para un canvas de 1024 px. No modifica Concorde ni repositorios vecinos.",
+      "files": [
+        "apps/index-lab/app/qa/home-index-rebase/components/HomeOpportunityHero.module.css",
+        "apps/index-lab/app/qa/home-index-rebase/components/ActivityFeedPanel.module.css",
+        "apps/index-lab/app/qa/home-index-rebase/components/HomeCampaignBanner.module.css",
+        "apps/index-lab/app/qa/home-index-rebase/HomeIndexRebase.module.css"
+      ],
+      "expires": "2026-11-13"
+    }
+  },
+  "concorde": {
+    "source": "config/concorde-v2-source.json",
+    "revision": "concorde-v2-registry-aligned-2026-10-13",
+    "tree": "31b86922bd412953d2a4dadb28dbe217c75c1a5606fc53a0c24ee7d479508291"
+  },
+  "implementation": {
+    "entrypoint": "apps/index-lab/app/qa/home-index-rebase/page.tsx",
+    "fontLayout": "apps/index-lab/app/qa/home-index-rebase/layout.tsx",
+    "files": [
+      "apps/index-lab/app/qa/home-index-rebase/page.tsx",
+      "apps/index-lab/app/qa/home-index-rebase/HomeIndexRebase.tsx",
+      "apps/index-lab/app/qa/home-index-rebase/HomeIndexRebase.module.css",
+      "apps/index-lab/app/qa/home-index-rebase/components/HomeOpportunityHero.tsx",
+      "apps/index-lab/app/qa/home-index-rebase/components/HomeOpportunityHero.module.css",
+      "apps/index-lab/app/qa/home-index-rebase/components/ActivityFeedPanel.tsx",
+      "apps/index-lab/app/qa/home-index-rebase/components/ActivityFeedPanel.module.css",
+      "apps/index-lab/app/qa/home-index-rebase/components/HomeCampaignBanner.tsx",
+      "apps/index-lab/app/qa/home-index-rebase/components/HomeCampaignBanner.module.css"
+    ]
+  },
+  "components": [
+    { "name": "Header", "sourcePath": "apps/index-lab/concorde/bloques/header/desktop/Header.tsx", "props": ["width=100%", "compact", "logo"], "usage": "complete 798 px header block in the main column; mobile uses its public logo slot" },
+    { "name": "Sidebar", "sourcePath": "apps/index-lab/concorde/bloques/sidebar/desktop/Sidebar.tsx", "props": ["logo", "defaultActiveId=hoy", "height", "contentHeight", "headerHeight=64"], "usage": "complete 226 px desktop sidebar block with canonical logo and hamburger; its official navigation frame starts below the header" },
+    { "name": "OfferCard", "sourcePath": "apps/index-lab/concorde/components/OfferCard.tsx", "props": ["variant", "size=full", "name", "year", "price", "imageSrc", "badge"], "usage": "unaltered public cards in structural horizontal rails" },
+    { "name": "BadgeStatus", "sourcePath": "apps/index-lab/concorde/components/BadgeStatus.tsx", "props": ["variant", "label"], "usage": "official live/upcoming state in OfferCard and feed public slots" },
+    { "name": "CardTitle", "sourcePath": "apps/index-lab/concorde/components/CardTitle.tsx", "props": ["title", "subtitle", "titleSize", "subtitleSize"], "usage": "official section and store titles" },
+    { "name": "ProfileButton", "sourcePath": "apps/index-lab/concorde/components/ProfileButton.tsx", "props": ["children"], "usage": "official store access and final vendor summary links" },
+    { "name": "CategoryCard", "sourcePath": "apps/index-lab/concorde/components/CategoryCard.tsx", "props": ["category", "label", "onClick"], "usage": "official category cards paired with approved fixture images" },
+    { "name": "Button", "sourcePath": "apps/index-lab/concorde/components/Button.tsx", "props": ["variant=primary", "children"], "usage": "official calls to action inside local candidates" }
+  ],
+  "foundations": {
+    "tokens": ["--vmc-font-display", "--vmc-font-mono", "--vmc-color-base-white", "--vmc-color-ink", "--vmc-color-vault-700", "--vmc-color-vault-900", "--vmc-color-orange-600", "--vmc-radius-xl", "--vmc-shadow-card"],
+    "styleAuthority": "concorde",
+    "fonts": { "display": "Plus Jakarta Sans", "mono": "Roboto Mono", "loader": "next/font/google", "scope": "Home QA route" }
+  },
+  "localCss": {
+    "files": [
+      "apps/index-lab/app/qa/home-index-rebase/HomeIndexRebase.module.css",
+      "apps/index-lab/app/qa/home-index-rebase/components/HomeOpportunityHero.module.css",
+      "apps/index-lab/app/qa/home-index-rebase/components/ActivityFeedPanel.module.css",
+      "apps/index-lab/app/qa/home-index-rebase/components/HomeCampaignBanner.module.css"
+    ],
+    "allowed": ["layout", "responsive", "asset-placement"],
+    "waivers": []
+  },
+  "localCandidates": [
+    {
+      "id": "home-opportunity-hero",
+      "authorizedBy": "Julio",
+      "authorizedAt": "2026-10-13",
+      "files": ["apps/index-lab/app/qa/home-index-rebase/components/HomeOpportunityHero.module.css"],
+      "visualDeclarations": [
+        { "property": "background", "value": "verified-token" }, { "property": "color", "value": "verified-token" }, { "property": "box-shadow", "value": "verified-token" }, { "property": "font-family", "value": "verified-token" }, { "property": "font-size", "value": "verified-token" }, { "property": "font-weight", "value": "verified-token" }, { "property": "line-height", "value": "verified-token" }, { "property": "letter-spacing", "value": "verified-token" }, { "property": "border", "value": "verified-token" }, { "property": "border-top", "value": "verified-token" }, { "property": "border-right", "value": "verified-token" }, { "property": "border-radius", "value": "verified-token" }, { "property": "backdrop-filter", "value": "verified-token" }
+      ]
+    },
+    {
+      "id": "home-activity-feed",
+      "authorizedBy": "Julio",
+      "authorizedAt": "2026-10-13",
+      "files": ["apps/index-lab/app/qa/home-index-rebase/components/ActivityFeedPanel.module.css"],
+      "visualDeclarations": [
+        { "property": "background", "value": "verified-token" }, { "property": "color", "value": "verified-token" }, { "property": "box-shadow", "value": "verified-token" }, { "property": "font-family", "value": "verified-token" }, { "property": "font-size", "value": "verified-token" }, { "property": "font-weight", "value": "verified-token" }, { "property": "line-height", "value": "verified-token" }, { "property": "border-bottom", "value": "verified-token" }, { "property": "border-radius", "value": "verified-token" }
+      ]
+    },
+    {
+      "id": "home-editorial-machinery-banner",
+      "authorizedBy": "Julio",
+      "authorizedAt": "2026-10-13",
+      "files": ["apps/index-lab/app/qa/home-index-rebase/components/HomeCampaignBanner.module.css"],
+      "visualDeclarations": [
+        { "property": "background", "value": "verified-token" }, { "property": "color", "value": "verified-token" }, { "property": "box-shadow", "value": "verified-token" }, { "property": "font-family", "value": "verified-token" }, { "property": "font-size", "value": "verified-token" }, { "property": "font-weight", "value": "verified-token" }, { "property": "line-height", "value": "verified-token" }, { "property": "letter-spacing", "value": "verified-token" }, { "property": "border", "value": "verified-token" }, { "property": "border-left", "value": "verified-token" }, { "property": "border-top", "value": "verified-token" }, { "property": "border-radius", "value": "verified-token" }
+      ]
+    }
+  ],
+  "references": [
+    { "id": "HOME-REFERENCE", "status": "hierarchy-only", "record": "docs/research/HOME-REFERENCE-RECORD.md" }
+  ],
+  "assets": [
+    { "path": "apps/index-lab/public/assets/brand/logo-voyager.svg", "sha256": "b81cbec124ff72c427936e4e4398f9e2b6955db234cc2c60d100186ab44a74e1", "kind": "canonical-vmc-brand-asset", "scope": "QA only", "origin": { "provider": "Concorde V2 runtime", "createdAt": "2026-10-13", "rights": "VMC internal brand asset" } },
+    { "path": "apps/index-lab/public/demo/inventory-suv-v1.png", "sha256": "6a18b2fe050362c7516126bde7cd8dc5b06988a2f85ccd032a6a979dafd01aa8", "kind": "fixture", "scope": "QA only", "origin": { "provider": "generated fixture", "createdAt": "2026-10-13", "rights": "internal QA" } },
+    { "path": "apps/index-lab/public/demo/inventory-mosaic-v1.png", "sha256": "a3eae1fd3824e39f2e719d0b02bc496fcb703134cc7b4d13ea941f29728f594b", "kind": "fixture", "scope": "QA only", "origin": { "provider": "generated fixture", "createdAt": "2026-10-13", "rights": "internal QA" } },
+    { "path": "apps/index-lab/public/demo/inventory-forklift-v1.png", "sha256": "e9df263421386063c150dbb1616aa852a64d941cac5b21219318a8a408eede65", "kind": "fixture", "scope": "QA only", "origin": { "provider": "generated fixture", "createdAt": "2026-10-13", "rights": "internal QA" } },
+    { "path": "apps/index-lab/public/demo/inventory-excavator-v1.png", "sha256": "f2f1121da2808ca7cf8ecb7f951b0b0f863ac056016b5c4dbc76fcc71e5e88c0", "kind": "fixture", "scope": "QA only", "origin": { "provider": "generated fixture", "createdAt": "2026-10-13", "rights": "internal QA" } },
+    { "path": "apps/index-lab/public/demo/inventory-steel-v1.png", "sha256": "16783de17a2795c0607c49ea0b1d9a59b6ce69d523a1948d9d7334f10917e452", "kind": "fixture", "scope": "QA only", "origin": { "provider": "generated fixture", "createdAt": "2026-10-13", "rights": "internal QA" } }
+  ],
+  "approval": {
+    "owner": "Julio",
+    "state": "automatic-safe-rebase-after-concorde-only-audit-2026-10-13",
+    "componentMap": "docs/design-system/HOME-INDEX-CONCORDE-ONLY-V1-COMPONENT-MAP.md",
+    "decisionPacket": "docs/decisions/HOME-INDEX-CONCORDE-ONLY-V1-DECISION-PACKET.md"
+  }
+}

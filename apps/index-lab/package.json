@@ -1,0 +1,29 @@
+{
+  "name": "@vmc/index-lab",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build --webpack",
+    "start": "next start",
+    "lint": "eslint . --max-warnings=0",
+    "test:routes": "node scripts/test-routes.mjs"
+  },
+  "dependencies": {
+    "@vmc/concorde-adapter": "*",
+    "next": "16.4.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "20.19.43",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.4",
+    "globals": "17.13.0",
+    "tailwindcss": "4.3.3",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.71.2"
+  }
+}

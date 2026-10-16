@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "kind": "materialized-concorde-v2",
+  "snapshotId": "concorde-v2-registry-aligned-2026-10-13",
+  "sourceManifest": "docs/design-system/CONCORDE-V2-ZIP-SOURCE-MANIFEST.md",
+  "zipSha256": "9cd470486a35e6b3f894099f1d8a5ee05c8b9c4d913e2865be182af2a5fab99c",
+  "runtimeRoot": "apps/index-lab/concorde",
+  "runtimeFileCount": 42,
+  "runtimeTreeSha256": "31b86922bd412953d2a4dadb28dbe217c75c1a5606fc53a0c24ee7d479508291",
+  "alignmentRecord": "docs/design-system/CONCORDE-REGISTRY-ALIGNMENT-2026-10-13.md",
+  "registry": "https://concorde-v2-theta.vercel.app/r/registry.json",
+  "capturedAt": "2026-10-13",
+  "note": "The runtime snapshot is materialized in this laboratory and verified by a deterministic path:sha256 tree digest. It is never refreshed from the live registry during verification."
+}

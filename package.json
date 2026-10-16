@@ -1,0 +1,45 @@
+{
+  "name": "vmc-ux-ui-lab",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "npm@11.17.0",
+  "engines": {
+    "node": "24.19.x",
+    "npm": "11.17.x"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "devDependencies": {
+    "eslint": "10.12.0",
+    "playwright-core": "1.64.0"
+  },
+  "scripts": {
+    "bootstrap:concorde": "node scripts/bootstrap-concorde.mjs",
+    "verify:concorde": "node scripts/bootstrap-concorde.mjs --verify-only",
+    "verify:concorde-v2": "node scripts/verify-concorde-v2.mjs",
+    "verify:boundaries": "node scripts/verify-boundaries.mjs",
+    "verify:provenance": "node scripts/verify-design-system.mjs provenance",
+    "verify:cut-contract": "node scripts/verify-design-system.mjs cut-contract",
+    "verify:concorde-contract": "node scripts/verify-design-system.mjs concorde-contract",
+    "verify:concorde-only": "node scripts/verify-design-system.mjs concorde-only",
+    "verify:styles": "node scripts/verify-design-system.mjs styles",
+    "audit:design-system": "node scripts/verify-design-system.mjs audit",
+    "readiness:v1": "node scripts/verify-design-system.mjs readiness concorde-fit",
+    "verify:design-system": "node scripts/verify-active-delivery-class.mjs",
+    "verify:system-candidate": "node scripts/verify-design-system.mjs require system-candidate",
+    "dev": "npm run dev --workspace @vmc/index-lab",
+    "start": "npm run start --workspace @vmc/index-lab",
+    "build": "npm run build --workspace @vmc/index-lab",
+    "lint": "npm run lint --workspace @vmc/index-lab",
+    "test:routes": "npm run test:routes --workspace @vmc/index-lab",
+    "verify:home-first-fold": "node scripts/verify-home-first-fold.mjs",
+    "evidence:home-discovery": "node scripts/capture-home-discovery-evidence.mjs",
+    "evidence:home-index-rebase": "node scripts/capture-home-index-rebase-evidence.mjs",
+    "evidence:shell": "node scripts/capture-shell-evidence.mjs",
+    "gate:shell": "node scripts/capture-shell-evidence.mjs --require-promotion",
+    "verify:technical": "npm run verify:concorde-v2 && npm run verify:concorde-only && npm run audit:design-system && npm run verify:boundaries && npm run build && npm run lint && npm run test:routes",
+    "verify": "npm run verify:technical && npm run verify:design-system && npm run verify:home-first-fold"
+  }
+}

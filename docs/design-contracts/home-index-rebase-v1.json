@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 1,
+  "cutId": "home-index-rebase-v1",
+  "state": "blocked-visual-intent",
+  "deliveryClass": "concorde-fit",
+  "phase": "v1-concorde-fit",
+  "concorde": {
+    "source": "config/concorde-source.json",
+    "revision": "40d1be50206021157d9d6ad81327df8ba25486a4",
+    "tree": "5d142a656dba74518e46b2c192cce946d15b075f"
+  },
+  "implementation": {
+    "state": "blocked-visual-intent",
+    "entrypoint": "apps/index-lab/app/qa/home-index-rebase/page.tsx",
+    "files": [
+      "apps/index-lab/app/qa/home-index-rebase/page.tsx",
+      "apps/index-lab/app/qa/home-index-rebase/HomeIndexRebase.tsx"
+    ]
+  },
+  "components": [
+    {
+      "name": "Header",
+      "sourcePath": "frontend/concorde/bloques/header/desktop/Header.tsx",
+      "props": ["width=100%", "logo", "compact"],
+      "usage": "bloque completo de header, sin buscador; CTA visual hasta resolver ruta/callback"
+    },
+    {
+      "name": "Sidebar",
+      "sourcePath": "frontend/concorde/bloques/sidebar/desktop/Sidebar.tsx",
+      "props": ["logo", "defaultActiveId", "height=100dvh", "contentHeight=1042"],
+      "usage": "bloque completo visual; no resuelve subítems/rutas ni anuncio real"
+    },
+    {
+      "name": "Button",
+      "sourcePath": "frontend/concorde/components/Button.tsx",
+      "props": ["variant=primary"],
+      "usage": "CTA estático de la campaña secundaria"
+    },
+    {
+      "name": "BadgeStatus",
+      "sourcePath": "frontend/concorde/components/BadgeStatus.tsx",
+      "props": ["variant=proxima", "label=PARA COMPRADORES", "icon=false"],
+      "usage": "estado editorial del feed secundario; no afirma actividad en vivo"
+    },
+    {
+      "name": "OfferType",
+      "sourcePath": "frontend/concorde/components/OfferType.tsx",
+      "props": ["variant=live", "variant=negotiable", "ctaLabel=EXPLORAR"],
+      "usage": "modalidades actuales"
+    },
+    {
+      "name": "CategoryCard",
+      "sourcePath": "frontend/concorde/components/CategoryCard.tsx",
+      "props": ["category", "label"],
+      "usage": "categorías sin imagen en V1"
+    },
+    {
+      "name": "OfferCard",
+      "sourcePath": "frontend/concorde/components/OfferCard.tsx",
+      "props": ["variant", "size=full", "name", "year", "price", "imageSrc", "imageAlt", "interactive=false", "elevated"],
+      "usage": "rails visuales estáticos; no incluye navegación funcional ni variante destacada"
+    },
+    {
+      "name": "CardTitle",
+      "sourcePath": "frontend/concorde/components/CardTitle.tsx",
+      "props": ["title", "subtitle", "titleSize", "subtitleSize"],
+      "usage": "encabezados de tienda"
+    }
+  ],
+  "foundations": {
+    "tokens": ["--vmc-font-display", "--vmc-color-vault-500", "--vmc-color-vault-700"],
+    "styleAuthority": "concorde"
+  },
+  "localCss": {
+    "files": ["apps/index-lab/app/qa/home-index-rebase/HomeIndexRebase.module.css"],
+    "allowed": ["layout", "responsive", "asset-placement"],
+    "waivers": []
+  },
+  "references": [
+    {
+      "id": "VMC-WEB-HOME",
+      "url": "https://www.vmcsubastas.com/",
+      "reviewedAt": "2026-10-13",
+      "status": "current-index-baseline; manifest con hash, TTL, destinos y assets requerido antes de implementation"
+    },
+    {
+      "id": "HOME-REFERENCE",
+      "status": "hierarchy-and-flow-only",
+      "record": "docs/research/HOME-REFERENCE-RECORD.md"
+    }
+  ],
+  "assets": [
+    {
+      "path": "apps/index-lab/public/demo/inventory-suv-v1.png",
+      "sha256": "6a18b2fe050362c7516126bde7cd8dc5b06988a2f85ccd032a6a979dafd01aa8",
+      "kind": "generated-illustrative-fixture",
+      "scope": "QA only; does not represent current inventory",
+      "origin": { "provider": "integrated-image-generation", "createdAt": "2026-10-13", "rights": "generated fixture" }
+    },
+    {
+      "path": "apps/index-lab/public/demo/inventory-excavator-v1.png",
+      "sha256": "f2f1121da2808ca7cf8ecb7f951b0b0f863ac056016b5c4dbc76fcc71e5e88c0",
+      "kind": "generated-illustrative-fixture",
+      "scope": "QA only; does not represent current inventory",
+      "origin": { "provider": "integrated-image-generation", "createdAt": "2026-10-13", "rights": "generated fixture" }
+    }
+  ],
+  "approval": {
+    "owner": "Julio",
+    "state": "approved-for-static-qa-by-Julio-2026-10-13",
+    "componentMap": "docs/design-system/HOME-INDEX-REBASE-V1-COMPONENT-MAP.md",
+    "decisionPacket": "docs/decisions/HOME-INDEX-REBASE-V1-DECISION-PACKET.md"
+  }
+}

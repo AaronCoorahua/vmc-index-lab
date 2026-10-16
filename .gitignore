@@ -1,0 +1,16 @@
+# Dependencias y builds
+node_modules/
+.next/
+out/
+dist/
+*.tsbuildinfo
+next-env.d.ts
+
+# Entorno y secretos
+.env*
+!.env.example
+
+# Sistema / logs
+*.log
+.DS_Store
+Thumbs.db

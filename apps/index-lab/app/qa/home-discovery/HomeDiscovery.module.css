@@ -1,0 +1,198 @@
+.page {
+  min-height: 100vh;
+  overflow: clip;
+  padding: 24px clamp(16px, 4vw, 64px) 72px;
+  color: var(--vmc-color-vault-700);
+  font-family: var(--vmc-font-display);
+}
+
+.demoNotice,
+.eyebrow,
+.featuredLabel {
+  color: var(--vmc-color-vault-500);
+}
+
+.demoNotice {
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto 20px;
+}
+
+.introGrid,
+.discovery,
+.banner,
+.categories,
+.stores {
+  width: min(1240px, 100%);
+  margin-inline: auto;
+}
+
+.introGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(280px, .75fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.hero,
+.banner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 1fr);
+  gap: 24px;
+  align-items: center;
+}
+
+.heroCopy,
+.activity,
+.banner > div:first-child,
+.railSection,
+.categories,
+.stores {
+  min-width: 0;
+}
+
+.heroCopy,
+.activityList,
+.discovery,
+.railSection,
+.stores {
+  display: grid;
+  gap: 16px;
+}
+
+.heroVisual,
+.bannerVisual {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 240px;
+  object-fit: cover;
+}
+
+.staticAction {
+  display: inline-flex;
+}
+
+.activityHeading,
+.sectionHeading,
+.discoveryHeading {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.activityList {
+  margin: 0;
+  padding-inline-start: 24px;
+}
+
+.activityList li {
+  display: grid;
+  gap: 8px;
+}
+
+.discovery,
+.categories,
+.stores {
+  margin-top: 56px;
+}
+
+.discoveryHeading > p {
+  max-width: 380px;
+  margin: 0;
+}
+
+.sectionHeading {
+  margin-bottom: 15px;
+}
+
+.rail {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding: 8px 4px 16px;
+}
+
+.cardSlot {
+  flex: 0 0 auto;
+  display: grid;
+  gap: 8px;
+}
+
+.featuredSlot {
+  order: -1;
+}
+
+.featuredLabel {
+  margin: 0;
+}
+
+.banner {
+  margin-top: 56px;
+}
+
+.categoryGrid,
+.storeGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.categoryTile {
+  min-width: 0;
+}
+
+.storeGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.storeCard {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.storeCard h3,
+.storeCard p {
+  margin: 0;
+}
+
+.storeInitials,
+.storeCard > span:last-child {
+  color: var(--vmc-color-vault-500);
+}
+
+@media (max-width: 940px) {
+  .introGrid,
+  .hero,
+  .banner {
+    grid-template-columns: 1fr;
+  }
+
+  .categoryGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .page {
+    padding-inline: 12px;
+    padding-top: 14px;
+  }
+
+  .discoveryHeading {
+    display: grid;
+  }
+
+  .categoryGrid,
+  .storeGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .sectionHeading {
+    gap: 10px;
+  }
+}
