@@ -470,7 +470,31 @@ const CARD_STYLES: { id: CardStyle; label: string; hint: string }[] = [
   { id: "cristal", label: "Cristal", hint: "Degradado morado y foto con vidrio" },
 ];
 
+const GALLERY_HEIGHT = 2 * 170 + 12;
+
 const LOTS_CSS = `
+/* Destacado de la Card gallery (352 de alto): foto más baja y detalles más chicos para que entre todo. */
+.hib-dense .lc .lc-media { min-height: 84px !important; }
+.hib-dense .lc .lc-body, .hib-dense .lp .lc-body { gap: 5px; padding: 8px 10px 12px; }
+.hib-dense .lc .lc-name { font-size: 15px; }
+.hib-dense .lc .lc-sub { margin-top: 0; font-size: 10.5px; }
+.hib-dense .lc .lc-chip { padding: 3px 5px; font-size: 9px; }
+.hib-dense .lc .lc-stats, .hib-dense .lc .lc-time, .hib-dense .lc .lc-inline, .hib-dense .lc .lc-social { font-size: 10px; }
+.hib-dense .lc .lc-bar { height: 5px; }
+.hib-dense .lc .lc-label { font-size: 9.5px; }
+.hib-dense .lc .lc-price { font-size: 18px; }
+.hib-dense .lc .lc-pricerow > svg { width: 24px; height: 26px; }
+.hib-dense .lc .lc-offer { font-size: 12.5px; }
+.hib-dense .lc .lc-cta { height: 30px; margin-top: 4px; }
+.hib-dense .lc .lp-tiles span { padding: 4px 3px; }
+.hib-dense .lc .lc-sum__head { padding: 6px 10px; }
+.hib-dense .lc .lc-sum__stats span { padding: 4px; }
+.hib-dense .lc .lc-sum__price { padding: 4px 8px 8px; }
+.hib-dense .lc .lc-rel { padding: 10px 12px 12px; }
+.hib-dense .lc .lc-rel__price { padding-top: 8px; }
+.hib-dense .lc .lc-glass { padding: 10px 6px 2px; }
+.hib-dense .lc .lc-glass__rule { margin-top: 6px; }
+.hib-dense .lc .lc-glass__price { padding: 6px 10px; }
 .pcard.hib-feat { width: 100%; height: 100%; }
 .pcard.hib-feat .pcard__img { flex: 1; min-height: 0; height: auto; }
 .pcard.hib-feat .pcard__name { font-size: 20px; line-height: 24px; }
@@ -541,12 +565,13 @@ function LotsSection({ view, card }: { view: LotsView; card: CardStyle }): JSX.E
   } else if (view === "normal") {
     body = <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 14, alignItems: "stretch" }}>{LOTS.slice(0, 4).map((lot) => big(lot))}</div>;
   } else if (view === "gallery") {
-    // Destacado con el estilo elegido; las seis chicas, Inmersiva «sm» (134 × 190).
+    // Mismas proporciones que la galería Normal: 2 filas de 170 (las «short» de Concorde) = 352 de alto.
+    // El destacado (estilo elegido) entra en esos 352: en .hib-dense la foto cede alto y los detalles
+    // van más chicos. Las seis chicas, Inmersiva «sm» de 134 × 170.
     body = (
       <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto", gap: 16 }}>
-        <div style={{ display: "flex", minWidth: 0 }}>{big(featured, { featured: true, height: "100%", fill: true })}</div>
-        {/* Las chicas se estiran al alto del destacado (mínimo 190): si el destacado crece, crecen con él. */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 134px)", gridTemplateRows: "repeat(2, minmax(190px, 1fr))", gap: 12 }}>
+        <div className="hib-dense" style={{ display: "flex", minWidth: 0, height: GALLERY_HEIGHT }}>{big(featured, { featured: true, height: "100%", fill: true })}</div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 134px)", gridTemplateRows: "repeat(2, 170px)", gap: 12 }}>
           {rest.map((lot) => <ImmersiveCard key={lot.name} lot={lot} size="sm" />)}
         </div>
       </div>
@@ -615,10 +640,6 @@ function ViewSwitch<T extends string>({ title, suffix = "vista", options, value,
 export default function HomeIndexBlock(): JSX.Element {
   const [lotsView, setLotsView] = useState<LotsView>("gallery");
   const [cardStyle, setCardStyle] = useState<CardStyle>("normal");
-  const pickCardStyle = (next: CardStyle) => {
-    if (cardStyle === "normal" && next !== "normal") setLotsView("normal");
-    setCardStyle(next);
-  };
   const [companiesView, setCompaniesView] = useState<CompaniesView>("normal");
   const [categoriesView, setCategoriesView] = useState<CategoriesView>("normal");
   // Orden: hero + actividad · Lotes para explorar · banner de campaña · Explora por categoría · Empresas y vendedores ·
@@ -634,7 +655,7 @@ export default function HomeIndexBlock(): JSX.Element {
         <LotsSection view={lotsView} card={cardStyle} />
         <Switches>
           <ViewSwitch title="Lotes" options={LOTS_VIEWS} value={lotsView} onChange={setLotsView} />
-          <ViewSwitch title="Detail card" suffix="" options={CARD_STYLES} value={cardStyle} onChange={pickCardStyle} />
+          <ViewSwitch title="Detail card" suffix="" options={CARD_STYLES} value={cardStyle} onChange={setCardStyle} />
         </Switches>
       </div>
       <div data-slot="banner"><CampaignBanner /></div>
