@@ -650,7 +650,7 @@ function LotsSection({ view, card }: { view: LotsView; card: CardStyle }): JSX.E
 const FEED_VIEWS: { id: FeedView; label: string; hint: string }[] = [
   { id: "normal", label: "Normal", hint: "Insignia, título y foto" },
   { id: "timeline", label: "Timeline", hint: "Estilo X / Twitter" },
-  { id: "pulso", label: "Pulso", hint: "Oscuro, en directo" },
+  { id: "pulso", label: "Pulso", hint: "En directo, con historias" },
 ];
 
 // Selector flotante de vistas, pegado a la derecha del bloque (fuera de los 798 del homepage). Solo QA.

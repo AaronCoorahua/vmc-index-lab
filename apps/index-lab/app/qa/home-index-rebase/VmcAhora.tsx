@@ -7,7 +7,7 @@
  *  · normal    el diseño aprobado: insignia + título + detalle + miniatura.
  *  · timeline  estilo X/Twitter: avatar de la empresa, verificado, texto, foto en la primera, acciones
  *              (me gusta · comentarios · compartir) y aviso «Nuevo» cuando entra una publicación.
- *  · pulso     oscuro «en directo»: contador de personas pujando, historias de empresas con aro y una
+ *  · pulso     «en directo» (claro): contador de personas pujando, historias de empresas con aro y una
  *              línea de tiempo con puntos que brillan.
  */
 import { useEffect, useState } from "react";
@@ -36,12 +36,12 @@ const EVENTS: FeedEvent[] = [
 const AGO = ["Ahora", "hace 1 min", "hace 3 min", "hace 6 min", "hace 9 min"];
 const AGO_SHORT = ["Ahora", "1 min", "3 min", "6 min", "9 min"]; // en la insignia de la vista Normal
 const KIND: Record<Kind, { label: string; badge: "live" | "proxima"; color: string; verb: string }> = {
-  live: { label: "En vivo", badge: "live", color: "#FF8A2A", verb: "está en vivo" },
-  bid: { label: "Puja", badge: "live", color: "#FF9639", verb: "recibió una puja" },
-  sold: { label: "Vendido", badge: "proxima", color: "#A68BFF", verb: "cerró una venta" },
+  live: { label: "En vivo", badge: "live", color: "#F2701D", verb: "está en vivo" },
+  bid: { label: "Puja", badge: "live", color: "#F2701D", verb: "recibió una puja" },
+  sold: { label: "Vendido", badge: "proxima", color: "#7B5CE6", verb: "cerró una venta" },
   new: { label: "Nuevo lote", badge: "proxima", color: "#8460E5", verb: "publicó un lote" },
-  deal: { label: "Aceptada", badge: "proxima", color: "#00DAE0", verb: "aceptó una propuesta" },
-  next: { label: "Próxima", badge: "proxima", color: "#C9B8FF", verb: "abre pronto" },
+  deal: { label: "Aceptada", badge: "proxima", color: "#00A8AB", verb: "aceptó una propuesta" },
+  next: { label: "Próxima", badge: "proxima", color: "#9A7BF0", verb: "abre pronto" },
 };
 const INTERVAL_MS = 4500;
 
@@ -103,7 +103,7 @@ const CSS = `
 .va-row > img { width: 52px; height: 52px; border-radius: 8px; object-fit: cover; }
 .va-row__txt { display: grid; gap: 3px; min-width: 0; }
 .va-row__txt strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; color: #3b1782; }
-.va-row__txt span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; color: #5b5b66; }
+.va-row__detail { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; color: #5b5b66; }
 
 /* Timeline (X / Twitter) */
 .va--timeline { background: #fff; box-shadow: rgba(0,0,0,0.07) 0 0 16px 4px; }
@@ -130,36 +130,37 @@ const CSS = `
 .va-foot { display: flex; justify-content: flex-end; padding: 6px 10px 8px; }
 
 /* Pulso (oscuro, en directo) */
-.va--pulso { color: #fff; background: radial-gradient(120% 60% at 100% 0%, rgba(132,96,229,0.45) 0%, transparent 60%), linear-gradient(170deg, #22145A 0%, #120A33 55%, #0B0624 100%);
-  box-shadow: 0 16px 32px -14px rgba(59,23,130,0.6); border: 1px solid rgba(166,139,255,0.25); }
+.va--pulso { color: #14112B; border: 1px solid #E6DEFF;
+  background: radial-gradient(110% 55% at 100% 0%, rgba(166,139,255,0.30) 0%, transparent 62%), radial-gradient(90% 40% at 0% 100%, rgba(255,150,57,0.12) 0%, transparent 70%), #fff;
+  box-shadow: 0 14px 30px -14px rgba(59,23,130,0.35); }
 .va-pu__head { padding: 12px 12px 0; }
 .va-pu__title { display: flex; align-items: center; justify-content: space-between; }
-.va-pu__title h3 { margin: 0; font-size: 15px; font-weight: 800; letter-spacing: -0.01em; }
-.va-pu__count { margin: 4px 0 0; font-size: 11px; color: rgba(255,255,255,0.75); }
-.va-pu__count b { color: #FFB46E; font-variant-numeric: tabular-nums; }
+.va-pu__title h3 { margin: 0; font-size: 15px; font-weight: 800; letter-spacing: -0.01em; color: #3B1782; }
+.va-pu__count { margin: 4px 0 0; font-size: 11px; color: #5B5870; }
+.va-pu__count b { color: #E2531A; font-variant-numeric: tabular-nums; }
 .va-pu__live { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 999px; font-size: 9.5px; font-weight: 800; letter-spacing: 0.06em;
-  background: rgba(255,122,26,0.15); border: 1px solid rgba(255,150,57,0.45); color: #FFB46E; }
+  background: #FFF1E6; border: 1px solid rgba(255,150,57,0.45); color: #E2531A; }
 .va-pu__live i { width: 6px; height: 6px; border-radius: 50%; background: #FF7A1A; box-shadow: 0 0 8px 2px rgba(255,122,26,0.7); animation: va-pulse 1.4s ease-in-out infinite; }
-.va-stories { display: flex; justify-content: space-between; padding: 10px 12px 8px; border-bottom: 1px solid rgba(255,255,255,0.08); }
-.va-story { display: grid; justify-items: center; gap: 4px; width: 38px; font-size: 8.5px; color: rgba(255,255,255,0.7); white-space: nowrap; }
-.va-story span:last-child { max-width: 42px; overflow: hidden; text-overflow: ellipsis; }
+.va-stories { display: flex; justify-content: space-between; padding: 10px 12px 8px; border-bottom: 1px solid #EFEDF5; }
+.va-story { display: grid; justify-items: center; gap: 4px; width: 38px; font-size: 8.5px; color: #5B5870; white-space: nowrap; }
+.va-story__name { max-width: 42px; overflow: hidden; text-overflow: ellipsis; }
 .va-story__ring { position: relative; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; }
 .va-story__ring::before { content: ""; position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(#FF9639, #8460E5, #00DAE0, #FF9639); animation: va-ring 4s linear infinite; }
-.va-story__ring.is-idle::before { background: rgba(255,255,255,0.18); animation: none; }
-.va-story__ring > .va-av { position: relative; padding: 2px; background: #120A33; }
+.va-story__ring.is-idle::before { background: #E6E1F5; animation: none; }
+.va-story__ring > .va-av { position: relative; padding: 2px; background: #fff; }
 .va-tline { position: relative; flex: 1; min-height: 0; overflow: hidden; margin: 0; padding: 8px 12px 0 30px; list-style: none; }
 .va-tline::before { content: ""; position: absolute; top: 14px; bottom: 0; left: 17px; width: 2px; border-radius: 2px;
   background: linear-gradient(180deg, rgba(255,150,57,0.9), rgba(132,96,229,0.6) 50%, rgba(132,96,229,0)); }
 .va-ev { position: relative; padding: 0 0 11px; }
-.va-ev::before { content: ""; position: absolute; top: 4px; left: -17px; width: 8px; height: 8px; border-radius: 50%; background: var(--c); box-shadow: 0 0 0 3px #150C3A, 0 0 10px 2px var(--c); }
+.va-ev::before { content: ""; position: absolute; top: 4px; left: -17px; width: 8px; height: 8px; border-radius: 50%; background: var(--c); box-shadow: 0 0 0 3px #fff, 0 0 10px 2px var(--c); }
 .va-ev:first-child::before { animation: va-pulse 1.4s ease-in-out infinite; }
 .va-ev__meta { display: flex; justify-content: space-between; gap: 6px; font-size: 9.5px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
-.va-ev__meta span:last-child { font-weight: 600; letter-spacing: 0; text-transform: none; color: rgba(255,255,255,0.55); }
-.va-ev p { margin: 2px 0 0; font-size: 12px; font-weight: 700; line-height: 1.3; color: #fff; }
-.va-ev small { display: block; margin-top: 1px; font-size: 10.5px; color: rgba(255,255,255,0.65); }
+.va-ev__ago { font-weight: 600; letter-spacing: 0; text-transform: none; color: #8A879C; }
+.va-ev p { margin: 2px 0 0; font-size: 12px; font-weight: 700; line-height: 1.3; color: #14112B; }
+.va-ev small { display: block; margin-top: 1px; font-size: 10.5px; color: #5B5870; }
 .va-pu__foot { padding: 6px 12px 10px; text-align: right; }
-.va-pu__foot a { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700; color: #fff; text-decoration: none; }
-.va-pu__foot a:hover { color: #FFB46E; }
+.va-pu__foot a { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700; color: #3B1782; text-decoration: none; }
+.va-pu__foot a:hover { color: #E2531A; }
 `;
 
 export default function VmcAhora({ view }: { view: FeedView }): JSX.Element {
@@ -210,14 +211,14 @@ export default function VmcAhora({ view }: { view: FeedView }): JSX.Element {
           {stories.map((w) => (
             <span key={w} className="va-story">
               <span className={`va-story__ring${liveWho.has(w) ? "" : " is-idle"}`}><Avatar who={w} size={32} /></span>
-              <span>{w.replace(" S.A.", "")}</span>
+              <span className="va-story__name">{w.replace(" S.A.", "")}</span>
             </span>
           ))}
         </div>
         <ol className="va-tline" aria-live="polite">
           {items.map((e, i) => (
             <li key={e.id} className={`va-ev${enter(i)}`} style={{ "--c": KIND[e.kind].color } as CSSProperties}>
-              <div className="va-ev__meta"><span style={{ color: KIND[e.kind].color }}>{KIND[e.kind].label}</span><span>{AGO[i]}</span></div>
+              <div className="va-ev__meta"><span style={{ color: KIND[e.kind].color }}>{KIND[e.kind].label}</span><span className="va-ev__ago">{AGO[i]}</span></div>
               <p>{e.title}</p>
               <small>{e.detail}</small>
             </li>
@@ -239,7 +240,7 @@ export default function VmcAhora({ view }: { view: FeedView }): JSX.Element {
             <div className="va-row__txt">
               <span><BadgeStatus variant={KIND[e.kind].badge} label={`${KIND[e.kind].label} · ${AGO_SHORT[i]}`} /></span>
               <strong>{e.title}</strong>
-              <span>{e.detail}</span>
+              <span className="va-row__detail">{e.detail}</span>
             </div>
           </li>
         ))}

@@ -24,7 +24,7 @@ export default function HomeIndexRebase() {
   return (
     <>
       <div className={styles.desktopShell} data-testid="home-desktop-canvas">
-        {/* Franja «hoy en subastas»: arriba del header y de su mismo ancho (columna derecha). */}
+        {/* Franja «hoy en subastas»: arriba del sidebar y del header, de su mismo ancho total. */}
         <div className={styles.tickerRow}><SubastasTicker /></div>
         <Header width="100%" />
         <aside className={styles.sidebarRail} aria-label="Navegación de VMC">
