@@ -775,7 +775,8 @@ function Clike({ name, size = 30 }: { name: string; size?: number }): JSX.Elemen
  */
 export function EbayLotRow({ lot, store, size = "md" }: { lot: LotData; store: string; size?: "md" | "sm" }): JSX.Element {
   const live = lot.variant === "live";
-  const pill = live ? (lot.live ? { t: "En vivo", c: "#E2531A" } : { t: "Subasta", c: "#7B5CE6" }) : { t: "Negociable", c: "#00A8AB" };
+  // Solo dos modalidades en VMC: En vivo o Negociable.
+  const pill = live ? { t: "En vivo", c: "#E2531A" } : { t: "Negociable", c: "#00A8AB" };
   const [liked, setLiked] = useState(false);
   return (
     <article className={`lc-eb lc--${lot.variant}${size === "sm" ? " lc-eb--sm" : ""}`} aria-label={`${lot.name} ${lot.year}`}>
