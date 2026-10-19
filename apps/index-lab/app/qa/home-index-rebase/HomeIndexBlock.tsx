@@ -854,7 +854,7 @@ const LOTS_VIEWS: { id: LotsView; label: string; hint: string }[] = [
   { id: "gallery", label: "Card gallery", hint: "Destacada + 2 filas de 4" },
   { id: "featured", label: "Card destacada", hint: "Destacada + 3 autos" },
   { id: "listado", label: "Listado", hint: "Foto a la izquierda, detalle a la derecha" },
-  { id: "listado-gallery", label: "Listado gallery", hint: "Destacada Holo + 3 en listado" },
+  { id: "listado-gallery", label: "Listado gallery", hint: "Destacada Holo + listado en 2 columnas" },
 ];
 // Segunda tienda (referencia): Mapfre, con destacado sin «En vivo» y 8 chicas.
 const MAPFRE_LOTS: LotData[] = [
@@ -900,6 +900,9 @@ const GALLERY_HEIGHT = 2 * 170 + 12;
 const LOTS_CSS = `
 .hib-eblist { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 28px; }
 .hib-eblist--one { grid-template-columns: minmax(0, 1fr); }
+.hib-eblist--two { column-gap: 20px; }
+.hib-eblist--two > .lc-eb:nth-child(-n + 2) { padding-top: 0; }
+.hib-eblist--two > .lc-eb:nth-last-child(-n + 2) { border-bottom: 0; padding-bottom: 0; }
 .hib-eblist--one > .lc-eb:first-child { padding-top: 0; }
 .hib-eblist--one > .lc-eb:last-child { border-bottom: 0; padding-bottom: 0; }
 /* Cards de Concorde dentro de grillas fluidas: ocupan su columna (el OfferCard las fija en px). */
@@ -981,13 +984,13 @@ function LotsSection({ view, card, store }: { view: LotsView; card: CardStyle; s
     // Listado en 2 columnas: cada lote con la foto a la izquierda y el detalle a la derecha.
     body = <div className="hib-eblist">{LOTS.slice(0, 6).map((lot) => <EbayLotRow key={lot.name} lot={lot} store={store.name} />)}</div>;
   } else if (view === "listado-gallery") {
-    // Destacada vertical (Holo curva) a la izquierda y 3 lotes en listado a su lado; la destacada toma el alto de la lista.
+    // Destacada vertical (Holo curva) a la izquierda y 6 lotes en listado (2 columnas × 3 filas); la destacada toma el alto de la lista.
     body = (
       <div style={{ display: "grid", gridTemplateColumns: "292px minmax(0, 1fr)", gap: 20, alignItems: "stretch" }}>
         <div style={{ display: "flex", minWidth: 0 }}>
           <FichaLegend lot={featured} tier="holo" curve featured width="100%" height="100%" mediaFill />
         </div>
-        <div className="hib-eblist hib-eblist--one">{rest.slice(0, 3).map((lot) => <EbayLotRow key={lot.name} lot={lot} store={store.name} size="sm" />)}</div>
+        <div className="hib-eblist hib-eblist--two">{rest.slice(0, 6).map((lot) => <EbayLotRow key={lot.name} lot={lot} store={store.name} size="sm" />)}</div>
       </div>
     );
   } else if (card === "normal") {
@@ -1128,8 +1131,11 @@ function ViewSwitch<T extends string>({ title, suffix = "vista", options, value,
 }
 
 export default function HomeIndexBlock(): JSX.Element {
+  // Cada tienda tiene su propio selector de vista de lotes y de Detail card.
   const [lotsView, setLotsView] = useState<LotsView>("gallery");
   const [cardStyle, setCardStyle] = useState<CardStyle>("holo-curva");
+  const [lotsView2, setLotsView2] = useState<LotsView>("gallery");
+  const [cardStyle2, setCardStyle2] = useState<CardStyle>("holo-curva");
   const [companiesView, setCompaniesView] = useState<CompaniesView>("slider");
   const [feedView, setFeedView] = useState<FeedView>("timeline");
   const [offerView, setOfferView] = useState<OfferTypeView>("normal");
@@ -1153,25 +1159,29 @@ export default function HomeIndexBlock(): JSX.Element {
         <Switches>
           <ViewSwitch title="VMC ahora" options={FEED_VIEWS} value={feedView} onChange={setFeedView} />
           <HeightSlider value={heroH} onChange={setHeroH} />
-          {/* En «Corta» Tipo de oferta vive en esta fila: su selector va aquí para no montarse sobre el de Lotes. */}
-          {offerView === "corta" ? <ViewSwitch title="Tipo de oferta" options={OFFER_TYPE_VIEWS} value={offerView} onChange={setOfferView} /> : null}
+          {/* El selector de Tipo de oferta va siempre aquí: es más alto que su sección y se montaba sobre el de Autoplan. */}
+          <ViewSwitch title="Tipo de oferta" options={OFFER_TYPE_VIEWS} value={offerView} onChange={setOfferView} />
         </Switches>
       </div>
       {offerView === "corta" ? null : (
         <div style={{ position: "relative", width: "100%" }}>
           <OfferTypeCard view={offerView} />
-          <Switches><ViewSwitch title="Tipo de oferta" options={OFFER_TYPE_VIEWS} value={offerView} onChange={setOfferView} /></Switches>
         </div>
       )}
       <div style={{ position: "relative", width: "100%" }}>
         <LotsSection view={lotsView} card={cardStyle} store={STORES[0]} />
         <Switches>
-          <ViewSwitch title="Lotes" options={LOTS_VIEWS} value={lotsView} onChange={setLotsView} />
-          <ViewSwitch title="Detail card" suffix="" options={CARD_STYLES} value={cardStyle} onChange={setCardStyle} />
+          <ViewSwitch title="Autoplan · lotes" suffix="" options={LOTS_VIEWS} value={lotsView} onChange={setLotsView} />
+          <ViewSwitch title="Autoplan · detail card" suffix="" options={CARD_STYLES} value={cardStyle} onChange={setCardStyle} />
         </Switches>
       </div>
-      {/* Segunda tienda: mismas vistas y estilo de card que la primera. */}
-      <div style={{ width: "100%" }}><LotsSection view={lotsView} card={cardStyle} store={STORES[1]} /></div>
+      <div style={{ position: "relative", width: "100%" }}>
+        <LotsSection view={lotsView2} card={cardStyle2} store={STORES[1]} />
+        <Switches>
+          <ViewSwitch title="Mapfre · lotes" suffix="" options={LOTS_VIEWS} value={lotsView2} onChange={setLotsView2} />
+          <ViewSwitch title="Mapfre · detail card" suffix="" options={CARD_STYLES} value={cardStyle2} onChange={setCardStyle2} />
+        </Switches>
+      </div>
       <div style={{ position: "relative", width: "100%" }}>
         <CategoryRail view={categoriesView} />
         <Switches><ViewSwitch title="Categorías" options={CATEGORIES_VIEWS} value={categoriesView} onChange={setCategoriesView} /></Switches>

@@ -372,24 +372,24 @@ const CSS = `
 .lc-eb:hover .lc-eb__thumb img { transform: scale(1.05); }
 .lc-eb__main { display: grid; gap: 3px; min-width: 0; }
 .lc-eb__pill { justify-self: start; display: inline-flex; }
-.lc-eb__title { margin: 3px 0 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; line-height: 1.2; font-weight: 800; text-transform: uppercase; }
-.lc-eb__who { display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; font-weight: 600; color: #8A879C; }
-.lc-eb__price { display: inline-flex; align-items: center; gap: 6px; margin-top: 2px; font-size: 20px; line-height: 1.15; font-weight: 800; letter-spacing: -0.01em; }
-.lc-eb__offer { margin-top: 2px; font-size: 17px; line-height: 1.15; font-weight: 800; color: #00777A; }
-.lc-eb__rest { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12.5px; font-weight: 600; color: #8A879C; }
-.lc-eb__foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; white-space: nowrap; font-size: 12.5px; font-weight: 600; color: #8A879C; }
+.lc-eb__title { margin: 3px 0 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13.5px; line-height: 1.2; font-weight: 800; color: #14112B; } /* como el nombre de las cards chicas */
+.lc-eb__who { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 600; color: #8A879C; }
+.lc-eb__price { display: inline-flex; align-items: center; gap: 6px; margin-top: 2px; font-size: 16px; line-height: 1.15; font-weight: 800; letter-spacing: -0.01em; color: #4C1EBC; }
+.lc-eb__offer { margin-top: 2px; font-size: 14px; line-height: 1.15; font-weight: 800; color: #00777A; }
+.lc-eb__rest { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11.5px; font-weight: 600; color: #8A879C; }
+.lc-eb__foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; white-space: nowrap; font-size: 11.5px; font-weight: 600; color: #8A879C; }
 .lc-eb__foot > span:first-child { overflow: hidden; text-overflow: ellipsis; }
 /* Listado compacto (Listado gallery): 4 filas junto a la destacada */
 .lc-eb--sm { grid-template-columns: 84px minmax(0, 1fr); gap: 12px; padding: 10px 0; }
 .lc-eb--sm .lc-eb__thumb { width: 84px; height: 84px; border-radius: 12px; }
 .lc-eb--sm .lc-eb__main { gap: 2px; }
 .lc-eb--sm .lc-eb__pill .lc-pill { height: 19px; font-size: 10px; }
-.lc-eb--sm .lc-eb__title { font-size: 13.5px; }
+.lc-eb--sm .lc-eb__title { font-size: 13px; }
 .lc-eb--sm .lc-eb__who { display: none; }
-.lc-eb--sm .lc-eb__price { font-size: 17px; }
-.lc-eb--sm .lc-eb__price svg { width: 17px; height: 18px; }
-.lc-eb--sm .lc-eb__offer { font-size: 15px; }
-.lc-eb--sm .lc-eb__rest, .lc-eb--sm .lc-eb__foot { font-size: 11.5px; }
+.lc-eb--sm .lc-eb__price { font-size: 15px; }
+.lc-eb--sm .lc-eb__price svg { width: 16px; height: 17px; }
+.lc-eb--sm .lc-eb__offer { font-size: 13.5px; }
+.lc-eb--sm .lc-eb__rest, .lc-eb--sm .lc-eb__foot { font-size: 11px; }
 @media (prefers-reduced-motion: reduce) { .lc { transition: none; } }
 `;
 
@@ -779,7 +779,7 @@ export function EbayLotRow({ lot, store, size = "md" }: { lot: LotData; store: s
           : <span className="lc-pill lc-pill--negotiable">{I.tag}Negociable</span>}</span>
         <p className="lc-eb__title">{lot.name} {lot.year}</p>
         <span className="lc-eb__who">{store}<svg width="12" height="12" viewBox="0 0 24 24" aria-label="Verificado"><path d="M12 1.8l2.6 1.9 3.2-.2 1 3 2.6 1.9-1 3.1 1 3-2.6 1.9-1 3.1-3.2-.2L12 22.2l-2.6-1.9-3.2.2-1-3.1L2.6 15.5l1-3-1-3.1 2.6-1.9 1-3 3.2.2z" fill="#6B48DD" /><path d="M8 12.2l2.6 2.6L16.2 9" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg></span>
-        {lot.price ? <b className="lc-eb__price"><SubasCoin size={20} />{lot.price}</b> : <b className="lc-eb__offer">Haz tu oferta</b>}
+        {lot.price ? <b className="lc-eb__price"><SubasCoin size={17} />{lot.price}</b> : <b className="lc-eb__offer">Haz tu oferta</b>}
         <span className="lc-eb__rest">{lot.km} · {lot.transmission} · {lot.fuel}</span>
         <span className="lc-eb__foot">
           <span>{lot.city}{live && lot.remaining ? ` · Empieza en ${lot.remaining}` : ""}</span>
