@@ -657,11 +657,18 @@ const OFFER_GRAD_CSS = `
 .hib-otg__icon { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; background: rgba(255,255,255,0.22); border: 1px solid rgba(255,255,255,0.55);
   box-shadow: inset 0 1px 8px rgba(255,255,255,0.45), 0 6px 14px -6px rgba(0,0,0,0.25); }
 .hib-otg__txt b { font-size: 18px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; text-shadow: rgba(0,0,0,0.18) 0 1px 3px; }
-/* Vista «Con foto»: el auto en un círculo sin borde que se desvanece hacia el degradado (como el banner). */
-.hib-otg--photo .hib-otg__body { grid-template-columns: 104px minmax(0, 1fr); gap: 16px; padding-left: 16px; }
-.hib-otg__photo { display: block; width: 104px; height: 104px; overflow: hidden; border-radius: 50%;
-  -webkit-mask-image: radial-gradient(closest-side, #000 62%, transparent 100%); mask-image: radial-gradient(closest-side, #000 62%, transparent 100%); }
-.hib-otg__photo img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 60%; }
+/* Vista «Con foto» (como el banner): el auto de fondo a la derecha y la sombra del color de la modalidad
+   desde la izquierda; texto encima. El hover (crece, blur, botón al centro) es el mismo. */
+.hib-otg--photo .hib-otg__card { min-height: 128px; }
+.hib-otg--photo .hib-otg__body { grid-template-columns: minmax(0, 1fr); padding: 20px 24px; }
+.hib-otg__bgimg { position: absolute; top: 0; right: 0; bottom: 0; z-index: 0; width: 66%; pointer-events: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 38%); mask-image: linear-gradient(90deg, transparent 0%, #000 38%); }
+.hib-otg__bgimg img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 55%; }
+.hib-otg__shade { position: absolute; inset: 0; z-index: 0; pointer-events: none; background: var(--shade); }
+.hib-otg--photo .hib-otg__txt { gap: 6px; max-width: 60%; }
+.hib-otg--photo .hib-otg__txt b { font-size: 22px; letter-spacing: 0.02em; text-transform: none; }
+.hib-otg--photo .hib-otg__card:hover .hib-otg__bgimg, .hib-otg--photo .hib-otg__card:focus-visible .hib-otg__bgimg { filter: blur(6px); }
+.hib-otg__bgimg { transition: filter 0.35s; }
 /* Pill como la de las cards (ícono + texto en mayúsculas), en blanco para que resalte sobre el degradado. */
 .hib-otg__pill { justify-self: start; display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 12px 0 10px; border-radius: 999px;
   font-size: 13px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink); background: #fff; box-shadow: rgba(0,0,0,0.16) 0 3px 8px; }
@@ -675,8 +682,10 @@ const OFFER_GRAD_CSS = `
 `;
 const OFFER_GRAD = [
   { id: "negotiable" as const, title: "Negociable", text: "Encuentra vehículos con precio conversable", cta: "Ver negociables", photo: "/demo/vehicles/autoplan-agya.png", ink: "#00777A",
+    shade: "linear-gradient(90deg, rgba(0,150,155,0.96) 0%, rgba(0,170,175,0.82) 34%, rgba(0,190,195,0.25) 68%, rgba(0,190,195,0.05) 100%)",
     bg: "linear-gradient(135deg, #2EF0F2 0%, #00C9CD 30%, #00A3A7 65%, #00787B 100%)", glow: "rgba(0,190,195,0.45)" },
   { id: "live" as const, title: "En vivo", text: "Participa en subastas en tiempo real", cta: "Ver subastas", photo: "/demo/vehicles/autoplan-yaris.png", ink: "#C2410C",
+    shade: "linear-gradient(90deg, rgba(225,95,20,0.96) 0%, rgba(240,120,40,0.82) 34%, rgba(255,140,50,0.25) 68%, rgba(255,140,50,0.05) 100%)",
     bg: "linear-gradient(135deg, #FFB25E 0%, #FF8F2E 30%, #EF6A1C 65%, #B83A00 100%)", glow: "rgba(255,130,40,0.45)" },
 ];
 // Íconos de las pills de las cards (LotCards): En vivo (aro con punto) y Negociable (etiqueta).
@@ -687,12 +696,13 @@ function OfferTypeGradient({ photo }: { photo?: boolean }): JSX.Element {
     <div className={`hib-otg${photo ? " hib-otg--photo" : ""}`}>
       {OFFER_GRAD.map((t) => (
         <a key={t.id} href="#" className="hib-otg__card" style={{ background: t.bg, "--glow": t.glow, "--ink": t.ink } as CSSProperties} aria-label={`${t.title}: ${t.cta}`}>
+          {photo ? <><span className="hib-otg__bgimg" aria-hidden><img src={t.photo} alt="" /></span><span className="hib-otg__shade" aria-hidden style={{ "--shade": t.shade } as CSSProperties} /></> : null}
           <span className="hib-otg__light" aria-hidden />
           <span className="hib-otg__body">
             {photo ? <>
-              <span className="hib-otg__photo"><img src={t.photo} alt="" /></span>
               <span className="hib-otg__txt">
                 <span className="hib-otg__pill">{t.id === "live" ? <LiveDot /> : <TagIcon />}{t.title}</span>
+                <b>{t.id === "live" ? "Puja en vivo" : "Negocia directo"}</b>
                 <span>{t.text}</span>
               </span>
             </> : <>
