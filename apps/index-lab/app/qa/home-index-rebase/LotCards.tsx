@@ -21,7 +21,7 @@
  *                   precio en una cápsula de vidrio.
  */
 import { useId, useState } from "react";
-import type { CSSProperties, JSX, PointerEvent } from "react";
+import type { JSX, PointerEvent } from "react";
 
 export type LotData = {
   name: string; year: number; price?: string; variant: "live" | "negotiable"; live?: boolean; imageSrc: string;
@@ -371,8 +371,7 @@ const CSS = `
 .lc-eb__thumb img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; }
 .lc-eb:hover .lc-eb__thumb img { transform: scale(1.05); }
 .lc-eb__main { display: grid; gap: 3px; min-width: 0; }
-.lc-eb__pill { justify-self: start; display: inline-flex; align-items: center; height: 22px; padding: 0 10px; border-radius: 999px; border: 1.5px solid var(--k);
-  font-size: 11px; font-weight: 800; letter-spacing: 0.03em; text-transform: uppercase; color: var(--k); }
+.lc-eb__pill { justify-self: start; display: inline-flex; }
 .lc-eb__title { margin: 3px 0 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; line-height: 1.2; font-weight: 800; text-transform: uppercase; }
 .lc-eb__who { display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; font-weight: 600; color: #8A879C; }
 .lc-eb__price { display: inline-flex; align-items: center; gap: 6px; margin-top: 2px; font-size: 20px; line-height: 1.15; font-weight: 800; letter-spacing: -0.01em; }
@@ -380,22 +379,17 @@ const CSS = `
 .lc-eb__rest { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12.5px; font-weight: 600; color: #8A879C; }
 .lc-eb__foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; white-space: nowrap; font-size: 12.5px; font-weight: 600; color: #8A879C; }
 .lc-eb__foot > span:first-child { overflow: hidden; text-overflow: ellipsis; }
-.lc-eb__acts { display: inline-flex; gap: 6px; flex: none; }
-.lc-eb__acts button { display: grid; place-items: center; width: 30px; height: 30px; padding: 0; border: 0; border-radius: 50%; color: #3B1782; background: #F3EFFD; cursor: pointer; transition: background 0.2s, color 0.2s; }
-.lc-eb__acts button:hover { background: #E6DEFF; }
-.lc-eb__acts button[aria-pressed="true"] { color: #fff; background: linear-gradient(135deg, #8460E5, #3B1782); }
 /* Listado compacto (Listado gallery): 4 filas junto a la destacada */
 .lc-eb--sm { grid-template-columns: 84px minmax(0, 1fr); gap: 12px; padding: 10px 0; }
 .lc-eb--sm .lc-eb__thumb { width: 84px; height: 84px; border-radius: 12px; }
 .lc-eb--sm .lc-eb__main { gap: 2px; }
-.lc-eb--sm .lc-eb__pill { height: 19px; padding: 0 8px; font-size: 10px; }
+.lc-eb--sm .lc-eb__pill .lc-pill { height: 19px; font-size: 10px; }
 .lc-eb--sm .lc-eb__title { font-size: 13.5px; }
 .lc-eb--sm .lc-eb__who { display: none; }
 .lc-eb--sm .lc-eb__price { font-size: 17px; }
 .lc-eb--sm .lc-eb__price svg { width: 17px; height: 18px; }
 .lc-eb--sm .lc-eb__offer { font-size: 15px; }
 .lc-eb--sm .lc-eb__rest, .lc-eb--sm .lc-eb__foot { font-size: 11.5px; }
-.lc-eb--sm .lc-eb__acts button { width: 26px; height: 26px; }
 @media (prefers-reduced-motion: reduce) { .lc { transition: none; } }
 `;
 
@@ -775,24 +769,21 @@ function Clike({ name, size = 30 }: { name: string; size?: number }): JSX.Elemen
  */
 export function EbayLotRow({ lot, store, size = "md" }: { lot: LotData; store: string; size?: "md" | "sm" }): JSX.Element {
   const live = lot.variant === "live";
-  // Solo dos modalidades en VMC: En vivo o Negociable.
-  const pill = live ? { t: "En vivo", c: "#E2531A" } : { t: "Negociable", c: "#00A8AB" };
-  const [liked, setLiked] = useState(false);
   return (
     <article className={`lc-eb lc--${lot.variant}${size === "sm" ? " lc-eb--sm" : ""}`} aria-label={`${lot.name} ${lot.year}`}>
       <span className="lc-eb__thumb"><img src={lot.imageSrc} alt="" /></span>
       <div className="lc-eb__main">
-        <span className="lc-eb__pill" style={{ "--k": pill.c } as CSSProperties}>{pill.t}</span>
+        {/* Pills de las cards (mismo componente visual que la destacada): solo En vivo o Negociable. */}
+        <span className="lc-eb__pill">{live
+          ? <span className="lc-pill lc-pill--live">{PI.live}En vivo</span>
+          : <span className="lc-pill lc-pill--negotiable">{I.tag}Negociable</span>}</span>
         <p className="lc-eb__title">{lot.name} {lot.year}</p>
         <span className="lc-eb__who">{store}<svg width="12" height="12" viewBox="0 0 24 24" aria-label="Verificado"><path d="M12 1.8l2.6 1.9 3.2-.2 1 3 2.6 1.9-1 3.1 1 3-2.6 1.9-1 3.1-3.2-.2L12 22.2l-2.6-1.9-3.2.2-1-3.1L2.6 15.5l1-3-1-3.1 2.6-1.9 1-3 3.2.2z" fill="#6B48DD" /><path d="M8 12.2l2.6 2.6L16.2 9" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg></span>
         {lot.price ? <b className="lc-eb__price"><SubasCoin size={20} />{lot.price}</b> : <b className="lc-eb__offer">Haz tu oferta</b>}
         <span className="lc-eb__rest">{lot.km} · {lot.transmission} · {lot.fuel}</span>
         <span className="lc-eb__foot">
           <span>{lot.city}{live && lot.remaining ? ` · Empieza en ${lot.remaining}` : ""}</span>
-          <span className="lc-eb__acts">
-            <button type="button" aria-pressed={liked} aria-label={`Me gusta: ${lot.name}`} onClick={() => setLiked((v) => !v)}>{I.heart}</button>
-            <button type="button" aria-label={`Compartir: ${lot.name}`}><svg width="15" height="15" viewBox="0 0 24 24" aria-hidden><path d="M21 3L10.5 13.5M21 3l-6.5 18-4-7.5L3 9.5z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" /></svg></button>
-          </span>
+          <Clike name={lot.name} size={size === "sm" ? 26 : 30} />
         </span>
       </div>
     </article>

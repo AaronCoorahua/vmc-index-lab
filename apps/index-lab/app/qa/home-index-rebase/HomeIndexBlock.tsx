@@ -702,7 +702,6 @@ function OfferTypeGradient({ photo }: { photo?: boolean }): JSX.Element {
             {photo ? <>
               <span className="hib-otg__txt">
                 <span className="hib-otg__pill">{t.id === "live" ? <LiveDot /> : <TagIcon />}{t.title}</span>
-                <b>{t.id === "live" ? "Puja en vivo" : "Negocia directo"}</b>
                 <span>{t.text}</span>
               </span>
             </> : <>
@@ -761,18 +760,19 @@ function OfferTypeSegmented(): JSX.Element {
   );
 }
 
-type OfferTypeView = "normal" | "clara" | "selector" | "foto";
+type OfferTypeView = "normal" | "clara" | "selector" | "foto" | "corta";
 const OFFER_TYPE_VIEWS: { id: OfferTypeView; label: string; hint: string }[] = [
   { id: "normal", label: "Normal", hint: "Degradado de cada modalidad" },
   { id: "clara", label: "Clara", hint: "Blanca con borde y conteo" },
   { id: "selector", label: "Selector", hint: "Mínimo: número y flecha" },
-  { id: "foto", label: "Con foto", hint: "Degradado, auto en círculo y pill" },
+  { id: "foto", label: "Con foto", hint: "Auto de fondo y pill" },
+  { id: "corta", label: "Corta", hint: "Bajo el banner; VMC ahora crece al lado" },
 ];
 function OfferTypeCard({ view }: { view: OfferTypeView }): JSX.Element {
   return (
     <section className="hib-ot" aria-label="Tipo de oferta" style={FLAT}>
       <SectionHead title="Tipo de oferta" subtitle="Elige cómo quieres comprar" />
-      {view === "normal" ? <OfferTypeGradient /> : view === "foto" ? <OfferTypeGradient photo /> : view === "clara" ? <OfferTypeClara /> : <OfferTypeSegmented />}
+      {view === "normal" || view === "corta" ? <OfferTypeGradient /> : view === "foto" ? <OfferTypeGradient photo /> : view === "clara" ? <OfferTypeClara /> : <OfferTypeSegmented />}
     </section>
   );
 }
@@ -1141,14 +1141,28 @@ export default function HomeIndexBlock(): JSX.Element {
   return (
     <div data-block="homepage" style={{ width: "100%", padding: "16px",  boxSizing: "border-box", background: "#ffffff", display: "flex", flexDirection: "column", alignItems: "center", gap: GAP }}>
       {/* Proporción de la referencia: hero flexible + feed de mín. 300 (32 %), 368 de alto (600 × 368 · 300 × 368 con el sidebar cerrado). */}
-      <div style={{ position: "relative", width: "100%", display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(300px, 32%)", gridTemplateRows: "minmax(0, 1fr)", gap: GAP, height: heroH }}>
-        <div data-slot="principal-banner" style={{ minWidth: 0, display: "flex", height: "100%" }}><PrincipalBanner /></div>
-        <div data-slot="secondary-banner" style={{ minWidth: 0, minHeight: 0, display: "flex", height: "100%" }}><VmcAhora view={feedView} /></div>
+      {/* «Corta»: Tipo de oferta va bajo el banner (mismo ancho) y VMC ahora ocupa las dos filas a su lado. */}
+      <div style={{ position: "relative", width: "100%", display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(300px, 32%)", gap: GAP,
+        ...(offerView === "corta" ? { gridTemplateRows: `${heroH}px auto` } : { gridTemplateRows: "minmax(0, 1fr)", height: heroH }) }}>
+        <div data-slot="principal-banner" style={{ gridColumn: 1, gridRow: 1, minWidth: 0, display: "flex", height: "100%" }}><PrincipalBanner /></div>
+        <div data-slot="secondary-banner" style={{ gridColumn: 2, gridRow: offerView === "corta" ? "1 / 3" : 1, minWidth: 0, minHeight: 0, display: "flex", height: "100%", position: "relative" }}>
+          {/* El feed no empuja la fila: se dibuja absoluto y toma el alto que dejan banner + Tipo de oferta. */}
+          <div style={{ position: "absolute", inset: 0, display: "flex" }}><VmcAhora view={feedView} /></div>
+        </div>
+        {offerView === "corta" ? <div style={{ gridColumn: 1, gridRow: 2, minWidth: 0 }}><OfferTypeCard view="corta" /></div> : null}
         <Switches>
           <ViewSwitch title="VMC ahora" options={FEED_VIEWS} value={feedView} onChange={setFeedView} />
           <HeightSlider value={heroH} onChange={setHeroH} />
+          {/* En «Corta» Tipo de oferta vive en esta fila: su selector va aquí para no montarse sobre el de Lotes. */}
+          {offerView === "corta" ? <ViewSwitch title="Tipo de oferta" options={OFFER_TYPE_VIEWS} value={offerView} onChange={setOfferView} /> : null}
         </Switches>
       </div>
+      {offerView === "corta" ? null : (
+        <div style={{ position: "relative", width: "100%" }}>
+          <OfferTypeCard view={offerView} />
+          <Switches><ViewSwitch title="Tipo de oferta" options={OFFER_TYPE_VIEWS} value={offerView} onChange={setOfferView} /></Switches>
+        </div>
+      )}
       <div style={{ position: "relative", width: "100%" }}>
         <LotsSection view={lotsView} card={cardStyle} store={STORES[0]} />
         <Switches>
@@ -1158,10 +1172,6 @@ export default function HomeIndexBlock(): JSX.Element {
       </div>
       {/* Segunda tienda: mismas vistas y estilo de card que la primera. */}
       <div style={{ width: "100%" }}><LotsSection view={lotsView} card={cardStyle} store={STORES[1]} /></div>
-      <div style={{ position: "relative", width: "100%" }}>
-        <OfferTypeCard view={offerView} />
-        <Switches><ViewSwitch title="Tipo de oferta" options={OFFER_TYPE_VIEWS} value={offerView} onChange={setOfferView} /></Switches>
-      </div>
       <div style={{ position: "relative", width: "100%" }}>
         <CategoryRail view={categoriesView} />
         <Switches><ViewSwitch title="Categorías" options={CATEGORIES_VIEWS} value={categoriesView} onChange={setCategoriesView} /></Switches>

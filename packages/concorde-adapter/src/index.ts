@@ -26,6 +26,8 @@ export { default as Button, UserIcon } from "../../../apps/index-lab/concorde/co
 export type { ButtonProps } from "../../../apps/index-lab/concorde/components/Button";
 export { default as BadgeStatus } from "../../../apps/index-lab/concorde/components/BadgeStatus";
 export type { BadgeStatusProps } from "../../../apps/index-lab/concorde/components/BadgeStatus";
+export { default as LikeButton } from "../../../apps/index-lab/concorde/components/LikeButton";
+export type { LikeButtonProps } from "../../../apps/index-lab/concorde/components/LikeButton";
 export { default as OfferCard } from "../../../apps/index-lab/concorde/components/OfferCard";
 export type { OfferCardProps } from "../../../apps/index-lab/concorde/components/OfferCard";
 export { default as OfferType } from "../../../apps/index-lab/concorde/components/OfferType";

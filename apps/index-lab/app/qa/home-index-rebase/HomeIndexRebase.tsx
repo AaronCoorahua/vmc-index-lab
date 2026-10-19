@@ -13,7 +13,7 @@ function BrandLogo() {
 
 export default function HomeIndexRebase() {
   const [sidebarHeight, setSidebarHeight] = useState(900);
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true); // sidebar cerrado por defecto
 
   useEffect(() => {
     const resize = () => setSidebarHeight(Math.max(720, window.innerHeight));
