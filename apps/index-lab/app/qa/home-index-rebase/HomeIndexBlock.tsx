@@ -841,6 +841,11 @@ const LOTS: LotData[] = [
     kind: "Materiales", photos: 6, km: "12 t", transmission: "Acero A36", fuel: "Vigas H", city: "Callao", owner: "Empresa" },
   { name: "Kia Sportage", year: 2020, price: "US$ 8,450", variant: "live", imageSrc: "/demo/vehicles/autoplan-suv.png",
     kind: "SUV", photos: 14, km: "52,300 km", transmission: "Automática", fuel: "Gasolina", seats: 5, city: "Lima", remaining: "07:45:00", progress: 0.2 },
+  // Dos más para completar las 2 filas de 4 de la Card gallery.
+  { name: "Nissan Sentra", year: 2021, variant: "negotiable", imageSrc: "/demo/vehicles/autoplan-sedan.png",
+    kind: "Sedán", photos: 11, km: "29,800 km", transmission: "Automática", fuel: "Gasolina", seats: 5, city: "Lima", owner: "Único dueño" },
+  { name: "Toyota Hilux", year: 2020, price: "US$ 18,900", variant: "live", imageSrc: "/demo/vehicles/autoplan-pickup.png",
+    kind: "Camioneta", photos: 13, km: "64,000 km", transmission: "Mecánica", fuel: "Diésel", seats: 5, city: "Trujillo", remaining: "04:20:00", progress: 0.45 },
 ];
 
 // Misma caja que AuctioneerSection de Concorde (766 de ancho, radio 16, sombra del homepage), con tres
@@ -879,7 +884,7 @@ const MAPFRE_LOTS: LotData[] = [
 ];
 type Store = { name: string; logo: string; lots: LotData[]; total: number };
 const STORES: Store[] = [
-  { name: "Autoplan", logo: "/demo/empresas/autoplan.png", lots: LOTS, total: 7 },
+  { name: "Autoplan", logo: "/demo/empresas/autoplan.png", lots: LOTS, total: 9 },
   { name: "Mapfre", logo: "/demo/empresas/mapfre.png", lots: MAPFRE_LOTS, total: 9 },
 ];
 
