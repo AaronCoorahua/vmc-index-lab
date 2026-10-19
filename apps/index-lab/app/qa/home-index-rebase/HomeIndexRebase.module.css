@@ -1,8 +1,15 @@
-.desktopShell { display: grid; grid-template-columns: 226px minmax(0, 798px); grid-template-rows: 30px 64px minmax(0, 1fr); width: min(100%, 1024px); min-width: 0; margin: 0 auto; }
+/* Lienzo fijo de 1024 centrado (como vmc-index-final-review): el sidebar solo empuja al contenido.
+   Abierto 226 + 798 · cerrado 76 + 948. --sb lo fija el estado del sidebar. */
+.desktopShell { --sb: 226px; display: grid; grid-template-columns: var(--sb) minmax(0, 1fr);
+  grid-template-rows: 30px 64px minmax(0, 1fr); width: min(100%, 1024px); min-width: 0; margin: 0 auto;
+  transition: grid-template-columns 0.28s cubic-bezier(0.4, 0, 0.2, 1); }
+.desktopShell[data-collapsed] { --sb: 76px; }
 .tickerRow { grid-column: 1 / -1; grid-row: 1; min-width: 0; }
 .desktopShell > header { position: sticky; top: 0; z-index: 4; grid-column: 2; grid-row: 2; }
-.sidebarRail { position: sticky; top: 0; z-index: 3; grid-column: 1; grid-row: 2 / -1; align-self: start; height: 100dvh; overflow: hidden; }
-.mainColumn { min-width: 0; grid-column: 2; grid-row: 3; }
+/* overflow visible y encima del header: la cabecera del Sidebar (logo + hamburguesa) mide 226 aunque
+   el sidebar se cierre a 76, y debe verse sobre el header (así lo diseña Concorde). */
+.sidebarRail { position: sticky; top: 0; z-index: 5; grid-column: 1; grid-row: 2 / -1; align-self: start; height: 100dvh; overflow: visible; }
+.mainColumn { min-width: 0; grid-column: 2; grid-row: 3; background: #ffffff; } /* contenido sobre blanco; morado alrededor */
 .mobileShell { display: none; }
 .brandLogo { display: block; width: 119px; height: 45px; object-fit: contain; }
 .mobileBrand { display: inline-flex; align-items: center; gap: 10px; }

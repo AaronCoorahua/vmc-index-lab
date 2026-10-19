@@ -13,6 +13,7 @@ function BrandLogo() {
 
 export default function HomeIndexRebase() {
   const [sidebarHeight, setSidebarHeight] = useState(900);
+  const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
     const resize = () => setSidebarHeight(Math.max(720, window.innerHeight));
@@ -23,12 +24,13 @@ export default function HomeIndexRebase() {
 
   return (
     <>
-      <div className={styles.desktopShell} data-testid="home-desktop-canvas">
+      <div className={styles.desktopShell} data-testid="home-desktop-canvas" data-collapsed={collapsed || undefined}>
         {/* Franja «hoy en subastas»: arriba del sidebar y del header, de su mismo ancho total. */}
         <div className={styles.tickerRow}><SubastasTicker /></div>
         <Header width="100%" />
         <aside className={styles.sidebarRail} aria-label="Navegación de VMC">
-          <Sidebar defaultActiveId="hoy" height={sidebarHeight} contentHeight={sidebarHeight} headerHeight={64} logo={<BrandLogo />} />
+          <Sidebar defaultActiveId="hoy" height={sidebarHeight} contentHeight={sidebarHeight} headerHeight={64} logo={<BrandLogo />}
+            collapsed={collapsed} onCollapsedChange={setCollapsed} />
         </aside>
         <div className={styles.mainColumn}>
           <HomeIndexBlock />

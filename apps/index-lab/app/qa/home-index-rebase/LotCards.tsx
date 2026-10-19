@@ -20,7 +20,7 @@
  *   · GlassCard     «Cristal»: marco con degradado morado/lila, foto con borde y reflejo de vidrio y el
  *                   precio en una cápsula de vidrio.
  */
-import { useId } from "react";
+import { useId, useState } from "react";
 import type { JSX, PointerEvent } from "react";
 
 export type LotData = {
@@ -330,6 +330,40 @@ const CSS = `
 .lg--elite .lc-label { color: rgba(255,255,255,0.7); }
 .lg--elite .lc-offer { color: #5CF0F3; }
 .lg--leyenda .lc-body { position: relative; z-index: 1; }
+/* ── Holo curva (default de la galería, réplica de vmc-index-final-review) ── */
+.clike { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 9999px;
+  border: 1.44px solid transparent;
+  background-image: linear-gradient(#ffffff, #ffffff), linear-gradient(135deg, #e8ddff 0%, #ffffff 40%, #cfbaff 75%, #ae8eff 100%);
+  background-origin: padding-box, border-box; background-clip: padding-box, border-box;
+  cursor: pointer; padding: 2px; position: relative; overflow: hidden; box-shadow: rgba(132, 96, 229, 0.14) 0px 2px 8px;
+  transition: transform 0.15s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.2s; flex-shrink: 0; outline: none; }
+.clike::before { content: ""; position: absolute; inset: 0; border-radius: 9999px; background: linear-gradient(rgba(255, 255, 255, 0.55) 0%, transparent 50%); pointer-events: none; z-index: 1; }
+.clike svg { position: relative; z-index: 2; }
+.clike:hover { transform: scale(1.1) translateY(-1px); box-shadow: rgba(32, 0, 104, 0.2) 0px 6px 14px; }
+.clike:active { transform: scale(0.92); }
+.clike--active { background-image: linear-gradient(135deg, #8460e5 0%, #3b1782 100%), linear-gradient(135deg, #fbc47d 0%, #fbc47d 100%);
+  box-shadow: rgba(132, 96, 229, 0.35) 0px 2px 8px, inset 0px 1px 0px rgba(255, 255, 255, 0.22); }
+.clike--pop svg { animation: clike-pop 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) 1; }
+@keyframes clike-pop { 0% { transform: scale(1); } 35% { transform: scale(1.4); } 65% { transform: scale(0.85); } 85% { transform: scale(1.1); } 100% { transform: scale(1); } }
+.clike:focus-visible { outline: 2px solid oklch(0.62 0.20 285); outline-offset: 2px; }
+.lc-likepos { position: absolute; top: 8px; right: 8px; z-index: 2; display: grid; place-items: center; }
+/* La destacada hereda la curva de «Curva» como detalle de la foto. */
+.lc--featured-curve .lc-media { overflow: hidden; border-bottom-right-radius: 100% 44px; }
+.lc--featured-curve .lc-media > img { object-position: center; }
+/* Curva compacta: cards secundarias de la galería. */
+.lc--compact-curve { min-height: 170px; border-radius: 9px; box-shadow: rgba(31, 14, 77, 0.12) 0 5px 13px; }
+.lc-compact-curve__media { position: relative; flex: none; height: 76px; overflow: hidden; background: #ECEAF3; border-bottom-right-radius: 100% 28px; }
+.lc-compact-curve__media > img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.lc-compact-curve__media::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(135deg, rgba(255,255,255,0.18), transparent 45%); }
+.lc-compact-curve__body { position: relative; display: flex; flex: 1; flex-direction: column; gap: 3px; padding: 7px 8px 10px; }
+.lc-compact-curve__name { margin: 0; overflow: hidden; color: #14112B; font-size: 13.5px; font-weight: 800; line-height: 1.15; text-overflow: ellipsis; white-space: nowrap; }
+.lc-compact-curve__meta { display: flex; align-items: center; gap: 4px; color: #615D73; font-size: 10.5px; line-height: 1.15; }
+.lc-compact-curve__meta i { width: 3px; height: 3px; border-radius: 50%; background: #A7A1B7; }
+.lc-compact-curve__footer { display: flex; align-items: center; justify-content: flex-start; gap: 4px; margin-top: auto; padding-top: 5px; border-top: 1px solid #F0EDF7; color: #4C1EBC; font-size: 11px; font-weight: 800; white-space: nowrap; }
+.lc-compact-curve__footer > span { overflow: hidden; text-overflow: ellipsis; }
+.lc-compact-curve__base-price { display: inline-flex; align-items: center; gap: 4px; min-width: 0; }
+.lc--negotiable .lc-compact-curve__footer { color: #007E83; }
+.lc--compact-curve .lc-likepos .clike { width: 26px !important; height: 26px !important; }
 @media (prefers-reduced-motion: reduce) { .lc { transition: none; } }
 `;
 
@@ -590,8 +624,10 @@ function eliteStats(lot: LotData): [string, string][] {
  *  · elite    carta oscura redondeada con estrellas, el año como «puntaje», stats en siglas
  *             (45K KM · AUT TRA · GAS COM · 5 ASI) y la franja convertida en neón con un pulso de luz.
  */
-export function FichaLegend({ lot, tier, featured, width, height, mediaFill }: {
+export function FichaLegend({ lot, tier, featured, width, height, mediaFill, curve }: {
   lot: LotData; tier: LegendTier; featured?: boolean; width?: number | string; height?: number | string; mediaFill?: boolean;
+  /** Holo curva: foto con borde curvo, like de Concorde y «Precio base» (default de la galería). */
+  curve?: boolean;
 }): JSX.Element {
   const live = lot.variant === "live";
   const progress = `${Math.round((lot.progress ?? 0.4) * 100)}%`;
@@ -604,7 +640,7 @@ export function FichaLegend({ lot, tier, featured, width, height, mediaFill }: {
   );
   const time = live ? <span className="lc-time">{I.clock}Empieza en {lot.remaining ?? "02:10:00"}</span> : null;
   const price = live
-    ? <div className="lc-pricerow"><SubasCoin size={28} /><div><p className="lc-label">{lot.price ? "Precio actual" : "Precio base"}</p><p className="lc-price">{lot.price ?? "Por definir"}</p></div></div>
+    ? <div className="lc-pricerow"><SubasCoin size={28} /><div><p className="lc-label">{curve || !lot.price ? "Precio base" : "Precio actual"}</p><p className="lc-price">{lot.price ?? "Por definir"}</p></div></div>
     : <span className="lc-offer">{I.hands}Haz tu oferta</span>;
   const head = <div><p className="lc-name">{lot.name}</p><p className="lc-sub">{lot.year} · {lot.kind}</p></div>;
   const chips = <div className="lc-chips"><span className="lc-chip">{I.gear}{lot.transmission}</span><span className="lc-chip">{I.fuel}{lot.fuel}</span></div>;
@@ -649,7 +685,7 @@ export function FichaLegend({ lot, tier, featured, width, height, mediaFill }: {
     <div className="lc-media" style={mediaStyle}>
       <img src={lot.imageSrc} alt="" />
       {pills}
-      <Like name={lot.name} />
+      {curve ? <span className="lc-likepos"><Clike name={lot.name} /></span> : <Like name={lot.name} />}
       <span className="lc-count">{I.camera}1/{lot.photos}</span>
       <Dots />
       {tier === "leyenda" ? <span className="lg-shine" aria-hidden /> : null}
@@ -657,7 +693,7 @@ export function FichaLegend({ lot, tier, featured, width, height, mediaFill }: {
   );
   if (tier === "holo") {
     return (
-      <article className={`lc lg lg--holo lc--${lot.variant}`} style={sizeStyle(width, height)} aria-label={`${lot.name} ${lot.year}`}
+      <article className={`lc lg lg--holo lc--${lot.variant}${curve ? " lc--featured-curve" : ""}`} style={sizeStyle(width, height)} aria-label={`${lot.name} ${lot.year}`}
         onPointerMove={onMove} onPointerLeave={onLeave}>
         {media}
         <div className="lc-body" style={bodyStyle}>{head}{chips}{stats}{time}<span className="lc-spacer" />{price}</div>
@@ -679,6 +715,40 @@ export function FichaLegend({ lot, tier, featured, width, height, mediaFill }: {
         <div className="lg-plaque">
           {live ? <><SubasCoin size={26} /><span><small>{lot.price ? "Precio actual" : "Precio base"}</small><b>{lot.price ?? "Por definir"}</b></span></>
             : <>{I.hands}<b>Haz tu oferta</b></>}
+        </div>
+      </div>
+    </article>
+  );
+}
+
+/** Like de Concorde (LikeButton): corazón con borde degradado lila; activo, relleno morado con pop. */
+function Clike({ name, size = 30 }: { name: string; size?: number }): JSX.Element {
+  const [on, setOn] = useState(false);
+  const [pop, setPop] = useState(0);
+  return (
+    <button type="button" className={`clike${on ? " clike--active" : ""}${pop ? " clike--pop" : ""}`} style={{ width: size, height: size }}
+      aria-label={`Agregar a favoritos: ${name}`} aria-pressed={on}
+      onClick={(e) => { e.stopPropagation(); setOn((v) => !v); setPop((n) => n + 1); }} onAnimationEnd={() => setPop(0)}>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill={on ? "#ffffff" : "#ffffff"} stroke={on ? "#ffffff" : "#5a35c2"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+      </svg>
+    </button>
+  );
+}
+
+/** Curva compacta (134 × 170): foto con curva asimétrica, nombre, año · tipo y pie con precio o «Negociable». */
+export function CompactCurveCard({ lot }: { lot: LotData }): JSX.Element {
+  return (
+    <article className={`lc lc--compact-curve lc--${lot.variant}`} aria-label={`${lot.name} ${lot.year}`}>
+      <div className="lc-compact-curve__media">
+        <img src={lot.imageSrc} alt="" />
+        <span className="lc-likepos"><Clike name={lot.name} /></span>
+      </div>
+      <div className="lc-compact-curve__body">
+        <p className="lc-compact-curve__name">{lot.name}</p>
+        <span className="lc-compact-curve__meta"><span>{lot.year}</span><i /><span>{lot.kind}</span></span>
+        <div className="lc-compact-curve__footer">
+          {lot.price ? <span className="lc-compact-curve__base-price"><SubasCoin size={16} /><span>{lot.price}</span></span> : <span>Negociable</span>}
         </div>
       </div>
     </article>
