@@ -13,7 +13,7 @@
 import { useEffect, useState } from "react";
 import type { CSSProperties, JSX } from "react";
 
-export type FeedView = "normal" | "timeline" | "pulso";
+export type FeedView = "normal" | "ebay" | "timeline" | "pulso";
 type Kind = "live" | "bid" | "sold" | "new" | "deal" | "next";
 type FeedEvent = {
   id: string; kind: Kind; who: string; title: string; detail: string; imageSrc: string; likes: number; replies: number;
@@ -171,6 +171,26 @@ const CSS = `
 .va-item__who { flex: none; max-width: 84px; overflow: hidden; text-overflow: ellipsis; }
 .va-item__meta .va-verified { width: 10px; height: 10px; }
 
+/* eBay: listado completo (sin compactar) con me gusta y compartir */
+.va-eb { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 14px; align-items: start; padding: 16px 18px 16px 20px; }
+.va-eb + .va-eb { border-top: 1px solid #EFEDF5; }
+.va-eb.va-enter { animation: va-in 0.45s cubic-bezier(0.3,0,0,1), va-flash 2.4s ease; }
+.va-eb__thumb { display: block; width: 92px; height: 92px; overflow: hidden; border-radius: 14px; background: #F3EFFD; }
+.va-eb__thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.va-eb__main { display: grid; gap: 3px; min-width: 0; }
+.va-eb__pill { justify-self: start; display: inline-flex; align-items: center; height: 22px; padding: 0 10px; border-radius: 999px; border: 1.5px solid var(--k);
+  font-size: 11.5px; font-weight: 800; letter-spacing: 0.03em; text-transform: uppercase; color: var(--k); }
+.va-eb__title { margin: 4px 0 0; font-size: 15px; line-height: 1.22; font-weight: 800; color: #14112B; text-transform: uppercase; }
+.va-eb__who { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 600; color: #8A879C; }
+.va-eb__value { margin-top: 4px; font-size: 20px; line-height: 1.15; font-weight: 800; letter-spacing: -0.01em; color: #14112B; }
+.va-eb__rest { margin-top: 4px; font-size: 13px; font-weight: 600; color: #8A879C; }
+.va-eb__foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; white-space: nowrap; font-size: 13px; font-weight: 600; color: #8A879C; }
+.va-eb__acts { display: inline-flex; gap: 6px; }
+.va-eb__acts button { display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 50%; color: #3B1782; background: #F3EFFD; cursor: pointer; transition: background 0.2s, color 0.2s; }
+.va-eb__acts button:hover { background: #E6DEFF; }
+.va-eb__acts button[aria-pressed="true"] { color: #fff; background: linear-gradient(135deg, #8460E5, #3B1782); }
+.va-eb__acts svg { width: 16px; height: 16px; }
+
 /* Pulso (claro, en directo) */
 .va--pulso { color: #14112B;
   background: radial-gradient(110% 55% at 100% 0%, rgba(166,139,255,0.30) 0%, transparent 62%), radial-gradient(90% 40% at 0% 100%, rgba(255,150,57,0.12) 0%, transparent 70%), #fff;
@@ -205,6 +225,11 @@ const CSS = `
 .va-pu__foot a:hover { color: #E2531A; }
 `;
 
+function LikeBtn({ n }: { n: number }): JSX.Element {
+  const [on, setOn] = useState(false);
+  return <button type="button" aria-pressed={on} aria-label={`Me gusta · ${n + (on ? 1 : 0)}`} onClick={() => setOn((v) => !v)}>{Ico.heart}</button>;
+}
+
 function Head(): JSX.Element {
   return (
     <header className="va-head">
@@ -220,6 +245,33 @@ export default function VmcAhora({ view }: { view: FeedView }): JSX.Element {
   const pause = { onMouseEnter: () => setPaused(true), onMouseLeave: () => setPaused(false) };
   // El evento de arriba entra animado (su key cambia en cada avance; los demás conservan la suya).
   const enter = (i: number) => (i === 0 ? " va-enter" : "");
+
+  if (view === "ebay") {
+    return (
+      <aside className="va va--timeline" aria-label="VMC ahora" {...pause}>
+        <Head />
+        {tick > 0 ? <span key={tick} className="va-newpill" aria-hidden>{Ico.arrowUp}Nuevo</span> : null}
+        <ol className="va-posts va-scroll" aria-live="polite">
+          {items.map((e, i) => (
+            <li key={e.id} className={`va-eb${enter(i)}`}>
+              <span className="va-eb__thumb"><img src={e.imageSrc} alt="" /></span>
+              <div className="va-eb__main">
+                <span className="va-eb__pill" style={{ "--k": KIND[e.kind].color } as CSSProperties}>{KIND[e.kind].label}</span>
+                <p className="va-eb__title">{e.lot}</p>
+                <span className="va-eb__who">{e.who}<Verified /></span>
+                <b className="va-eb__value">{e.price ?? "Negociable"}</b>
+                <span className="va-eb__rest">{e.detail}</span>
+                <span className="va-eb__foot"><span>{e.city} · {AGO[i]}</span>
+                  <span className="va-eb__acts"><LikeBtn n={e.likes} /><button type="button" aria-label="Compartir">{Ico.share}</button></span>
+                </span>
+              </div>
+            </li>
+          ))}
+        </ol>
+        <style>{CSS}</style>
+      </aside>
+    );
+  }
 
   if (view === "timeline") {
     return (

@@ -28,7 +28,7 @@ import {
 } from "@vmc/concorde-adapter";
 
 import {
-  CompactCurveCard, FichaCard, FichaLegend, FichaPlus, FichaPro, GlassCard, ImmersiveCard, LotCardStyles, ReliefCard, SummaryCard,
+  CompactCurveCard, EbayLotRow, FichaCard, FichaLegend, FichaPlus, FichaPro, GlassCard, ImmersiveCard, LotCardStyles, ReliefCard, SummaryCard,
   type FichaLayout, type LegendTier, type LotData, type ProTheme,
 } from "./LotCards";
 import VmcAhora, { type FeedView } from "./VmcAhora";
@@ -108,10 +108,8 @@ const HERO_CSS = `
 .hp-segs { display: flex; gap: 4px; padding: 0 4px; }
 .hp-seg { position: relative; width: 22px; height: 24px; padding: 0; border: 0; background-color: transparent; cursor: pointer; }
 .hp-seg::before { content: ""; position: absolute; left: 0; right: 0; top: 10px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.4); }
-.hp-seg i { position: absolute; left: 0; top: 10px; height: 4px; width: 0; border-radius: 2px; background: var(--vmc-color-base-white); }
-.hp-seg.on i { animation: hp-prog ${AUTOPLAY_MS}ms linear forwards; }
-.hp.paused .hp-seg.on i { animation-play-state: paused; }
-@keyframes hp-prog { to { width: 100%; } }
+.hp-seg i { position: absolute; left: 0; top: 10px; height: 4px; width: 0; border-radius: 2px; background: var(--vmc-color-base-white); transition: width 0.3s ease; }
+.hp-seg.on i { width: 100%; } /* indica la diapositiva actual (no es temporizador) */
 .hp-arrow:focus-visible, .hp-seg:focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
 @container hp (max-width: 960px) { .hp-copy { width: 50%; } .hp-h { font-size: var(--vmc-font-size-title); line-height: var(--vmc-line-height-title); } .hp-lot { width: 200px; right: 16px; bottom: 16px; } }
 @container hp (max-width: 700px) {
@@ -382,25 +380,26 @@ const CATEGORY_PREMIUM_CSS = `
 `;
 const ARROW = <svg width="12" height="12" viewBox="0 0 20 20" aria-hidden><path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>;
 
-function SectionHead({ title, subtitle, action }: { title: string; subtitle: string; action: string }): JSX.Element {
+// Cabecera de las secciones planas (sin card): como la referencia, alineada al borde del contenido.
+function SectionHead({ title, subtitle, action }: { title: string; subtitle: string; action?: string }): JSX.Element {
   return (
-    <header style={{ boxSizing: "border-box", flex: "none", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, height: 68, padding: "0 24px", marginBottom: 16, borderBottom: "1px solid #e8ddff" }}>
+    <header style={{ boxSizing: "border-box", flex: "none", display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, padding: "0 0 10px", marginBottom: 18, borderBottom: "1px solid #DEDCE4" }}>
       <div style={{ display: "grid", gap: 2, minWidth: 0 }}>
-        <h3 style={{ margin: 0, fontSize: 20, lineHeight: "24px", fontWeight: 600, color: "#3b1782", whiteSpace: "nowrap" }}>{title}</h3>
-        <p style={{ margin: 0, fontSize: 14, lineHeight: "18px", color: "#191c1c" }}>{subtitle}</p>
+        <h2 style={{ margin: 0, fontSize: 22, lineHeight: "27px", fontWeight: 700, letterSpacing: "-0.02em", color: "#3b1782", whiteSpace: "nowrap" }}>{title}</h2>
+        <p style={{ margin: 0, fontSize: 14, lineHeight: "20px", color: "#3F3F4A" }}>{subtitle}</p>
       </div>
-      <div style={{ flex: "none" }}><ProfileButton>{action}</ProfileButton></div>
+      {action ? <div style={{ flex: "none" }}><ProfileButton>{action}</ProfileButton></div> : null}
     </header>
   );
 }
+const FLAT: CSSProperties = { boxSizing: "border-box", width: "100%", fontFamily: FONT };
 
 // «Vende tu vehículo» (réplica de vmc-index-final-review): dos opciones a la izquierda y el beneficio de
 // SubasCars a la derecha, con ProfileButton de Concorde y el botón de vidrio del hero.
 const SELL_CSS = `
-.hib-sell { box-sizing: border-box; width: 100%; padding: 0 0 16px; color: #191C1C; font-family: var(--vmc-font-display, "Plus Jakarta Sans", sans-serif);
-  background: #fff; border-radius: 16px; box-shadow: ${SHADOW}; }
+.hib-sell { box-sizing: border-box; width: 100%; color: #191C1C; font-family: var(--vmc-font-display, "Plus Jakarta Sans", sans-serif); }
 .hib-sell *, .hib-sell *::before, .hib-sell *::after { box-sizing: border-box; }
-.hib-sell__layout { display: grid; grid-template-columns: minmax(0, 1fr) clamp(260px, 34%, 300px); gap: 16px; align-items: stretch; padding: 0 16px; }
+.hib-sell__layout { display: grid; grid-template-columns: minmax(0, 1fr) clamp(260px, 34%, 300px); gap: 16px; align-items: stretch; }
 .hib-sell__choices { display: grid; gap: 12px; }
 .hib-sell__choice { display: grid; grid-template-columns: 132px minmax(0, 1fr); min-height: 142px; overflow: hidden; border: 1px solid #DEDCE4; border-radius: 14px; background: #fff; text-decoration: none; color: inherit; transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
 .hib-sell__choice:hover { transform: translateY(-2px); border-color: #B7A5E9; box-shadow: rgb(32 0 104 / 14%) 0 12px 24px -16px; }
@@ -427,7 +426,7 @@ const SELL_CSS = `
 function SellSection(): JSX.Element {
   return (
     <section className="hib-sell" aria-label="Vende tu vehículo">
-      <SectionHead title="Vende tu vehículo" subtitle="Publica tu auto y recibe ofertas de compradores verificados." action="Publicar" />
+      <SectionHead title="Vende tu vehículo" subtitle="Publica tu auto y recibe ofertas de compradores verificados." />
       <div className="hib-sell__layout">
         <div className="hib-sell__choices">
           <article className="hib-sell__choice">
@@ -481,9 +480,9 @@ function CategoryRail({ view }: { view: CategoriesView }): JSX.Element {
     );
   }
   return (
-    <section aria-label="Explora por categoría" style={{ boxSizing: "border-box", width: "100%", padding: "0 0 16px", background: "#ffffff", borderRadius: 16, boxShadow: SHADOW, fontFamily: FONT }}>
+    <section aria-label="Explora por categoría" style={FLAT}>
       <SectionHead title="Explora por categoría" subtitle="Encuentra oportunidades por tipo de activo" action="Ver todas las categorías" />
-      <ul className={view === "plain" ? "hib-cats--plain" : undefined} style={{ display: "grid", gridTemplateColumns: "repeat(5, minmax(0, 1fr))", gap: 10, margin: "0 16px", padding: 0, listStyle: "none" }}>
+      <ul className={view === "plain" ? "hib-cats--plain" : undefined} style={{ display: "grid", gridTemplateColumns: "repeat(5, minmax(0, 1fr))", gap: 10, margin: 0, padding: "0 0 6px", listStyle: "none" }}>
         {CATEGORIES.map(({ label, count, shape, imageSrc }) => (
           <li key={label} style={{ display: "flex" }}>
             <a href="#" className="hib-cat" aria-label={`${label} · ${count}`}>
@@ -570,7 +569,7 @@ const OFFER_TYPE_CSS = `
 @keyframes hib-ot-run { from { left: -35%; } to { left: 100%; } }
 @keyframes hib-ot-pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.35; transform: scale(0.75); } }
 @keyframes hib-ot-idle { 0% { background-position: 0% 0%; } 100% { background-position: 100% 100%; } }
-.hib-ot__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding: 0 16px; perspective: 900px; }
+.hib-ot__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding: 0; perspective: 900px; }
 .hib-ot__card { position: relative; isolation: isolate; display: grid; grid-template-columns: 60px minmax(0, 1fr); gap: 16px; align-items: start;
   padding: 18px 20px 22px; overflow: hidden; border-radius: 16px; color: #14112B; text-decoration: none;
   border: 1.5px solid transparent;
@@ -639,7 +638,7 @@ function OfferTypeClara(): JSX.Element {
 const OFFER_GRAD_CSS = `
 @keyframes hib-otg-breathe { 0%, 100% { opacity: 0.55; transform: translate(0, 0) scale(1); } 50% { opacity: 0.85; transform: translate(-8%, 6%) scale(1.12); } }
 @keyframes hib-otg-sweep { 0%, 70% { transform: translateX(-160%) skewX(-20deg); } 100% { transform: translateX(360%) skewX(-20deg); } }
-.hib-otg { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding: 4px 16px; }
+.hib-otg { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding: 4px 0; }
 .hib-otg__card { position: relative; isolation: isolate; display: block; min-height: 108px; overflow: hidden; border-radius: 16px; color: #fff; text-decoration: none;
   box-shadow: var(--glow) 0 12px 26px -10px, inset 0 1px 0 rgba(255,255,255,0.45);
   transition: transform 0.35s cubic-bezier(0.3,0,0,1), box-shadow 0.35s; }
@@ -657,29 +656,49 @@ const OFFER_GRAD_CSS = `
 .hib-otg__card:hover .hib-otg__body, .hib-otg__card:focus-visible .hib-otg__body { filter: blur(6px); opacity: 0.55; transform: scale(0.98); }
 .hib-otg__icon { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; background: rgba(255,255,255,0.22); border: 1px solid rgba(255,255,255,0.55);
   box-shadow: inset 0 1px 8px rgba(255,255,255,0.45), 0 6px 14px -6px rgba(0,0,0,0.25); }
-.hib-otg__txt { display: grid; gap: 4px; }
 .hib-otg__txt b { font-size: 18px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; text-shadow: rgba(0,0,0,0.18) 0 1px 3px; }
-.hib-otg__txt span { font-size: 13px; line-height: 1.35; opacity: 0.95; }
+/* Vista «Con foto»: el auto en un círculo sin borde que se desvanece hacia el degradado (como el banner). */
+.hib-otg--photo .hib-otg__body { grid-template-columns: 104px minmax(0, 1fr); gap: 16px; padding-left: 16px; }
+.hib-otg__photo { display: block; width: 104px; height: 104px; overflow: hidden; border-radius: 50%;
+  -webkit-mask-image: radial-gradient(closest-side, #000 62%, transparent 100%); mask-image: radial-gradient(closest-side, #000 62%, transparent 100%); }
+.hib-otg__photo img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 60%; }
+/* Pill como la de las cards (ícono + texto en mayúsculas), en blanco para que resalte sobre el degradado. */
+.hib-otg__pill { justify-self: start; display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 12px 0 10px; border-radius: 999px;
+  font-size: 13px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink); background: #fff; box-shadow: rgba(0,0,0,0.16) 0 3px 8px; }
+.hib-otg__txt { display: grid; gap: 4px; }
+.hib-otg--photo .hib-otg__txt { gap: 8px; }
+.hib-otg__txt > span:last-child { font-size: 13px; line-height: 1.35; opacity: 0.95; }
 .hib-otg__cta { position: absolute; left: 50%; top: 50%; z-index: 2; transform: translate(-50%, -40%) scale(0.92); opacity: 0; pointer-events: none;
   transition: opacity 0.3s, transform 0.35s cubic-bezier(0.3,0,0,1); }
 .hib-otg__card:hover .hib-otg__cta, .hib-otg__card:focus-visible .hib-otg__cta { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 .hib-otg__cta.hib-glass { height: 40px; padding: 0 30px; font-size: 14px; }
 `;
 const OFFER_GRAD = [
-  { id: "negotiable" as const, title: "Negociable", text: "Encuentra vehículos con precio conversable", cta: "Ver negociables",
+  { id: "negotiable" as const, title: "Negociable", text: "Encuentra vehículos con precio conversable", cta: "Ver negociables", photo: "/demo/vehicles/autoplan-agya.png", ink: "#00777A",
     bg: "linear-gradient(135deg, #2EF0F2 0%, #00C9CD 30%, #00A3A7 65%, #00787B 100%)", glow: "rgba(0,190,195,0.45)" },
-  { id: "live" as const, title: "En vivo", text: "Participa en subastas en tiempo real", cta: "Ver subastas",
+  { id: "live" as const, title: "En vivo", text: "Participa en subastas en tiempo real", cta: "Ver subastas", photo: "/demo/vehicles/autoplan-yaris.png", ink: "#C2410C",
     bg: "linear-gradient(135deg, #FFB25E 0%, #FF8F2E 30%, #EF6A1C 65%, #B83A00 100%)", glow: "rgba(255,130,40,0.45)" },
 ];
-function OfferTypeGradient(): JSX.Element {
+// Íconos de las pills de las cards (LotCards): En vivo (aro con punto) y Negociable (etiqueta).
+const LiveDot = () => <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="2.6" /><circle cx="12" cy="12" r="4" fill="currentColor" /></svg>;
+const TagIcon = () => <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden><path d="M3 12V4h8l10 10-8 8z" fill="currentColor" /><circle cx="7.5" cy="8.5" r="1.6" fill="#fff" /></svg>;
+function OfferTypeGradient({ photo }: { photo?: boolean }): JSX.Element {
   return (
-    <div className="hib-otg">
+    <div className={`hib-otg${photo ? " hib-otg--photo" : ""}`}>
       {OFFER_GRAD.map((t) => (
-        <a key={t.id} href="#" className="hib-otg__card" style={{ background: t.bg, "--glow": t.glow } as CSSProperties} aria-label={`${t.title}: ${t.cta}`}>
+        <a key={t.id} href="#" className="hib-otg__card" style={{ background: t.bg, "--glow": t.glow, "--ink": t.ink } as CSSProperties} aria-label={`${t.title}: ${t.cta}`}>
           <span className="hib-otg__light" aria-hidden />
           <span className="hib-otg__body">
-            <span className="hib-otg__icon"><OfferTypeIcon id={t.id} size={26} /></span>
-            <span className="hib-otg__txt"><b>{t.title}</b><span>{t.text}</span></span>
+            {photo ? <>
+              <span className="hib-otg__photo"><img src={t.photo} alt="" /></span>
+              <span className="hib-otg__txt">
+                <span className="hib-otg__pill">{t.id === "live" ? <LiveDot /> : <TagIcon />}{t.title}</span>
+                <span>{t.text}</span>
+              </span>
+            </> : <>
+              <span className="hib-otg__icon"><OfferTypeIcon id={t.id} size={26} /></span>
+              <span className="hib-otg__txt"><b>{t.title}</b><span>{t.text}</span></span>
+            </>}
           </span>
           <span className="hib-otg__cta hib-glass" aria-hidden>{t.cta}</span>
         </a>
@@ -694,7 +713,7 @@ function OfferTypeGradient(): JSX.Element {
 // color solo aparece en el número, el punto de estado y una línea que crece al pasar el mouse.
 const OFFER_SEG_CSS = `
 @keyframes hib-seg-pulse { 0%, 100% { box-shadow: 0 0 0 0 var(--ring); } 50% { box-shadow: 0 0 0 6px transparent; } }
-.hib-seg { display: grid; grid-template-columns: 1fr 1fr; margin: 0 16px; border: 1px solid #ECE8F6; border-radius: 16px; background: #FBFAFE; overflow: hidden; }
+.hib-seg { display: grid; grid-template-columns: 1fr 1fr; margin: 0; border: 1px solid #ECE8F6; border-radius: 16px; background: #FBFAFE; overflow: hidden; }
 .hib-seg__opt + .hib-seg__opt::before { content: ""; position: absolute; left: 0; top: 18px; bottom: 18px; width: 1px; background: #ECE8F6; }
 .hib-seg__opt { position: relative; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 18px; padding: 22px 28px; color: #14112B; text-decoration: none;
   transition: background 0.25s; }
@@ -732,20 +751,18 @@ function OfferTypeSegmented(): JSX.Element {
   );
 }
 
-type OfferTypeView = "normal" | "clara" | "selector";
+type OfferTypeView = "normal" | "clara" | "selector" | "foto";
 const OFFER_TYPE_VIEWS: { id: OfferTypeView; label: string; hint: string }[] = [
   { id: "normal", label: "Normal", hint: "Degradado de cada modalidad" },
   { id: "clara", label: "Clara", hint: "Blanca con borde y conteo" },
   { id: "selector", label: "Selector", hint: "Mínimo: número y flecha" },
+  { id: "foto", label: "Con foto", hint: "Degradado, auto en círculo y pill" },
 ];
 function OfferTypeCard({ view }: { view: OfferTypeView }): JSX.Element {
   return (
-    <section className="hib-ot" aria-label="Tipo de oferta" style={{ boxSizing: "border-box", width: "100%", padding: "0 0 16px", background: "#fff", borderRadius: 16, boxShadow: SHADOW, fontFamily: FONT }}>
-      <header style={{ boxSizing: "border-box", display: "grid", gap: 2, alignContent: "center", height: 68, padding: "0 24px", marginBottom: 16, borderBottom: "1px solid #e8ddff" }}>
-        <h3 style={{ margin: 0, fontSize: 20, lineHeight: "24px", fontWeight: 600, color: "#3b1782" }}>Tipo de oferta</h3>
-        <p style={{ margin: 0, fontSize: 14, lineHeight: "18px", color: "#191c1c" }}>Elige cómo quieres comprar</p>
-      </header>
-      {view === "normal" ? <OfferTypeGradient /> : view === "clara" ? <OfferTypeClara /> : <OfferTypeSegmented />}
+    <section className="hib-ot" aria-label="Tipo de oferta" style={FLAT}>
+      <SectionHead title="Tipo de oferta" subtitle="Elige cómo quieres comprar" />
+      {view === "normal" ? <OfferTypeGradient /> : view === "foto" ? <OfferTypeGradient photo /> : view === "clara" ? <OfferTypeClara /> : <OfferTypeSegmented />}
     </section>
   );
 }
@@ -755,8 +772,8 @@ const MARQUEE_HALF = [...COMPANIES, ...COMPANIES];
 function CompaniesSection({ view }: { view: CompaniesView }): JSX.Element {
   const compact = false; // a todo el ancho
   return (
-    <section aria-label="Empresas que publican en VMC" style={{ boxSizing: "border-box", flex: 1, minWidth: 0, width: compact ? "auto" : "100%", padding: "0 16px 16px", background: "#ffffff", borderRadius: 16, boxShadow: SHADOW, fontFamily: FONT }}>
-      <div style={{ margin: "0 -16px" }}><SectionHead title="Empresas que publican en VMC" subtitle="Tiendas especializadas que publican en VMC" action="Ver todas las empresas" /></div>
+    <section aria-label="Empresas que publican en VMC" style={{ ...FLAT, flex: 1, minWidth: 0, width: compact ? "auto" : "100%" }}>
+      <SectionHead title="Empresas que publican en VMC" subtitle="Tiendas especializadas que publican en VMC" />
       {view === "normal" ? (
         <ul style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 12, margin: "16px 0 0", padding: 0, listStyle: "none" }}>
           {COMPANIES.map((c) => (
@@ -822,11 +839,12 @@ const LOTS: LotData[] = [
 //   · normal   → 4 OfferCard en fila, como la sección del Subastador.
 //   · gallery  → tipo «Oferta del día» de Mercado Libre: destacado alto a la izquierda + 2 filas de 3 «short».
 //   · featured → destacado más chico + 3 autos más grandes que las «short» (menos que el destacado).
-type LotsView = "normal" | "gallery" | "featured";
+type LotsView = "normal" | "gallery" | "featured" | "listado" | "listado-gallery";
 const LOTS_VIEWS: { id: LotsView; label: string; hint: string }[] = [
-  { id: "normal", label: "Normal", hint: "4 cards en fila" },
-  { id: "gallery", label: "Card gallery", hint: "Destacada + 2 filas de 3" },
+  { id: "gallery", label: "Card gallery", hint: "Destacada + 2 filas de 4" },
   { id: "featured", label: "Card destacada", hint: "Destacada + 3 autos" },
+  { id: "listado", label: "Listado", hint: "Foto a la izquierda, detalle a la derecha" },
+  { id: "listado-gallery", label: "Listado gallery", hint: "Destacada Holo + 4 en listado" },
 ];
 // Segunda tienda (referencia): Mapfre, con destacado sin «En vivo» y 8 chicas.
 const MAPFRE_LOTS: LotData[] = [
@@ -870,6 +888,10 @@ const CARD_STYLES: { id: CardStyle; label: string; hint: string }[] = [
 const GALLERY_HEIGHT = 2 * 170 + 12;
 
 const LOTS_CSS = `
+.hib-eblist { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 28px; }
+.hib-eblist--one { grid-template-columns: minmax(0, 1fr); }
+.hib-eblist--one > .lc-eb:first-child { padding-top: 0; }
+.hib-eblist--one > .lc-eb:last-child { border-bottom: 0; padding-bottom: 0; }
 /* Cards de Concorde dentro de grillas fluidas: ocupan su columna (el OfferCard las fija en px). */
 .hib-fluid > .pcard { width: 100%; }
 /* Destacado de la Card gallery (352 de alto): foto más baja y detalles más chicos para que entre todo. */
@@ -945,7 +967,20 @@ function LotsSection({ view, card, store }: { view: LotsView; card: CardStyle; s
       : card === "cristal" ? <GlassCard key={lot.name} lot={lot} featured={o.featured} width={o.width} height={o.height} mediaFill={o.fill} />
       : <ImmersiveCard key={lot.name} lot={lot} featured={o.featured} width={o.width} height={o.height ?? 262} />;
   let body: JSX.Element;
-  if (card === "normal") {
+  if (view === "listado") {
+    // Listado en 2 columnas: cada lote con la foto a la izquierda y el detalle a la derecha.
+    body = <div className="hib-eblist">{LOTS.slice(0, 6).map((lot) => <EbayLotRow key={lot.name} lot={lot} store={store.name} />)}</div>;
+  } else if (view === "listado-gallery") {
+    // Destacada vertical (Holo curva) a la izquierda y 4 lotes en listado a su lado; la destacada toma el alto de la lista.
+    body = (
+      <div style={{ display: "grid", gridTemplateColumns: "292px minmax(0, 1fr)", gap: 20, alignItems: "stretch" }}>
+        <div style={{ display: "flex", minWidth: 0 }}>
+          <FichaLegend lot={featured} tier="holo" curve featured width="100%" height="100%" mediaFill />
+        </div>
+        <div className="hib-eblist hib-eblist--one">{rest.slice(0, 4).map((lot) => <EbayLotRow key={lot.name} lot={lot} store={store.name} size="sm" />)}</div>
+      </div>
+    );
+  } else if (card === "normal") {
     if (view === "normal") {
       body = <div className="hib-fluid" style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 14 }}>{LOTS.slice(0, 4).map((lot) => lotCard(lot))}</div>;
     } else if (view === "gallery") {
@@ -1016,8 +1051,8 @@ function LotsSection({ view, card, store }: { view: LotsView; card: CardStyle; s
 }
 
 const FEED_VIEWS: { id: FeedView; label: string; hint: string }[] = [
-  { id: "normal", label: "Normal", hint: "Listado: foto, lote y precio" },
   { id: "timeline", label: "Timeline", hint: "Estilo X / Twitter" },
+  { id: "normal", label: "Listado", hint: "Foto, lote y precio" },
 ];
 
 // Selector flotante de vistas, pegado a la derecha del bloque (fuera de los 798 del homepage). Solo QA.
@@ -1086,7 +1121,7 @@ export default function HomeIndexBlock(): JSX.Element {
   const [lotsView, setLotsView] = useState<LotsView>("gallery");
   const [cardStyle, setCardStyle] = useState<CardStyle>("holo-curva");
   const [companiesView, setCompaniesView] = useState<CompaniesView>("slider");
-  const [feedView, setFeedView] = useState<FeedView>("normal");
+  const [feedView, setFeedView] = useState<FeedView>("timeline");
   const [offerView, setOfferView] = useState<OfferTypeView>("normal");
   const [heroH, setHeroH] = useState(368); // alto del banner + VMC ahora (control QA)
   const [categoriesView, setCategoriesView] = useState<CategoriesView>("normal");

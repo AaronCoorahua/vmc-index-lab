@@ -21,7 +21,7 @@
  *                   precio en una cápsula de vidrio.
  */
 import { useId, useState } from "react";
-import type { JSX, PointerEvent } from "react";
+import type { CSSProperties, JSX, PointerEvent } from "react";
 
 export type LotData = {
   name: string; year: number; price?: string; variant: "live" | "negotiable"; live?: boolean; imageSrc: string;
@@ -275,17 +275,17 @@ const CSS = `
   transition: transform 0.2s ease, box-shadow 0.2s; }
 .lg--holo:hover { transform: perspective(700px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(-3px); }
 .lg-holo { position: absolute; inset: 0; z-index: 3; pointer-events: none; background-size: 260% 260%;
-  background-image: linear-gradient(115deg, transparent 20%, rgba(132,96,229,0.22) 34%, rgba(0,218,224,0.2) 44%, rgba(255,150,57,0.2) 54%, rgba(132,96,229,0.18) 64%, transparent 78%);
+  background-image: linear-gradient(115deg, transparent 28%, rgba(132,96,229,0.07) 38%, rgba(0,218,224,0.06) 46%, rgba(255,150,57,0.06) 54%, rgba(132,96,229,0.05) 62%, transparent 72%); /* foil sutil */
   animation: lg-holo-idle 5s ease-in-out infinite alternate; }
 .lg--holo:hover .lg-holo { animation: none; background-position: var(--mx, 50%) var(--my, 50%); }
 .lg-glare { position: absolute; inset: 0; z-index: 3; pointer-events: none; opacity: 0; transition: opacity 0.2s;
-  background: radial-gradient(circle at var(--mx, 50%) var(--my, 30%), rgba(255,255,255,0.6), transparent 45%); }
+  background: radial-gradient(circle at var(--mx, 50%) var(--my, 30%), rgba(255,255,255,0.28), transparent 42%); }
 .lg--holo:hover .lg-glare { opacity: 1; }
 .lg-track { position: relative; flex: none; height: 9px; background: #ECEAF3; overflow: hidden; }
 .lg-track > i { position: relative; display: block; height: 100%; overflow: hidden; background: linear-gradient(90deg, #ff9639, #ef852e 60%, #be3d00); }
 .lc--negotiable .lg-track > i { background: linear-gradient(90deg, #00DAE0, #008688); }
 .lg-track > i::after { content: ""; position: absolute; top: 0; width: 30%; height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.75), transparent); animation: lg-run 1.8s linear infinite; }
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); animation: lg-run 1.8s linear infinite; }
 .lg--holo .lc-body { position: relative; z-index: 1; }
 
 /* Élite: carta con esquinas cortadas, estrellas, año como «puntaje» y stats tipo FIFA; neón abajo */
@@ -364,6 +364,38 @@ const CSS = `
 .lc-compact-curve__base-price { display: inline-flex; align-items: center; gap: 4px; min-width: 0; }
 .lc--negotiable .lc-compact-curve__footer { color: #007E83; }
 .lc--compact-curve .lc-likepos .clike { width: 26px !important; height: 26px !important; }
+/* Lote estilo eBay */
+.lc-eb { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 14px; align-items: start; padding: 14px 0; border-bottom: 1px solid #EFEDF5;
+  font-family: var(--vmc-font-display, 'Plus Jakarta Sans', -apple-system, sans-serif); color: #14112B; cursor: pointer; }
+.lc-eb__thumb { display: block; width: 112px; height: 112px; overflow: hidden; border-radius: 14px; background: #F3EFFD; }
+.lc-eb__thumb img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; }
+.lc-eb:hover .lc-eb__thumb img { transform: scale(1.05); }
+.lc-eb__main { display: grid; gap: 3px; min-width: 0; }
+.lc-eb__pill { justify-self: start; display: inline-flex; align-items: center; height: 22px; padding: 0 10px; border-radius: 999px; border: 1.5px solid var(--k);
+  font-size: 11px; font-weight: 800; letter-spacing: 0.03em; text-transform: uppercase; color: var(--k); }
+.lc-eb__title { margin: 3px 0 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; line-height: 1.2; font-weight: 800; text-transform: uppercase; }
+.lc-eb__who { display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; font-weight: 600; color: #8A879C; }
+.lc-eb__price { display: inline-flex; align-items: center; gap: 6px; margin-top: 2px; font-size: 20px; line-height: 1.15; font-weight: 800; letter-spacing: -0.01em; }
+.lc-eb__offer { margin-top: 2px; font-size: 17px; line-height: 1.15; font-weight: 800; color: #00777A; }
+.lc-eb__rest { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12.5px; font-weight: 600; color: #8A879C; }
+.lc-eb__foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; white-space: nowrap; font-size: 12.5px; font-weight: 600; color: #8A879C; }
+.lc-eb__foot > span:first-child { overflow: hidden; text-overflow: ellipsis; }
+.lc-eb__acts { display: inline-flex; gap: 6px; flex: none; }
+.lc-eb__acts button { display: grid; place-items: center; width: 30px; height: 30px; padding: 0; border: 0; border-radius: 50%; color: #3B1782; background: #F3EFFD; cursor: pointer; transition: background 0.2s, color 0.2s; }
+.lc-eb__acts button:hover { background: #E6DEFF; }
+.lc-eb__acts button[aria-pressed="true"] { color: #fff; background: linear-gradient(135deg, #8460E5, #3B1782); }
+/* Listado compacto (Listado gallery): 4 filas junto a la destacada */
+.lc-eb--sm { grid-template-columns: 84px minmax(0, 1fr); gap: 12px; padding: 10px 0; }
+.lc-eb--sm .lc-eb__thumb { width: 84px; height: 84px; border-radius: 12px; }
+.lc-eb--sm .lc-eb__main { gap: 2px; }
+.lc-eb--sm .lc-eb__pill { height: 19px; padding: 0 8px; font-size: 10px; }
+.lc-eb--sm .lc-eb__title { font-size: 13.5px; }
+.lc-eb--sm .lc-eb__who { display: none; }
+.lc-eb--sm .lc-eb__price { font-size: 17px; }
+.lc-eb--sm .lc-eb__price svg { width: 17px; height: 18px; }
+.lc-eb--sm .lc-eb__offer { font-size: 15px; }
+.lc-eb--sm .lc-eb__rest, .lc-eb--sm .lc-eb__foot { font-size: 11.5px; }
+.lc-eb--sm .lc-eb__acts button { width: 26px; height: 26px; }
 @media (prefers-reduced-motion: reduce) { .lc { transition: none; } }
 `;
 
@@ -733,6 +765,36 @@ function Clike({ name, size = 30 }: { name: string; size?: number }): JSX.Elemen
         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
       </svg>
     </button>
+  );
+}
+
+/**
+ * Lote estilo listado de eBay: foto cuadrada a la izquierda y, a la derecha, pill de estado con borde,
+ * nombre en mayúsculas, empresa verificada, precio grande (o «Haz tu oferta»), datos en gris y, abajo,
+ * ciudad · tiempo con me gusta y compartir.
+ */
+export function EbayLotRow({ lot, store, size = "md" }: { lot: LotData; store: string; size?: "md" | "sm" }): JSX.Element {
+  const live = lot.variant === "live";
+  const pill = live ? (lot.live ? { t: "En vivo", c: "#E2531A" } : { t: "Subasta", c: "#7B5CE6" }) : { t: "Negociable", c: "#00A8AB" };
+  const [liked, setLiked] = useState(false);
+  return (
+    <article className={`lc-eb lc--${lot.variant}${size === "sm" ? " lc-eb--sm" : ""}`} aria-label={`${lot.name} ${lot.year}`}>
+      <span className="lc-eb__thumb"><img src={lot.imageSrc} alt="" /></span>
+      <div className="lc-eb__main">
+        <span className="lc-eb__pill" style={{ "--k": pill.c } as CSSProperties}>{pill.t}</span>
+        <p className="lc-eb__title">{lot.name} {lot.year}</p>
+        <span className="lc-eb__who">{store}<svg width="12" height="12" viewBox="0 0 24 24" aria-label="Verificado"><path d="M12 1.8l2.6 1.9 3.2-.2 1 3 2.6 1.9-1 3.1 1 3-2.6 1.9-1 3.1-3.2-.2L12 22.2l-2.6-1.9-3.2.2-1-3.1L2.6 15.5l1-3-1-3.1 2.6-1.9 1-3 3.2.2z" fill="#6B48DD" /><path d="M8 12.2l2.6 2.6L16.2 9" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg></span>
+        {lot.price ? <b className="lc-eb__price"><SubasCoin size={20} />{lot.price}</b> : <b className="lc-eb__offer">Haz tu oferta</b>}
+        <span className="lc-eb__rest">{lot.km} · {lot.transmission} · {lot.fuel}</span>
+        <span className="lc-eb__foot">
+          <span>{lot.city}{live && lot.remaining ? ` · Empieza en ${lot.remaining}` : ""}</span>
+          <span className="lc-eb__acts">
+            <button type="button" aria-pressed={liked} aria-label={`Me gusta: ${lot.name}`} onClick={() => setLiked((v) => !v)}>{I.heart}</button>
+            <button type="button" aria-label={`Compartir: ${lot.name}`}><svg width="15" height="15" viewBox="0 0 24 24" aria-hidden><path d="M21 3L10.5 13.5M21 3l-6.5 18-4-7.5L3 9.5z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" /></svg></button>
+          </span>
+        </span>
+      </div>
+    </article>
   );
 }
 
