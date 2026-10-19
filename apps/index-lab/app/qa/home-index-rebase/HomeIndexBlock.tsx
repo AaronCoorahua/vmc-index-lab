@@ -854,7 +854,7 @@ const LOTS_VIEWS: { id: LotsView; label: string; hint: string }[] = [
   { id: "gallery", label: "Card gallery", hint: "Destacada + 2 filas de 4" },
   { id: "featured", label: "Card destacada", hint: "Destacada + 3 autos" },
   { id: "listado", label: "Listado", hint: "Foto a la izquierda, detalle a la derecha" },
-  { id: "listado-gallery", label: "Listado gallery", hint: "Destacada Holo + 4 en listado" },
+  { id: "listado-gallery", label: "Listado gallery", hint: "Destacada Holo + 3 en listado" },
 ];
 // Segunda tienda (referencia): Mapfre, con destacado sin «En vivo» y 8 chicas.
 const MAPFRE_LOTS: LotData[] = [
@@ -981,13 +981,13 @@ function LotsSection({ view, card, store }: { view: LotsView; card: CardStyle; s
     // Listado en 2 columnas: cada lote con la foto a la izquierda y el detalle a la derecha.
     body = <div className="hib-eblist">{LOTS.slice(0, 6).map((lot) => <EbayLotRow key={lot.name} lot={lot} store={store.name} />)}</div>;
   } else if (view === "listado-gallery") {
-    // Destacada vertical (Holo curva) a la izquierda y 4 lotes en listado a su lado; la destacada toma el alto de la lista.
+    // Destacada vertical (Holo curva) a la izquierda y 3 lotes en listado a su lado; la destacada toma el alto de la lista.
     body = (
       <div style={{ display: "grid", gridTemplateColumns: "292px minmax(0, 1fr)", gap: 20, alignItems: "stretch" }}>
         <div style={{ display: "flex", minWidth: 0 }}>
           <FichaLegend lot={featured} tier="holo" curve featured width="100%" height="100%" mediaFill />
         </div>
-        <div className="hib-eblist hib-eblist--one">{rest.slice(0, 4).map((lot) => <EbayLotRow key={lot.name} lot={lot} store={store.name} size="sm" />)}</div>
+        <div className="hib-eblist hib-eblist--one">{rest.slice(0, 3).map((lot) => <EbayLotRow key={lot.name} lot={lot} store={store.name} size="sm" />)}</div>
       </div>
     );
   } else if (card === "normal") {
