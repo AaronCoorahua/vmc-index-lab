@@ -1647,7 +1647,7 @@ export default function HomeIndexBlock({ hideFeed = false, feedSlot = false, onO
   const [offerView, setOfferView] = useState<OfferTypeView>(() => initQa("offerView", OPTION_A.offerView));
   const [heroH, setHeroH] = useState(OPTION_A.heroH); // alto del banner + VMC ahora (control QA)
   const [categoriesView, setCategoriesView] = useState<CategoriesView>(() => initQa("categoriesView", OPTION_A.categoriesView));
-  const [bannerView, setBannerView] = useState<BannerView>(() => initQa("bannerView", "hero"));
+  const [bannerView, setBannerView] = useState<BannerView>(() => initQa("bannerView", "recorte"));
   const [controls, setControls] = useState(false);
   const [bannerNav, setBannerNav] = useState<BannerNav>(() => initQa("bannerNav", "plain"));
   const [bannerFx, setBannerFx] = useState<BannerFx>(() => initQa("bannerFx", "letters"));
