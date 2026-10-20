@@ -43,6 +43,36 @@
   .lotsIntro, .sectionLine { align-items: flex-start; flex-direction: column; }
 }
 
+/* Modo Feed (móvil): barra inferior tipo Instagram con Inicio y Feed. --tabbar deja libre el alto de la barra
+   (54 + margen inferior como el del iPhone, donde va la barra de inicio). */
+.mobileShell[data-feedmode] { --tabbar: calc(54px + max(env(safe-area-inset-bottom), 20px)); padding-bottom: var(--tabbar); }
+.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; display: grid; grid-template-columns: 1fr 1fr; align-items: start;
+  height: var(--tabbar); background: rgba(255,255,255,0.96); border-top: 1px solid #ECE8F6; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+.tab { position: relative; display: grid; place-items: center; height: 54px; padding: 0; border: 0; color: #8A879C; background: none; cursor: pointer; }
+.tab[aria-current="page"] { color: #3B1782; }
+.tab:focus-visible { outline: 2px solid #8460E5; outline-offset: -6px; border-radius: 12px; }
+/* Punto naranja de «en vivo» sobre el ícono del feed. */
+.tabLive { position: absolute; top: 12px; left: calc(50% + 9px); width: 8px; height: 8px; border-radius: 50%; background: #FF7A1A; box-shadow: 0 0 0 2px #fff; }
+/* Feed a pantalla completa (como X): ocupa el alto entre el header (64) y la barra; plano, sin la caja de card. */
+.feedView { display: flex; height: calc(100dvh - 64px - var(--tabbar, 0px)); background: #fff; }
+.feedView[data-sub] { height: calc(100dvh - 64px - 44px); } /* bajo las pestañas o la barra «‹ Inicio» */
+
+/* Variante «Pestañas arriba»: Inicio | En vivo bajo el header, fijas al bajar (como «Para ti / Siguiendo» de X). */
+.toptabs { position: sticky; top: 0; z-index: 6; display: grid; grid-template-columns: 1fr 1fr; height: 44px; background: rgba(255,255,255,0.96);
+  border-bottom: 1px solid #ECE8F6; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+.toptabs button { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0; border: 0; background: none; cursor: pointer;
+  font: 600 14px/1 var(--vmc-font-display, 'Plus Jakarta Sans', sans-serif); color: #6B6878; }
+.toptabs button[aria-current="page"] { font-weight: 700; color: #3B1782; }
+.toptabs button[aria-current="page"]::after { content: ""; position: absolute; left: 50%; bottom: 0; width: 56px; height: 3px; margin-left: -28px; border-radius: 3px 3px 0 0; background: #3B1782; }
+.toptabs button:focus-visible { outline: 2px solid #8460E5; outline-offset: -4px; border-radius: 8px; }
+.toptabs i { width: 6px; height: 6px; border-radius: 50%; background: #FF7A1A; }
+/* Variante «Franja en vivo»: barra para volver del feed al inicio. */
+.backbar { position: sticky; top: 0; z-index: 6; display: flex; align-items: center; height: 44px; padding: 0 8px; background: #fff; border-bottom: 1px solid #ECE8F6; }
+.backbar button { display: inline-flex; align-items: center; gap: 2px; height: 36px; padding: 0 10px 0 4px; border: 0; border-radius: 10px; background: none; cursor: pointer;
+  font: 700 14px/1 var(--vmc-font-display, 'Plus Jakarta Sans', sans-serif); color: #3B1782; }
+.backbar button:focus-visible { outline: 2px solid #8460E5; outline-offset: 1px; }
+.feedView :global(.va) { border-radius: 0; box-shadow: none; }
+
 @media (max-width: 560px) {
   .categoryRail, .storeLinks { grid-template-columns: 1fr; }
 }

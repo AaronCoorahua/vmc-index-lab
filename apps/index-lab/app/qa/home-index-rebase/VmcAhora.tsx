@@ -230,6 +230,34 @@ function LikeBtn({ n }: { n: number }): JSX.Element {
   return <button type="button" aria-pressed={on} aria-label={`Me gusta · ${n + (on ? 1 : 0)}`} onClick={() => setOn((v) => !v)}>{Ico.heart}</button>;
 }
 
+// Franja de una línea (móvil, alternativa a la card): el último evento en vivo; al tocarla se abre el feed completo.
+const TICKER_CSS = `
+@keyframes va-tk-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes va-tk-pulse { 50% { opacity: 0.35; } }
+.va-ticker { box-sizing: border-box; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; width: 100%; height: 44px;
+  padding: 0 12px; border: 1px solid #ECE8F6; border-radius: 12px; background: #fff; color: #14112B; text-align: left; cursor: pointer;
+  font-family: var(--vmc-font-display, 'Plus Jakarta Sans', -apple-system, sans-serif); box-shadow: rgba(0,0,0,0.05) 0 2px 10px; }
+.va-ticker:focus-visible { outline: 2px solid #8460E5; outline-offset: 2px; }
+.va-ticker__live { display: inline-flex; align-items: center; gap: 5px; font-size: 9px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: #E2531A; }
+.va-ticker__live i { width: 6px; height: 6px; border-radius: 50%; background: #FF7A1A; animation: va-tk-pulse 1.4s ease-in-out infinite; }
+.va-ticker__txt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; color: #3F3F4A; animation: va-tk-in 0.4s cubic-bezier(0.3,0,0,1); }
+.va-ticker__txt b { font-weight: 700; color: #14112B; }
+.va-ticker__go { color: #3B1782; }
+@media (prefers-reduced-motion: reduce) { .va-ticker__txt, .va-ticker__live i { animation: none; } }
+`;
+export function VmcAhoraTicker({ onOpen }: { onOpen: () => void }): JSX.Element {
+  const { items, tick } = useLiveFeed(1, false);
+  const e = items[0];
+  return (
+    <button type="button" className="va-ticker" onClick={onOpen} aria-label={`VMC ahora, en vivo: ${e.who}, ${e.title}. Abrir el feed`}>
+      <span className="va-ticker__live"><i />En vivo</span>
+      <span key={tick} className="va-ticker__txt"><b>{e.who}</b> · {e.title}</span>
+      <svg className="va-ticker__go" width="16" height="16" viewBox="0 0 20 20" aria-hidden><path d="M7.5 5l5 5-5 5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+      <style>{TICKER_CSS}</style>
+    </button>
+  );
+}
+
 function Head(): JSX.Element {
   return (
     <header className="va-head">

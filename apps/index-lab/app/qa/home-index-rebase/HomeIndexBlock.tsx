@@ -31,8 +31,9 @@ import {
   CompactCurveCard, EbayLotRow, FichaCard, FichaLegend, FichaPlus, FichaPro, GlassCard, ImmersiveCard, LotCardStyles, ReliefCard, SummaryCard,
   type FichaLayout, type LegendTier, type LotData, type ProTheme,
 } from "./LotCards";
-import VmcAhora, { type FeedView } from "./VmcAhora";
-import Vidrio, { VIDRIO_CSS, type VidrioName } from "./Vidrio";
+import VmcAhora, { VmcAhoraTicker, type FeedView } from "./VmcAhora";
+// Íconos de vidrio esmerilado: skill .claude/skills/vidrio-esmerilado (Vidrio.tsx + vidrio.css copiados sin cambios).
+import { Vidrio, type Sec as VidrioName } from "./Vidrio";
 import LogoLoop from "./reactbits/LogoLoop";
 
 const GAP = 16;
@@ -256,7 +257,7 @@ function CampaignBanner(): JSX.Element {
 // «Explora por categoría»: cinco cards con la caja de OfferCard (radio 8, sombra y elevación al pasar).
 // Íconos dúotono como los del banner. Las fotos son las de demo del lab (no hay una de artículos diversos).
 const CATEGORIES = [
-  { label: "Vehicular", count: "21 lotes", vd: "auto" as VidrioName, imageSrc: "/demo/inventory-suv-v1.png" },
+  { label: "Vehicular", count: "21 lotes", vd: "vehicular" as VidrioName, imageSrc: "/demo/inventory-suv-v1.png" },
   { label: "Equipos diversos", count: "12 lotes", vd: "equipos" as VidrioName, imageSrc: "/demo/inventory-forklift-v1.png" },
   { label: "Maquinaria", count: "2 lotes", vd: "maquinaria" as VidrioName, imageSrc: "/demo/inventory-excavator-v1.png" },
   { label: "Materiales", count: "1 lote", vd: "materiales" as VidrioName, imageSrc: "/demo/inventory-steel-v1.png" },
@@ -522,9 +523,7 @@ const OFFER_TYPE_CSS = `
 .hib-ot__glare { position: absolute; inset: 0; z-index: 2; pointer-events: none; opacity: 0; transition: opacity 0.2s;
   background: radial-gradient(circle at var(--mx, 50%) var(--my, 30%), rgba(255,255,255,0.75), transparent 42%); }
 .hib-ot__card:hover .hib-ot__glare { opacity: 1; }
-/* Ícono de vidrio en los colores de la modalidad (sólido oscuro detrás, vidrio claro delante). */
 .hib-ot__tile { display: grid; place-items: center; width: 48px; height: 48px; }
-.hib-ot__tile .vd { --solid: var(--b); --glass: var(--a); }
 .hib-ot__body { position: relative; z-index: 1; display: grid; gap: 4px; min-width: 0; }
 .hib-ot__kicker { font-size: 11px; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; color: var(--ink); }
 .hib-ot__title { margin: 0; font-size: 14px; line-height: 18px; font-weight: 700; letter-spacing: -0.01em; color: #14112B; }
@@ -548,7 +547,7 @@ function OfferTypeClara(): JSX.Element {
         {OFFER_TYPES.map((t) => (
           <a key={t.id} href="#" className="hib-ot__card vd-host"
             style={{ "--a": t.a, "--b": t.b, "--ink": t.ink, "--soft": t.soft, "--glow": t.glow } as CSSProperties}>
-            <span className="hib-ot__tile"><Vidrio s={t.id === "live" ? "subasta" : "negociaciones"} size={44} /></span>
+            <span className="hib-ot__tile"><Vidrio s={t.id === "live" ? "participaciones" : "negociaciones"} size={44} /></span>
             <span className="hib-ot__body">
               <span className="hib-ot__kicker">{t.kicker}</span>
               <span className="hib-ot__title">{t.title}</span>
@@ -589,10 +588,9 @@ const OFFER_GRAD_CSS = `
 .hib-otg__body { position: relative; z-index: 1; display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 16px; align-items: center; height: 100%; padding: 20px 24px;
   transition: filter 0.35s, opacity 0.35s, transform 0.35s; }
 .hib-otg__card:hover .hib-otg__body, .hib-otg__card:focus-visible .hib-otg__body { filter: blur(6px); opacity: 0.55; transform: scale(0.98); }
-/* Ícono de vidrio sobre el degradado: sólido blanco translúcido detrás, vidrio blanco delante. */
-.hib-otg__icon { display: grid; place-items: center; width: 52px; height: 52px; }
-.hib-otg__icon .vd { --solid: rgba(255,255,255,0.5); --glass: #FFFFFF; }
-.hib-otg__icon .vd-detail { filter: brightness(0.35); }
+/* Los íconos de vidrio van sobre blanco (regla de la skill): ficha blanca redonda sobre el degradado. */
+.hib-otg__icon { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; background: #fff;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 6px 14px -6px rgba(0,0,0,0.3); }
 .hib-otg__txt b { font-size: 14px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; text-shadow: rgba(0,0,0,0.18) 0 1px 3px; }
 /* Vista «Con foto» (como el banner): el auto de fondo a la derecha y la sombra del color de la modalidad
    desde la izquierda; texto encima. El hover (crece, blur, botón al centro) es el mismo. */
@@ -647,7 +645,7 @@ function OfferTypeGradient({ photo }: { photo?: boolean }): JSX.Element {
                 <span>{t.text}</span>
               </span>
             </> : <>
-              <span className="hib-otg__icon"><Vidrio s={t.id === "live" ? "subasta" : "negociaciones"} size={44} /></span>
+              <span className="hib-otg__icon"><Vidrio s={t.id === "live" ? "participaciones" : "negociaciones"} size={36} /></span>
               <span className="hib-otg__txt"><b>{t.title}</b><span>{t.text}</span></span>
             </>}
           </span>
@@ -1054,6 +1052,11 @@ const MOBILE_CSS = `
   .hib-top-grid > [data-slot="principal-banner"] { grid-column: 1 !important; grid-row: 1 !important; }
   .hib-top-grid > [data-slot="secondary-banner"] { grid-column: 1 !important; grid-row: 3 !important; height: 390px !important; }
   .hib-top-grid > [data-slot="offer-type"] { grid-column: 1 !important; grid-row: 2 !important; }
+  /* Modo Feed: sin VMC ahora, la fila 3 (390) desaparece. */
+  .hib-top-grid[data-nofeed] { grid-template-rows: 300px auto auto !important; }
+  .hib-top-grid > [data-slot="ticker"] { grid-column: 1 !important; grid-row: 3 !important; }
+  /* Banner / Feed: el espacio crece para que el feed se lea (selector 36 + 8 + 356). */
+  .hib-top-grid[data-feedslot] { grid-template-rows: 400px auto auto !important; }
   .hib-top-grid > .hib-switches { position: static !important; grid-column: 1 !important; grid-row: 4 !important; width: 100% !important; margin-top: 0; }
   .hib-home .hib-switches { position: static !important; width: 100% !important; margin-top: 12px; }
   .hib-home .hib-switch__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -1148,7 +1151,40 @@ function ViewSwitch<T extends string>({ title, suffix = "vista", options, value,
   );
 }
 
-export default function HomeIndexBlock(): JSX.Element {
+/** `hideFeed`: modo «Feed» del móvil (barra inferior Inicio / Feed): VMC ahora sale del home y pasa a su propia pestaña. */
+// Móvil · alternativa «Banner / Feed»: un selector arriba alterna, en el mismo espacio, el banner y VMC ahora.
+const BFS_CSS = `
+.hib-bfs { display: flex; flex-direction: column; gap: 8px; width: 100%; height: 100%; min-height: 0; }
+.hib-bfs__tabs { flex: none; display: grid; grid-template-columns: 1fr 1fr; height: 36px; padding: 3px; border-radius: 999px; background: #F3EFFD; }
+.hib-bfs__tabs button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 0; border-radius: 999px; background: transparent; cursor: pointer;
+  font: 700 13px/1 ${FONT}; color: #6B6878; transition: background 0.2s, color 0.2s, box-shadow 0.2s; }
+.hib-bfs__tabs button[aria-pressed="true"] { color: #3B1782; background: #fff; box-shadow: rgba(32,0,104,0.14) 0 2px 8px; }
+.hib-bfs__tabs button:focus-visible { outline: 2px solid #8460E5; outline-offset: 1px; }
+.hib-bfs__tabs i { width: 6px; height: 6px; border-radius: 50%; background: #FF7A1A; }
+.hib-bfs__body { position: relative; flex: 1; min-height: 0; display: flex; }
+.hib-bfs__body > * { flex: 1; }
+`;
+function BannerFeedSlot({ feedView }: { feedView: FeedView }): JSX.Element {
+  const [show, setShow] = useState<"banner" | "feed">("banner");
+  return (
+    <div className="hib-bfs">
+      <div className="hib-bfs__tabs" role="group" aria-label="Banner o VMC ahora">
+        <button type="button" aria-pressed={show === "banner"} onClick={() => setShow("banner")}>Destacados</button>
+        <button type="button" aria-pressed={show === "feed"} onClick={() => setShow("feed")}><i aria-hidden />En vivo</button>
+      </div>
+      <div className="hib-bfs__body">{show === "banner" ? <PrincipalBanner /> : <VmcAhora view={feedView} />}</div>
+      <style>{BFS_CSS}</style>
+    </div>
+  );
+}
+
+/** Variantes de VMC ahora en el móvil (QA):
+ *  `hideFeed`   VMC ahora sale del inicio (modo Feed con barra inferior, pestañas arriba o franja).
+ *  `feedSlot`   banner y VMC ahora se alternan en el mismo espacio.
+ *  `onOpenFeed` muestra la franja «En vivo» de una línea; al tocarla se abre el feed completo. */
+export default function HomeIndexBlock({ hideFeed = false, feedSlot = false, onOpenFeed }: {
+  hideFeed?: boolean; feedSlot?: boolean; onOpenFeed?: () => void;
+}): JSX.Element {
   // Cada tienda tiene su propio selector de vista de lotes y de Detail card.
   const [lotsView, setLotsView] = useState<LotsView>(OPTION_A.lotsView);
   const [cardStyle, setCardStyle] = useState<CardStyle>(OPTION_A.cardStyle);
@@ -1208,16 +1244,19 @@ export default function HomeIndexBlock(): JSX.Element {
       </button>
       {/* Proporción de la referencia: hero flexible + feed de mín. 300 (32 %), 368 de alto (600 × 368 · 300 × 368 con el sidebar cerrado). */}
       {/* «Corta»: Tipo de oferta va bajo el banner (mismo ancho) y VMC ahora ocupa las dos filas a su lado. */}
-      <div className="hib-top-grid" style={{ position: "relative", width: "100%", display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(300px, 32%)", gap: GAP,
+      <div className="hib-top-grid" data-nofeed={hideFeed || feedSlot || undefined} data-feedslot={feedSlot || undefined} style={{ position: "relative", width: "100%", display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(300px, 32%)", gap: GAP,
         gridTemplateRows: `${heroH}px auto` }}>
-        <div data-slot="principal-banner" style={{ gridColumn: 1, gridRow: 1, minWidth: 0, display: "flex", height: "100%" }}><PrincipalBanner /></div>
-        <div data-slot="secondary-banner" style={{ gridColumn: 2, gridRow: offerView === "corta" ? "1 / 3" : 1, minWidth: 0, minHeight: 0, display: "flex", height: "100%", position: "relative" }}>
-          {/* El feed no empuja la fila: se dibuja absoluto y toma el alto que dejan banner + Tipo de oferta. */}
-          <div style={{ position: "absolute", inset: 0, display: "flex" }}><VmcAhora view={feedView} /></div>
-        </div>
+        <div data-slot="principal-banner" style={{ gridColumn: 1, gridRow: 1, minWidth: 0, display: "flex", height: "100%" }}>{feedSlot ? <BannerFeedSlot feedView={feedView} /> : <PrincipalBanner />}</div>
+        {hideFeed || feedSlot ? null : (
+          <div data-slot="secondary-banner" style={{ gridColumn: 2, gridRow: offerView === "corta" ? "1 / 3" : 1, minWidth: 0, minHeight: 0, display: "flex", height: "100%", position: "relative" }}>
+            {/* El feed no empuja la fila: se dibuja absoluto y toma el alto que dejan banner + Tipo de oferta. */}
+            <div style={{ position: "absolute", inset: 0, display: "flex" }}><VmcAhora view={feedView} /></div>
+          </div>
+        )}
         {/* Tipo de oferta siempre en la fila 2: «Corta» bajo el banner (VMC ahora a su lado); las demás a todo el ancho.
             En móvil todo va en una columna (banner · Tipo de oferta · VMC ahora), sea Opción A u Opción B. */}
         <div data-slot="offer-type" style={{ gridColumn: offerView === "corta" ? 1 : "1 / -1", gridRow: 2, minWidth: 0 }}><OfferTypeCard view={offerView} /></div>
+        {onOpenFeed ? <div data-slot="ticker" style={{ gridColumn: "1 / -1", gridRow: 3, minWidth: 0 }}><VmcAhoraTicker onOpen={onOpenFeed} /></div> : null}
         <Switches visible={controls}>
           <ViewSwitch title="VMC ahora" options={FEED_VIEWS} value={feedView} onChange={setFeedView} />
           <HeightSlider value={heroH} onChange={setHeroH} />
@@ -1250,7 +1289,7 @@ export default function HomeIndexBlock(): JSX.Element {
         <Switches visible={controls}><ViewSwitch title="Empresas" options={COMPANIES_VIEWS} value={companiesView} onChange={setCompaniesView} /></Switches>
       </div>
       {/* Un solo texto: un <style> con varios hijos no hidrata igual en servidor y cliente. */}
-      <style>{SWITCH_CSS + MOBILE_CSS + VIDRIO_CSS}</style>
+      <style>{SWITCH_CSS + MOBILE_CSS}</style>
     </div>
   );
 }

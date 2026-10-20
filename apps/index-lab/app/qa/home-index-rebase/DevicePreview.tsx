@@ -11,6 +11,14 @@ import type { CSSProperties, JSX } from "react";
  */
 type Device = "desktop" | "mobile";
 type PresetId = "a" | "b";
+type MobileFeedView = "card" | "tabs" | "slot" | "ticker";
+// Versiones de VMC ahora en el móvil (sin modo Feed), para compararlas en el teléfono.
+const MOBILE_FEED_VIEWS: { id: MobileFeedView; label: string; hint: string }[] = [
+  { id: "card", label: "Card en el inicio", hint: "Como hoy: VMC ahora debajo del Tipo de oferta, con su propio scroll" },
+  { id: "tabs", label: "Pestañas arriba", hint: "Inicio | En vivo bajo el header, fijas al bajar (recomendada)" },
+  { id: "slot", label: "Banner / Feed", hint: "Se alternan en el espacio del banner" },
+  { id: "ticker", label: "Franja en vivo", hint: "Una línea con lo último; al tocarla abre el feed" },
+];
 
 const SCREEN_W = 393;
 const SCREEN_H = 852;
@@ -25,6 +33,32 @@ const CSS = `
 .hdp-toggle button:hover { background: #f3effd; }
 .hdp-toggle button[aria-pressed="true"] { color: #fff; background: #3b1782; }
 .hdp-toggle button:focus-visible { outline: 2px solid #8460e5; outline-offset: 2px; }
+/* Vista mobile: la pila de botones sube un lugar para dejar abajo «Abrir controles» (vista · A · B · Feed · Controles). */
+html[data-hib-device="mobile"] .hdp-toggle { bottom: 178px; }
+html[data-hib-device="mobile"] .hib-option-toggle { bottom: 98px; }
+html[data-hib-device="mobile"] .hib-option-toggle--a { bottom: 138px; }
+/* «Feed» (solo en la vista mobile). Activo = morado relleno. */
+.hdp-feed { position: fixed; right: 18px; bottom: 58px; z-index: 10; display: inline-flex; align-items: center; gap: 7px; min-height: 32px; padding: 0 6px 0 11px;
+  border: 1px solid #d9d0f2; border-radius: 999px; color: #3b1782; background: rgba(255,255,255,0.94); box-shadow: rgba(32,0,104,0.16) 0 4px 14px;
+  font: 700 12px/1 var(--vmc-font-display, 'Plus Jakarta Sans', sans-serif); cursor: pointer; transition: background 0.2s, color 0.2s, border-color 0.2s; }
+.hdp-feed:hover { border-color: #8460e5; background: #f8f6ff; }
+.hdp-feed[aria-pressed="true"] { color: #fff; border-color: #8460e5; background: #3b1782; }
+/* Interruptor: apagado gris a la izquierda, encendido naranja a la derecha (el estado no depende solo del fondo). */
+.hdp-feed__sw { position: relative; flex: none; width: 30px; height: 18px; border-radius: 999px; background: #E3DEF2; transition: background 0.2s; }
+.hdp-feed__sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff;
+  box-shadow: rgba(32,0,104,0.25) 0 1px 3px; transition: transform 0.2s cubic-bezier(0.3,0,0,1); }
+.hdp-feed[aria-pressed="true"] .hdp-feed__sw { background: #FF8A3D; }
+.hdp-feed[aria-pressed="true"] .hdp-feed__sw::after { transform: translateX(12px); }
+.hdp-feed:focus-visible { outline: 2px solid #8460e5; outline-offset: 3px; }
+/* Controles de la vista mobile: versiones de VMC ahora en el teléfono. */
+.hdp-ctrl { position: fixed; right: 18px; bottom: 18px; z-index: 10; min-height: 32px; padding: 0 11px; border: 1px solid #d9d0f2; border-radius: 999px;
+  color: #3b1782; background: rgba(255,255,255,0.94); box-shadow: rgba(32,0,104,0.16) 0 4px 14px; font: 700 12px/1 var(--vmc-font-display, 'Plus Jakarta Sans', sans-serif); cursor: pointer; }
+.hdp-ctrl:hover { border-color: #8460e5; background: #f8f6ff; }
+.hdp-ctrl:focus-visible { outline: 2px solid #8460e5; outline-offset: 3px; }
+.hdp-panel { position: fixed; top: 24px; right: 18px; z-index: 10; width: 290px; }
+.hdp-panel .hib-switch__grid { grid-template-columns: 1fr; }
+.hdp-panel__note { margin: 8px 2px 0; font: 500 11px/1.4 var(--vmc-font-display, 'Plus Jakarta Sans', sans-serif); color: #6b6880; }
+.hdp-panel button:disabled { opacity: 0.45; cursor: not-allowed; }
 html[data-hib-device="mobile"] { overflow: hidden; }
 html[data-hib-device="mobile"] .hib-controls-toggle { display: none; }
 .hdp-stage { position: fixed; inset: 0; z-index: 9; display: grid; place-items: center; overflow: hidden;
@@ -67,7 +101,12 @@ export default function DevicePreview(): JSX.Element {
   const [device, setDevice] = useState<Device>("desktop");
   const [src, setSrc] = useState<string | null>(null);
   const [scale, setScale] = useState(1);
+  const [feed, setFeed] = useState(false);
+  const feedRef = useRef(false);
   const preset = useRef<PresetId>("a");
+  const [controls, setControls] = useState(false);
+  const [mview, setMview] = useState<MobileFeedView>("card");
+  const mviewRef = useRef<MobileFeedView>("card");
   const frame = useRef<HTMLIFrameElement>(null);
 
   // Opción A / B: se recuerda la última y, si el teléfono está abierto, se le reenvía.
@@ -77,8 +116,17 @@ export default function DevicePreview(): JSX.Element {
       preset.current = id;
       frame.current?.contentWindow?.postMessage({ type: "hib-preset", id }, window.location.origin);
     };
+    // Cada vez que el teléfono (re)carga avisa «listo» y se le reenvía el estado: así nunca queda al revés que los controles.
+    const onReady = (e: MessageEvent) => {
+      const w = frame.current?.contentWindow;
+      if (e.origin !== window.location.origin || e.data?.type !== "hib-ready" || !w || e.source !== w) return;
+      w.postMessage({ type: "hib-feed", on: feedRef.current }, window.location.origin);
+      w.postMessage({ type: "hib-preset", id: preset.current }, window.location.origin);
+      w.postMessage({ type: "hib-mview", view: mviewRef.current }, window.location.origin);
+    };
     window.addEventListener("hib-preset", onPreset);
-    return () => window.removeEventListener("hib-preset", onPreset);
+    window.addEventListener("message", onReady);
+    return () => { window.removeEventListener("hib-preset", onPreset); window.removeEventListener("message", onReady); };
   }, []);
 
   // El teléfono se escala para entrar en el alto de la ventana (nunca más grande que 1:1).
@@ -98,12 +146,57 @@ export default function DevicePreview(): JSX.Element {
   }, [device]);
 
   const choose = (d: Device) => {
-    if (d === "mobile" && device !== "mobile") setSrc(`${window.location.pathname}?opcion=${preset.current}`);
+    if (d === "mobile" && device !== "mobile") setSrc(`${window.location.pathname}?opcion=${preset.current}&vista=${mviewRef.current}${feed ? "&feed=1" : ""}`);
+    if (d === "desktop") setControls(false);
     setDevice(d);
   };
 
+  // Modo Feed del teléfono: barra inferior Inicio / Feed (VMC ahora pasa a su propia pestaña).
+  const toggleFeed = () => {
+    const on = !feed;
+    setFeed(on);
+    feedRef.current = on;
+    frame.current?.contentWindow?.postMessage({ type: "hib-feed", on }, window.location.origin);
+  };
+  const chooseMview = (v: MobileFeedView) => {
+    setMview(v);
+    mviewRef.current = v;
+    frame.current?.contentWindow?.postMessage({ type: "hib-mview", view: v }, window.location.origin);
+  };
+
+
   return (
     <>
+      {device === "mobile" ? (
+        <>
+          <button type="button" className="hdp-ctrl" aria-expanded={controls} onClick={() => setControls((v) => !v)}>
+            {controls ? "Ocultar controles" : "Abrir controles"}
+          </button>
+          {controls ? (
+            <div className="hdp-panel">
+              <div className="hib-switch" role="group" aria-label="VMC ahora · móvil">
+                <span>VMC ahora · móvil</span>
+                <div className="hib-switch__grid">
+                  {MOBILE_FEED_VIEWS.map((o) => (
+                    <button key={o.id} type="button" aria-pressed={mview === o.id} disabled={feed} onClick={() => chooseMview(o.id)}><b>{o.label}</b><small>{o.hint}</small></button>
+                  ))}
+                </div>
+                {feed ? <p className="hdp-panel__note">Con «Feed» activo manda la barra inferior; apágalo para comparar estas versiones.</p> : null}
+              </div>
+            </div>
+          ) : null}
+        </>
+      ) : null}
+      {device === "mobile" ? (
+        <button type="button" className="hdp-feed" aria-pressed={feed} onClick={toggleFeed}
+          title="Barra inferior Inicio / Feed: VMC ahora como vista aparte">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <rect x="3.5" y="3.5" width="17" height="17" rx="4" /><path d="M7.5 9h9M7.5 12.5h9M7.5 16h5" />
+          </svg>
+          Feed
+          <span className="hdp-feed__sw" aria-hidden />
+        </button>
+      ) : null}
       <div className="hdp-toggle" role="group" aria-label="Vista de dispositivo">
         <button type="button" aria-pressed={device === "desktop"} aria-label="Vista normal (laptop)" title="Vista normal" onClick={() => choose("desktop")}><LaptopIcon /></button>
         <button type="button" aria-pressed={device === "mobile"} aria-label="Vista mobile (iPhone 14 Pro)" title="Vista mobile · iPhone 14 Pro" onClick={() => choose("mobile")}><PhoneIcon /></button>
