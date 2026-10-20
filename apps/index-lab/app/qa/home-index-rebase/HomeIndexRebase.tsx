@@ -3,6 +3,7 @@
 import { Header, Sidebar, SidebarMenuButton, SidebarMobile } from "@vmc/concorde-adapter";
 import { useEffect, useState } from "react";
 
+import DevicePreview from "./DevicePreview";
 import HomeIndexBlock from "./HomeIndexBlock";
 import styles from "./HomeIndexRebase.module.css";
 
@@ -33,6 +34,8 @@ export default function HomeIndexRebase() {
         <div className={styles.mainColumn}>
           <HomeIndexBlock />
         </div>
+        {/* Laptop / celular (iPhone 14 Pro), sobre Opción A / B. Solo en escritorio. */}
+        <DevicePreview />
       </div>
 
       {/* Móvil y tablet: drawer de Concorde con hamburguesa + logo en el header y el mismo bloque en una columna. */}

@@ -42,12 +42,13 @@ const CSS = `
 
 /* Pills (estado / destacado) y like */
 .lc-pills { position: absolute; top: 8px; left: 8px; z-index: 2; display: flex; gap: 4px; }
-.lc-pill { display: inline-flex; align-items: center; gap: 5px; height: 22px; padding: 0 9px 0 7px; border-radius: 999px; color: #fff;
-  font-size: 10px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; box-shadow: rgba(0,0,0,0.18) 0 2px 6px; }
+.lc-pill { display: inline-flex; align-items: center; gap: 5px; height: 18px; padding: 0 8px 0 6px; border-radius: 999px; font-size: 9px; font-weight: 700; letter-spacing: 0.07em; color: #fff;
+  text-transform: uppercase; white-space: nowrap; box-shadow: rgba(0,0,0,0.18) 0 2px 6px; }
+.lc-pill svg { flex: none; width: 10px; height: 10px; }
 .lc-pill--live { background: linear-gradient(135deg, #ff9639 0%, #ef852e 40%, #be3d00 100%); }
 .lc-pill--live i { width: 6px; height: 6px; border-radius: 50%; background: #fff; }
 .lc-pill--negotiable { background: linear-gradient(135deg, #00DAE0 0%, #008688 100%); }
-.lc-pill--featured { background: linear-gradient(135deg, #8460e5 0%, #3b1782 100%); padding: 0 9px; }
+.lc-pill--featured { background: linear-gradient(135deg, #8460e5 0%, #3b1782 100%); }
 .lc-like { position: absolute; top: 8px; right: 8px; z-index: 2; display: grid; place-items: center; width: 28px; height: 28px; padding: 0;
   border: 0; border-radius: 50%; color: #6b3fe0; background: #fff; box-shadow: rgba(32,0,104,0.18) 0 2px 8px; cursor: pointer; }
 
@@ -65,18 +66,18 @@ const CSS = `
 .lc-name { margin: 0; font-size: 16px; font-weight: 800; line-height: 1.15; color: #1b1442; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lc-sub { margin: 2px 0 0; font-size: 11px; color: #6b6880; }
 .lc-chips { display: flex; flex-wrap: wrap; gap: 4px; }
-.lc-chip { display: inline-flex; align-items: center; gap: 3px; padding: 3px 6px; border: 1px solid #E3E1EC; border-radius: 6px; font-size: 9.5px; color: #3f3f4a; }
-.lc-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 10.5px; line-height: 1.2; color: #3f3f4a; }
+.lc-chip { display: inline-flex; align-items: center; gap: 3px; padding: 3px 6px; border: 1px solid #E3E1EC; border-radius: 6px; font-size: 10px; color: #3f3f4a; }
+.lc-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 11px; line-height: 1.2; color: #3f3f4a; }
 .lc-stats span { display: flex; align-items: center; gap: 4px; }
 .lc-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
-.lc-tile { display: grid; justify-items: center; gap: 2px; padding: 5px 2px; border-radius: 6px; font-size: 9.5px; text-align: center; color: #3f3f4a; background: #F5F3FB; }
+.lc-tile { display: grid; justify-items: center; gap: 2px; padding: 5px 2px; border-radius: 6px; font-size: 10px; text-align: center; color: #3f3f4a; background: #F5F3FB; }
 .lc-meta { display: flex; flex-wrap: wrap; gap: 4px 8px; font-size: 10px; color: #3f3f4a; }
 .lc-meta span { display: inline-flex; align-items: center; gap: 3px; }
-.lc-label { margin: 0; font-size: 10.5px; color: #6b6880; display: flex; align-items: center; gap: 4px; }
-.lc-price { margin: 0; font-size: 20px; font-weight: 800; line-height: 1.1; color: #4c1ebc; white-space: nowrap; }
+.lc-label { margin: 0; font-size: 11px; color: #6b6880; display: flex; align-items: center; gap: 4px; }
+.lc-price { margin: 0; font-size: 18px; font-weight: 800; line-height: 1.1; color: #4c1ebc; white-space: nowrap; }
 .lc-bar { height: 6px; border-radius: 3px; background: #ECEAF3; overflow: hidden; }
 .lc-bar > i { display: block; height: 100%; border-radius: 3px; background: linear-gradient(90deg, #ff9639 0%, #ef852e 60%, #be3d00 100%); }
-.lc-time { display: flex; align-items: center; gap: 4px; font-size: 10.5px; color: #3f3f4a; }
+.lc-time { display: flex; align-items: center; gap: 4px; font-size: 11px; color: #3f3f4a; }
 .lc-pricerow { display: flex; align-items: center; gap: 8px; }
 .lc-pricerow .lc-label { margin-bottom: 1px; }
 .lc-offer { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 800; color: #00777A; }
@@ -92,7 +93,6 @@ const CSS = `
 .lc-imm__year { font-size: 12px; color: rgba(255,255,255,0.75); }
 .lc-imm__price { display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 17px; font-weight: 800; white-space: nowrap; }
 .lc-imm__neg { margin-top: 6px; font-size: 13px; font-weight: 700; color: #7CF3F5; }
-.lc--sm .lc-pill { height: 18px; font-size: 8.5px; padding: 0 7px 0 6px; }
 .lc--sm .lc-like { width: 22px; height: 22px; top: 6px; right: 6px; }
 .lc--sm .lc-like svg { width: 12px; height: 12px; }
 .lc--sm .lc-pills { top: 6px; left: 6px; }
@@ -114,7 +114,7 @@ const CSS = `
 .lc-sum__price { flex: 1; display: grid; align-content: center; justify-items: center; gap: 2px; padding: 8px 8px 10px; }
 .lc-sum__price small { font-size: 9.5px; font-weight: 700; letter-spacing: 0.06em; color: #6b6880; }
 .lc-sum__price span { display: inline-flex; align-items: center; gap: 6px; }
-.lc-sum__price .lc-price { font-size: 19px; }
+.lc-sum__price .lc-price { font-size: 18px; }
 /* Relieve: el fondo de la card es el degradado de estado y el cuerpo blanco, redondeado abajo, deja ver una
    franja gruesa de color con esquinas curvas. Ola rosada abajo a la derecha y sombras internas suaves. */
 .lc--relief { border-radius: 12px; }
@@ -128,16 +128,13 @@ const CSS = `
   box-shadow: 0 -8px 18px -6px rgba(16,0,48,0.18), inset 0 1px 0 #fff, inset 0 -14px 24px -16px rgba(132,96,229,0.18); }
 .lc-rel__wave { position: absolute; right: 0; bottom: 0; width: 100%; height: 70%; pointer-events: none; }
 .lc-rel > :not(.lc-rel__wave) { position: relative; }
-.lc-rel .lc-name { font-size: 18px; font-weight: 800; color: #12133F; }
-.lc-rel .lc-sub { margin-top: 2px; font-size: 13px; color: #4A4F6A; }
+.lc-rel .lc-name { font-size: 16px; font-weight: 800; color: #12133F; }
+.lc-rel .lc-sub { margin-top: 2px; font-size: 11px; color: #4A4F6A; }
 .lc-rel__price { margin-top: auto; padding-top: 14px; display: flex; align-items: center; gap: 8px; }
-.lc-rel__price .lc-price { font-size: 20px; color: #4A2CE0; }
+.lc-rel__price .lc-price { font-size: 18px; color: #4A2CE0; }
 /* Compacta (cards angostas de Normal y Card destacada): franja y curva más chicas. */
 .lc--relief.lc--compact .lc-rel { margin: -14px 0 6px; padding: 12px 12px 14px; border-radius: 12px 12px 50% 50% / 12px 12px 9px 9px; }
-.lc--relief.lc--compact .lc-rel .lc-name { font-size: 16px; }
-.lc--relief.lc--compact .lc-rel .lc-sub { font-size: 12px; }
 .lc--relief.lc--compact .lc-rel__price { padding-top: 10px; }
-.lc--relief.lc--compact .lc-rel__price .lc-price { font-size: 18px; }
 
 /* Cristal: el vidrio está solo arriba. Detrás de la foto hay una copia desenfocada que hace de marco
    esmerilado; la foto va inset con aro blanco. Abajo la card es blanca con manchas moradas/azules difusas
@@ -158,14 +155,14 @@ const CSS = `
   background: linear-gradient(125deg, rgba(255,255,255,0.32) 0%, rgba(255,255,255,0.06) 26%, transparent 27%); }
 .lc--glass .lc-pills, .lc--glass .lc-like { z-index: 3; }
 .lc-glass { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; gap: 2px; padding: 16px 6px 2px; }
-.lc-glass .lc-name { font-size: 18px; font-weight: 800; color: #12133F; }
-.lc-glass .lc-sub { font-size: 13px; color: #4A4F6A; }
+.lc-glass .lc-name { font-size: 16px; font-weight: 800; color: #12133F; }
+.lc-glass .lc-sub { font-size: 11px; color: #4A4F6A; }
 .lc-glass__rule { width: 28px; height: 3px; margin: 10px 0 0; border-radius: 2px; background: #D6CDF8; }
 .lc-glass__price { margin-top: auto; display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 14px;
   border: 1px solid rgba(255,255,255,0.95); background: rgba(255,255,255,0.88); backdrop-filter: blur(10px);
   box-shadow: 0 6px 16px -8px rgba(0,0,0,0.18), inset 0 1px 0 #fff; }
-.lc-glass__price .lc-price { font-size: 19px; color: #4A2CE0; }
-.lc-glass__price .lc-offer { font-size: 13px; }
+.lc-glass__price .lc-price { font-size: 18px; color: #4A2CE0; }
+.lc-glass__price .lc-offer { font-size: 14px; }
 /* Ficha+ : botón «Ver detalle» (naranja = primary de Concorde; turquesa en negociable) y piezas extra */
 .lc-cta { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; height: 34px; margin-top: 8px; padding: 0 12px;
   border: 0; border-radius: 999px; font: inherit; font-size: 12.5px; font-weight: 800; color: #fff; cursor: pointer; flex: none;
@@ -181,26 +178,25 @@ const CSS = `
 .lc-countdown i > span { display: block; height: 100%; background: linear-gradient(90deg, #ff9639, #ef852e); }
 .lc-specs3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
 .lc-specs3 span { display: grid; justify-items: center; gap: 2px; padding: 5px 2px; border-radius: 6px; font-size: 9.5px; text-align: center; color: #3f3f4a; background: #F5F3FB; }
-.lc-social { display: flex; flex-wrap: wrap; gap: 2px 10px; font-size: 10.5px; color: #3f3f4a; }
+.lc-social { display: flex; flex-wrap: wrap; gap: 2px 10px; font-size: 11px; color: #3f3f4a; }
 .lc-social span { display: inline-flex; align-items: center; gap: 4px; }
 .lc-social b { color: #1b1442; }
-.lc-pricerow--big .lc-price { font-size: 22px; }
+.lc-pricerow--big .lc-price { font-size: 18px; }
 /* ── FichaPro: 4 diseños (referencia de producto) ───────────────────────── */
 .lp .lc-media { height: 150px; overflow: hidden; }
 .lp .lc-count, .lp .lc-dots { z-index: 2; }
 .lp .lc-body { position: relative; z-index: 1; gap: 9px; padding: 12px 8px 18px 10px; }
-.lp .lc-name { font-size: 17px; }
-.lp .lc-sub { font-size: 11.5px; }
+.lp .lc-name { font-size: 16px; }
+.lp .lc-sub { font-size: 11px; }
 .lp .lc-chips { flex-wrap: nowrap; gap: 4px; }
-.lp .lc-chip { gap: 3px; padding: 4px 5px; border-radius: 8px; font-size: 9.5px; white-space: nowrap; }
-.lp .lc-stats { gap: 4px; font-size: 10.5px; white-space: nowrap; }
-.lp .lc-pill { gap: 4px; padding: 0 7px 0 6px; font-size: 9px; }
+.lp .lc-chip { gap: 3px; padding: 4px 5px; border-radius: 8px; font-size: 10px; white-space: nowrap; }
+.lp .lc-stats { gap: 4px; font-size: 11px; white-space: nowrap; }
 .lp .lc-pill svg { flex: none; }
 .lp-arrow { position: absolute; top: 50%; z-index: 2; transform: translateY(-50%); display: grid; place-items: center; width: 24px; height: 24px; padding: 0;
   border: 0; border-radius: 50%; color: #fff; background: rgba(16,0,48,0.42); backdrop-filter: blur(4px); cursor: pointer; }
 .lp-arrow--l { left: 6px; }
 .lp-arrow--r { right: 6px; }
-.lp-price .lc-price { font-size: 21px; }
+.lp-price .lc-price { font-size: 18px; }
 
 /* Nocturna: cuerpo azul noche, foto con tono atardecer que se funde, ola naranja/magenta abajo */
 .lp--nocturna { background: linear-gradient(180deg, #241B5C 0%, #17103D 55%, #100A2B 100%); }
@@ -216,7 +212,7 @@ const CSS = `
 .lp-tiles span { display: grid; justify-items: center; gap: 2px; min-width: 0; padding: 6px 3px; border-radius: 8px; font-size: 9.5px; color: #3f3f4a;
   background: #fff; border: 1px solid #EEEAF6; box-shadow: rgba(32,0,104,0.06) 0 2px 6px; white-space: nowrap; }
 .lp--curva .lp-price { padding: 6px 12px 6px 6px; border-radius: 999px; background: #fff; box-shadow: rgba(32,0,104,0.12) 0 4px 14px; }
-.lp--curva .lp-price .lc-price { font-size: 19px; }
+.lp--curva .lp-price .lc-price { font-size: 18px; }
 
 /* Fundido: la foto ocupa la parte de arriba y se funde en azul noche; el texto va encima */
 .lp--fundido { background: #15102E; }
@@ -248,8 +244,8 @@ const CSS = `
 .lg .lc-pill svg { flex: none; }
 .lg .lc-body { padding: 12px 8px 14px 10px; }
 .lg .lc-chips { flex-wrap: nowrap; gap: 4px; }
-.lg .lc-chip { gap: 3px; padding: 4px 5px; font-size: 9.5px; white-space: nowrap; }
-.lg .lc-stats { gap: 4px; font-size: 10.5px; white-space: nowrap; }
+.lg .lc-chip { gap: 3px; padding: 4px 5px; font-size: 10px; white-space: nowrap; }
+.lg .lc-stats { gap: 4px; font-size: 11px; white-space: nowrap; }
 .lg-in { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
 .lg-shine { position: absolute; top: 0; left: 0; z-index: 1; width: 35%; height: 100%; pointer-events: none;
   background: linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent); animation: lg-sweep 4.5s ease-in-out infinite; }
@@ -307,7 +303,7 @@ const CSS = `
 .lg-rating small { margin-top: 2px; font-size: 8px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
 .lg--elite .lc-pills { top: auto; bottom: 6px; left: 50%; transform: translateX(-50%); }
 .lg--elite .lc-body { position: relative; z-index: 1; align-items: center; gap: 7px; padding: 6px 10px 12px; text-align: center; }
-.lg--elite .lc-name { font-size: 15px; letter-spacing: 0.04em; text-transform: uppercase; }
+.lg--elite .lc-name { font-size: 16px; letter-spacing: 0.04em; text-transform: uppercase; }
 .lg-divider { flex: none; width: 70%; height: 1px; background: linear-gradient(90deg, transparent, #FFD3A1, transparent); }
 .lc--negotiable .lg-divider { background: linear-gradient(90deg, transparent, #7CF3F5, transparent); }
 .lg-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; }
@@ -356,13 +352,13 @@ const CSS = `
 .lc-compact-curve__media > img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .lc-compact-curve__media::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(135deg, rgba(255,255,255,0.18), transparent 45%); }
 .lc-compact-curve__body { position: relative; display: flex; flex: 1; flex-direction: column; gap: 3px; padding: 7px 8px 10px; }
-.lc-compact-curve__name { margin: 0; overflow: hidden; color: #14112B; font-size: 13.5px; font-weight: 800; line-height: 1.15; text-overflow: ellipsis; white-space: nowrap; }
-.lc-compact-curve__meta { display: flex; align-items: center; gap: 4px; color: #615D73; font-size: 10.5px; line-height: 1.15; }
+.lc-compact-curve__name { margin: 0; overflow: hidden; color: #14112B; font-size: 13px; font-weight: 800; line-height: 1.15; text-overflow: ellipsis; white-space: nowrap; }
+.lc-compact-curve__meta { display: flex; align-items: center; gap: 4px; color: #615D73; font-size: 11px; line-height: 1.15; }
 .lc-compact-curve__meta i { width: 3px; height: 3px; border-radius: 50%; background: #A7A1B7; }
-.lc-compact-curve__footer { display: flex; align-items: center; justify-content: flex-start; gap: 4px; margin-top: auto; padding-top: 5px; border-top: 1px solid #F0EDF7; color: #4C1EBC; font-size: 11px; font-weight: 800; white-space: nowrap; }
+.lc-compact-curve__footer { display: flex; align-items: center; justify-content: flex-start; gap: 4px; margin-top: auto; padding-top: 5px; border-top: 1px solid #F0EDF7; color: #4C1EBC; font-size: 14px; font-weight: 800; white-space: nowrap; }
 .lc-compact-curve__footer > span { overflow: hidden; text-overflow: ellipsis; }
 .lc-compact-curve__base-price { display: inline-flex; align-items: center; gap: 4px; min-width: 0; }
-.lc--negotiable .lc-compact-curve__footer { color: #007E83; }
+.lc--negotiable .lc-compact-curve__footer { color: #007E83; font-size: 13px; } /* = «Haz tu oferta» del listado */
 .lc--compact-curve .lc-likepos .clike { width: 26px !important; height: 26px !important; }
 /* Lote estilo eBay */
 .lc-eb { position: relative; display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 14px; align-items: start; padding: 14px 0; border-bottom: 1px solid #EFEDF5;
@@ -372,12 +368,12 @@ const CSS = `
 .lc-eb:hover .lc-eb__thumb img { transform: scale(1.05); }
 .lc-eb__main { display: grid; gap: 3px; min-width: 0; }
 .lc-eb__pill { justify-self: start; display: inline-flex; }
-.lc-eb__title { margin: 3px 0 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13.5px; line-height: 1.2; font-weight: 800; color: #14112B; } /* como el nombre de las cards chicas */
-.lc-eb__who { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 600; color: #8A879C; }
-.lc-eb__price { display: inline-flex; align-items: center; gap: 6px; margin-top: 2px; font-size: 16px; line-height: 1.15; font-weight: 800; letter-spacing: -0.01em; color: #4C1EBC; }
-.lc-eb__offer { margin-top: 2px; font-size: 14px; line-height: 1.15; font-weight: 800; color: #00777A; }
-.lc-eb__rest { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11.5px; font-weight: 600; color: #8A879C; }
-.lc-eb__foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; white-space: nowrap; font-size: 11.5px; font-weight: 600; color: #8A879C; }
+.lc-eb__title { margin: 3px 0 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; line-height: 1.2; font-weight: 800; color: #14112B; } /* como el nombre de las cards chicas */
+.lc-eb__who { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; color: #8A879C; }
+.lc-eb__price { display: inline-flex; align-items: center; gap: 6px; margin-top: 2px; font-size: 14px; line-height: 1.15; font-weight: 800; letter-spacing: -0.01em; color: #4C1EBC; }
+.lc-eb__offer { margin-top: 2px; font-size: 13px; line-height: 1.15; font-weight: 800; color: #00777A; }
+.lc-eb__rest { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; font-weight: 600; color: #8A879C; }
+.lc-eb__foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; white-space: nowrap; font-size: 11px; font-weight: 600; color: #8A879C; }
 .lc-eb__foot > span:first-child { overflow: hidden; text-overflow: ellipsis; }
 /* Favorito de las filas de listado: siempre arriba a la derecha, lejos del pill de estado. */
 .lc-eb__like { position: absolute; top: 14px; right: 0; z-index: 2; display: grid; place-items: center; }
@@ -385,10 +381,7 @@ const CSS = `
 .lc-eb--sm { grid-template-columns: 84px minmax(0, 1fr); gap: 12px; padding: 10px 0; }
 .lc-eb--sm .lc-eb__thumb { width: 84px; height: 84px; border-radius: 12px; }
 .lc-eb--sm .lc-eb__main { gap: 2px; }
-.lc-eb--sm .lc-eb__pill .lc-pill { height: 19px; font-size: 10px; }
-.lc-eb--sm .lc-eb__title { font-size: 13px; }
 .lc-eb--sm .lc-eb__who { display: none; }
-.lc-eb--sm .lc-eb__price { font-size: 15px; }
 .lc-eb--sm .lc-eb__price svg { width: 16px; height: 17px; }
 @media (max-width: 480px) {
   .lc-eb--sm { grid-template-columns: 76px minmax(0, 1fr); gap: 10px; }
@@ -396,8 +389,6 @@ const CSS = `
   .lc-eb__title, .lc-eb__rest { overflow: visible; text-overflow: clip; white-space: normal; }
   .lc-eb__like { top: 10px; }
 }
-.lc-eb--sm .lc-eb__offer { font-size: 13.5px; }
-.lc-eb--sm .lc-eb__rest, .lc-eb--sm .lc-eb__foot { font-size: 11px; }
 @media (prefers-reduced-motion: reduce) { .lc { transition: none; }  }
 `;
 

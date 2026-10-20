@@ -21,7 +21,7 @@
  * Contenido de ejemplo; sin inventario real.
  */
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { CSSProperties, JSX, ReactNode } from "react";
 import {
   BadgeStatus, Button, OfferCard, ProfileButton,
@@ -32,6 +32,7 @@ import {
   type FichaLayout, type LegendTier, type LotData, type ProTheme,
 } from "./LotCards";
 import VmcAhora, { type FeedView } from "./VmcAhora";
+import Vidrio, { VIDRIO_CSS, type VidrioName } from "./Vidrio";
 import LogoLoop from "./reactbits/LogoLoop";
 
 const GAP = 16;
@@ -84,8 +85,8 @@ const HERO_CSS = `
   padding-bottom: 28px; gap: 12px; width: 44%; min-width: 0; }
 .hp-copy.left { left: 36px; }
 .hp-copy.right { right: 36px; }
-.hp-label { display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 14px; border-radius: var(--vmc-radius-full);
-  font-size: var(--vmc-font-size-label); line-height: var(--vmc-line-height-label); font-weight: 700; letter-spacing: var(--vmc-letter-spacing-label); text-transform: uppercase; white-space: nowrap; }
+.hp-label { display: inline-flex; align-items: center; gap: 5px; height: 18px; padding: 0 8px 0 6px; border-radius: 999px; font-size: 9px; font-weight: 700; letter-spacing: 0.07em; line-height: 1; text-transform: uppercase; white-space: nowrap; }
+.hp-label svg { flex: none; width: 10px; height: 10px; }
 .hp-label--seller { background: linear-gradient(135deg, #8460E5 0%, #3B1782 100%); box-shadow: rgba(32,0,104,0.45) 0 2px 10px; }
 .hp-label--negotiable { background: linear-gradient(135deg, #00DAE0 0%, #008688 100%); box-shadow: rgba(0,168,171,0.45) 0 2px 10px; }
 .hp-h { margin: 0; font-size: var(--vmc-font-size-hero); line-height: var(--vmc-line-height-hero); font-weight: var(--vmc-font-weight-bold); letter-spacing: var(--vmc-letter-spacing-tight); }
@@ -209,46 +210,11 @@ function PrincipalBanner(): JSX.Element {
 
 // Banner de campaña 766 × 168 (el del bloque es 100 de alto; aquí crece para que entre el contenido).
 const BANNER_HEIGHT = 168;
-// Íconos dúotono del banner, estilo del set de íconos de referencia (morado detrás, lila delante).
-// No existen en Concorde: Business/Category/OfferIcon son de un solo tono para el sidebar.
-const BACK = "#CDBEFF";
-const FRONT = "#7B5CE6";
-function CompanyIcon(): JSX.Element {
-  return (
-    <svg width="34" height="34" viewBox="0 0 40 40" aria-hidden>
-      <path d="M6 34V9a3 3 0 0 1 3-3h13a3 3 0 0 1 3 3v25z" fill={FRONT} />
-      <path d="M10 12h4M17 12h4M10 18h4M17 18h4M10 24h4" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" />
-      <path d="M28 17l8 3v6c0 5-3.4 8.4-8 10-4.6-1.6-8-5-8-10v-6z" fill={BACK} />
-      <path d="M24.5 26.5l2.5 2.5 4.5-5" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-function VerifiedIcon(): JSX.Element {
-  return (
-    <svg width="34" height="34" viewBox="0 0 40 40" aria-hidden>
-      <rect x="5" y="9" width="24" height="26" rx="4" fill={FRONT} />
-      <rect x="11" y="5" width="12" height="7" rx="2.5" fill={BACK} />
-      <path d="M10 20h10M10 26h7" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" />
-      <circle cx="28" cy="27" r="8.5" fill={BACK} />
-      <path d="M24.2 27.2l2.6 2.6 5-5.2" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-function GrowthIcon(): JSX.Element {
-  return (
-    <svg width="34" height="34" viewBox="0 0 40 40" aria-hidden>
-      <rect x="6" y="24" width="7" height="11" rx="2" fill={FRONT} />
-      <rect x="16.5" y="17" width="7" height="18" rx="2" fill={FRONT} />
-      <rect x="27" y="10" width="7" height="25" rx="2" fill={FRONT} />
-      <path d="M5 21L15 12l6 5 11-11" fill="none" stroke={BACK} strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M25 5h8v8" fill="none" stroke={BACK} strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
+// Íconos de vidrio (set de mi-garaje-lab): sólido detrás, vidrio delante y detalle en blanco.
 const POINTS = [
-  { Icon: CompanyIcon, text: "Activos de empresas de confianza" },
-  { Icon: VerifiedIcon, text: "Equipos verificados y listos para operar" },
-  { Icon: GrowthIcon, text: "Oportunidades para hacer crecer tu negocio" },
+  { icon: "empresa" as VidrioName, text: "Activos de empresas de confianza" },
+  { icon: "verificado" as VidrioName, text: "Equipos verificados y listos para operar" },
+  { icon: "crecimiento" as VidrioName, text: "Oportunidades para hacer crecer tu negocio" },
 ];
 
 function CampaignBanner(): JSX.Element {
@@ -263,8 +229,8 @@ function CampaignBanner(): JSX.Element {
       }}
     >
       <div style={{ position: "relative", zIndex: 1, display: "grid", justifyItems: "start", gap: 8, padding: "0 0 0 24px" }}>
-        <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800, lineHeight: 1.1, color: "#3b1782" }}>Maquinaria que mueve tu negocio</h2>
-        <p style={{ margin: 0, fontSize: 12, lineHeight: 1.4, color: "#3f3f4a" }}>Equipos industriales y vehículos de empresas confiables, en un solo lugar.</p>
+        <h2 style={{ margin: 0, fontSize: 18, fontWeight: 800, lineHeight: "22px", letterSpacing: "-0.01em", color: "#3b1782" }}>Maquinaria que mueve tu negocio</h2>
+        <p style={{ margin: 0, fontSize: 12, lineHeight: "16.8px", color: "#6B6878" }}>Equipos industriales y vehículos de empresas confiables, en un solo lugar.</p>
         <Button variant="primary">Ver maquinaria</Button>
       </div>
       <img
@@ -276,9 +242,9 @@ function CampaignBanner(): JSX.Element {
         }}
       />
       <ul style={{ display: "grid", gap: 10, margin: 0, padding: "0 20px 0 4px", listStyle: "none" }}>
-        {POINTS.map(({ Icon, text }) => (
-          <li key={text} style={{ display: "grid", gridTemplateColumns: "34px 1fr", gap: 10, alignItems: "center", fontSize: 11.5, lineHeight: 1.3, fontWeight: 600, color: "#3b1782" }}>
-            <Icon />
+        {POINTS.map(({ icon, text }) => (
+          <li key={text} style={{ display: "grid", gridTemplateColumns: "32px 1fr", gap: 10, alignItems: "center", fontSize: 12, lineHeight: "16px", fontWeight: 600, color: "#3b1782" }}>
+            <Vidrio s={icon} size={32} />
             {text}
           </li>
         ))}
@@ -289,34 +255,12 @@ function CampaignBanner(): JSX.Element {
 
 // «Explora por categoría»: cinco cards con la caja de OfferCard (radio 8, sombra y elevación al pasar).
 // Íconos dúotono como los del banner. Las fotos son las de demo del lab (no hay una de artículos diversos).
-// Íconos del CategoryCard de Concorde (paths exactos de su SVG de Figma; el componente no los exporta):
-// auto → Vehicular · sierra → Equipos diversos · grúa → Maquinaria · laptop → Artículos diversos.
-// Materiales no existe en Concorde: capas apiladas propias, con el mismo degradado.
-// Caja como la del CategoryCard: blanco→#F4F5F9 con borde degradado lila.
-type Paint = string;
-type Shape = { viewBox: string; draw: (f: Paint) => JSX.Element };
-const CAR: Shape = { viewBox: "41 29 31 27", draw: (f) => <path fill={f} d="M49.8053 30.4693C48.7705 30.7374 47.8575 31.8771 47.0662 33.7542C45.9705 36.3017 45.7271 36.5698 44.2053 36.1676C42.7445 35.8324 42.501 36.0335 42.501 37.2402C42.501 37.9777 42.8662 38.7821 43.2314 38.9162C43.8401 39.1844 43.9618 41.1955 43.8401 46.6257L43.5966 54H45.4836C46.9445 54 47.4314 53.6648 47.7358 52.324L48.101 50.648H56.501H64.901L65.2662 52.324C65.5705 53.6648 66.0575 54 67.5184 54H69.4053L69.1618 46.6257C69.0401 41.1955 69.1618 39.1844 69.7705 38.9162C70.1358 38.7821 70.501 37.9777 70.501 37.2402C70.501 36.0335 70.2575 35.8324 68.7966 36.1676C67.2749 36.5698 67.0314 36.3017 65.9358 33.7542C64.4749 30.3352 63.6227 30 56.501 30C53.6401 30 50.6575 30.2011 49.8053 30.4693ZM61.4923 32.2793C63.4401 32.6816 63.8053 33.0838 64.7184 35.6983C65.2662 37.3073 65.5705 38.8492 65.3271 39.1173C64.7792 39.7207 48.2227 39.7207 47.6749 39.1173C47.4314 38.8492 47.7358 37.3073 48.2836 35.6313C49.1358 33.2849 49.6836 32.5475 50.9618 32.3464C53.6401 31.8771 59.1184 31.8771 61.4923 32.2793ZM49.7445 42.5363C50.901 43.3408 50.0488 44.6145 48.2836 44.6145C47.4314 44.6145 46.5184 44.0112 46.1532 43.2737C45.5445 42.067 45.6662 41.933 47.1879 41.933C48.101 41.933 49.2575 42.2011 49.7445 42.5363ZM66.8488 43.2737C66.1184 44.7486 63.5618 45.0838 62.8314 43.8771C62.2836 42.8715 63.6836 41.933 65.814 41.933C67.3358 41.933 67.4575 42.067 66.8488 43.2737ZM60.9445 47.2961C60.6401 48.5028 60.0923 48.6369 56.501 48.6369C52.9097 48.6369 52.3618 48.5028 52.0575 47.2961C51.7532 46.0223 52.0575 45.9553 56.501 45.9553C60.9445 45.9553 61.2488 46.0223 60.9445 47.2961Z" /> };
-const CRANE: Shape = { viewBox: "41 27 30 30", draw: (f) => <path fillRule="evenodd" clipRule="evenodd" fill={f} d="M70 32.5046V30.949C70 30.0905 69.303 29.3934 68.4444 29.3934H52.8889V27.8379H48.2222V29.3934H46.6667V32.5046H48.2222V46.5046H46.6667V43.3934H43.5556V46.5046H42V49.6157H43.5556V55.8379H46.6667V49.6157H54.4444V55.8379H57.5556V54.1579V49.6157H59.1111V46.5046H57.5556V43.3934H54.4444V46.5046H52.8889V32.5046H65.3333V39.6912C64.6022 39.9557 64.0733 40.6401 64.0733 41.4646C64.0733 42.149 64.4467 42.7712 65.0222 43.1134V44.949H65.9867C66.5156 44.949 66.9356 45.3846 66.9356 45.9134C66.9356 46.4423 66.5156 46.8779 65.9867 46.8779C65.6444 46.8779 65.3333 46.6912 65.1622 46.3957C64.8822 45.9446 64.3067 45.789 63.8556 46.0534C63.3889 46.3023 63.2333 46.8934 63.4978 47.3601C64.0111 48.2312 64.96 48.7912 65.9867 48.7912C67.5578 48.7912 68.8489 47.5001 68.8489 45.9134C68.8489 44.7001 68.0711 43.6112 66.9356 43.2068V43.1134C67.5267 42.7712 67.9 42.149 67.9 41.4646C67.9 40.749 67.48 40.1423 66.8889 39.8157V32.5046H70ZM51.3333 44.4201L49.7778 45.9757V43.7668L51.3333 42.2112V44.4201ZM51.3333 39.8312L49.7778 41.3868V39.1779L51.3333 37.6223V39.8312ZM49.7778 36.7201V34.5112L51.3333 32.9557V35.1646L49.7778 36.7201Z" /> };
-const SAW: Shape = { viewBox: "40 25 30 24", draw: (f) => <path fillRule="evenodd" clipRule="evenodd" fill={f} d="M56.4 35.4479C57.1727 35.4479 57.8 36.0526 57.8 36.7975C57.8 37.5425 57.1727 38.1472 56.4 38.1472C55.6273 38.1472 55 37.5425 55 36.7975C55 36.0526 55.6273 35.4479 56.4 35.4479ZM49.204 29.0368C50.996 27.1742 53.558 26 56.4 26C61.3 26 65.416 29.5227 66.102 34.0982H69V36.7975H60.6C60.6 34.5628 58.718 32.7485 56.4 32.7485C54.082 32.7485 52.2 34.5628 52.2 36.7975H41V34.0982H41.07C41.35 31.0344 42.596 28.2405 44.5 26L49.204 29.0368ZM47.622 31.2503L45.284 29.7387C44.542 31.0613 44.052 32.5325 43.884 34.0982H46.698C46.852 33.0859 47.16 32.1276 47.622 31.2503ZM48.56 41.3865L46.6 39.4969H54.706C55.042 40.0638 55.7 40.4417 56.4 40.4417C57.1 40.4417 57.758 40.0638 58.094 39.4969H66.2V41.3865C63.946 40.0638 64.044 41.8589 64.044 41.8589V44.5043L61.3 47.1497C60.6 44.7877 59.34 46.1104 59.34 46.1104L57.38 48H53.46C54.832 45.827 52.97 45.9215 52.97 45.9215H50.226L47.482 43.2761C49.932 42.6147 48.56 41.3865 48.56 41.3865Z" /> };
-const LAPTOP: Shape = { viewBox: "40 22 32 31", draw: (f) => <path fillRule="evenodd" clipRule="evenodd" fill={f} d="M45.5652 23.3989H66.4348C67.5146 23.3989 68.3913 24.3542 68.3913 25.5309V39.4598C68.3913 40.2443 67.8068 40.8812 67.087 40.8812H44.913C44.1932 40.8812 43.6087 40.2443 43.6087 39.4598V25.5309C43.6087 24.3542 44.4854 23.3989 45.5652 23.3989ZM44.913 40.3126H67.087L71 50.404H41L44.913 40.3126ZM41 50.8304H71V51.3989H41V50.8304ZM44.913 24.8202H67.087V38.0385H44.913V24.8202ZM56 24.2517C55.712 24.2521 55.4787 24.5067 55.4789 24.8206C55.4791 25.1345 55.7126 25.3888 56.0007 25.3888C56.2887 25.3888 56.5222 25.1345 56.5224 24.8206C56.5226 24.5067 56.2893 24.2521 56.0013 24.2517H56ZM45.8261 41.0233H66.1739L68.3913 47.135H43.6087L45.8261 41.0233ZM52.7391 47.8456H59.2609L59.5217 49.2669H52.4783L52.7391 47.8456ZM45.5652 25.5309H66.4348V37.3279H45.5652V25.5309ZM46.2174 41.4497H65.7826L66.1739 42.4446H45.8261L46.2174 41.4497ZM45.5652 43.0131H66.4348L66.9565 44.0081H45.0435L45.5652 43.0131ZM44.7826 44.5766H67.2174L67.7391 45.5715H44.2609L44.7826 44.5766ZM51.4348 45.9979H60.5652L60.8261 46.9928H51.1739L51.4348 45.9979ZM46.8696 26.9522L53.3913 36.1908H54.1739L47.6522 26.9522H46.8696ZM48.8261 26.9522L52.087 31.5004H52.8696L49.6087 26.9522H48.8261ZM61.8696 31.2162L65.3913 36.1908H66.1739L62.6522 31.2162H61.8696Z" /> };
-const LAYERS: Shape = { viewBox: "0 0 40 40", draw: (f) => <><path d="M20 22l15 7-15 7-15-7z" fill={f} opacity="0.45" /><path d="M20 15l15 7-15 7-15-7z" fill={f} opacity="0.7" /><path d="M20 5l15 7-15 7-15-7z" fill={f} /></> };
-
-// Íconos de categoría: la forma de Concorde en el morado de los íconos del banner (#7B5CE6), sin caja ni fondo.
-function GradIcon({ shape }: { shape: Shape }): JSX.Element {
-  const [x, y, w, h] = shape.viewBox.split(" ").map(Number);
-  const m = Math.max(w, h) * 0.04;
-  return (
-    <svg width="32" height="32" viewBox={`${x - m} ${y - m} ${w + 2 * m} ${h + 2 * m}`} aria-hidden>
-      {shape.draw(FRONT)}
-    </svg>
-  );
-}
 const CATEGORIES = [
-  { label: "Vehicular", count: "21 lotes", shape: CAR, imageSrc: "/demo/inventory-suv-v1.png" },
-  { label: "Equipos diversos", count: "12 lotes", shape: SAW, imageSrc: "/demo/inventory-forklift-v1.png" },
-  { label: "Maquinaria", count: "2 lotes", shape: CRANE, imageSrc: "/demo/inventory-excavator-v1.png" },
-  { label: "Materiales", count: "1 lote", shape: LAYERS, imageSrc: "/demo/inventory-steel-v1.png" },
-  { label: "Artículos diversos", count: "1 lote", shape: LAPTOP, imageSrc: "/demo/inventory-mosaic-v1.png" },
+  { label: "Vehicular", count: "21 lotes", vd: "auto" as VidrioName, imageSrc: "/demo/inventory-suv-v1.png" },
+  { label: "Equipos diversos", count: "12 lotes", vd: "equipos" as VidrioName, imageSrc: "/demo/inventory-forklift-v1.png" },
+  { label: "Maquinaria", count: "2 lotes", vd: "maquinaria" as VidrioName, imageSrc: "/demo/inventory-excavator-v1.png" },
+  { label: "Materiales", count: "1 lote", vd: "materiales" as VidrioName, imageSrc: "/demo/inventory-steel-v1.png" },
+  { label: "Artículos diversos", count: "1 lote", vd: "articulos" as VidrioName, imageSrc: "/demo/inventory-mosaic-v1.png" },
 ];
 const CATEGORY_CSS = `
 .hib-cat { flex: 1; display: flex; flex-direction: column; overflow: hidden; border-radius: 8px; background: #fff; color: inherit; text-decoration: none;
@@ -325,8 +269,7 @@ const CATEGORY_CSS = `
 .hib-cat:focus-visible { outline: 2px solid #8460e5; outline-offset: 2px; }
 .hib-cat > img { display: block; width: 100%; height: 92px; object-fit: cover; }
 .hib-cat__foot { flex: 1; display: grid; grid-template-columns: 32px minmax(0,1fr) 20px; gap: 6px; align-items: center; padding: 8px 6px 8px 8px; }
-.hib-cat__icon { display: grid; place-items: center; width: 32px; height: 32px; } /* sin caja: dúotono como el banner */ /* = caja del CategoryCard de Concorde */
-.hib-cat__icon svg { width: 32px; height: 32px; }
+.hib-cat__icon { display: grid; place-items: center; width: 32px; height: 32px; } /* ícono de vidrio, sin caja */
 .hib-cat__txt { display: grid; min-width: 0; }
 .hib-cat__txt b { font-size: 12px; line-height: 1.2; color: #3b1782; } /* «Equipos diversos» va en 2 líneas: no se corta */
 .hib-cat__txt small { font-size: 11px; color: #5b5b66; }
@@ -334,7 +277,6 @@ const CATEGORY_CSS = `
 @media (prefers-reduced-motion: reduce) { .hib-cat { transition: none; } }
 /* Vista «Sin card»: el ícono suelto, sin la caja con borde degradado. */
 .hib-cats--plain .hib-cat__icon { border: 0; background: none; box-shadow: none; }
-.hib-cats--plain .hib-cat__icon svg { width: 32px; height: 32px; }
 `;
 type CategoriesView = "normal" | "plain" | "premium";
 const CATEGORIES_VIEWS: { id: CategoriesView; label: string; hint: string }[] = [
@@ -350,8 +292,8 @@ const CATEGORY_PREMIUM_CSS = `
   background: radial-gradient(120% 140% at 0% 0%, #F4EFFF 0%, #EEE8FF 45%, #F8F5FF 100%); border: 1px solid #E6DEFF;
   box-shadow: rgba(92,56,214,0.12) 0 12px 28px -12px; }
 .hib-pcats__head { display: flex; align-items: center; justify-content: space-between; padding: 0 4px 14px; }
-.hib-pcats__head h2 { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.01em; color: #1B1442; }
-.hib-pcats__all { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 700; color: #3B1782; text-decoration: none; }
+.hib-pcats__head h2 { margin: 0; font-size: 16px; font-weight: 700; letter-spacing: -0.01em; color: #1B1442; }
+.hib-pcats__all { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: #3B1782; text-decoration: none; }
 .hib-pcats__all svg { transition: transform 0.2s; }
 .hib-pcats__all:hover svg { transform: translateX(3px); }
 .hib-pcats ul { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
@@ -369,12 +311,10 @@ const CATEGORY_PREMIUM_CSS = `
 .hib-pcat:hover .hib-pcat__media img { transform: scale(1.06); }
 .hib-pcat__media::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(236,230,255,0) 55%, rgba(236,230,255,0.6) 100%); }
 .hib-pcat__foot { flex: 1; display: grid; grid-template-columns: 30px minmax(0,1fr) 20px; gap: 6px; align-items: center; padding: 9px 6px 9px 7px; }
-.hib-pcat__icon { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 9px; background: #fff; border: 1px solid #ECE6FF;
-  box-shadow: rgba(76,40,200,0.16) 0 4px 10px; }
-.hib-pcat__icon svg { width: 20px; height: 20px; }
+.hib-pcat__icon { display: grid; place-items: center; width: 30px; height: 30px; }
 .hib-pcat__txt { display: grid; min-width: 0; }
-.hib-pcat__txt b { font-size: 11.5px; line-height: 1.2; color: #1B1442; }
-.hib-pcat__txt small { font-size: 10.5px; color: #6B6880; }
+.hib-pcat__txt b { font-size: 12px; line-height: 1.2; color: #1B1442; }
+.hib-pcat__txt small { font-size: 11px; color: #6B6880; }
 .hib-pcat__go { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; color: #4A2CE0; background: #EEE8FF;
   transition: background 0.2s, color 0.2s; }
 .hib-pcat:hover .hib-pcat__go { color: #fff; background: linear-gradient(135deg, #8460E5, #3B1782); }
@@ -384,10 +324,10 @@ const ARROW = <svg width="12" height="12" viewBox="0 0 20 20" aria-hidden><path 
 // Cabecera de las secciones planas (sin card): como la referencia, alineada al borde del contenido.
 function SectionHead({ title, subtitle, action }: { title: string; subtitle: string; action?: string }): JSX.Element {
   return (
-    <header className="hib-section-head" style={{ boxSizing: "border-box", flex: "none", display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, padding: "0 0 10px", marginBottom: 18, borderBottom: "1px solid #DEDCE4" }}>
+    <header className="hib-section-head" style={{ boxSizing: "border-box", flex: "none", display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, padding: "0 0 10px", marginBottom: 14, borderBottom: "1px solid #DEDCE4" }}>
       <div style={{ display: "grid", gap: 2, minWidth: 0 }}>
-        <h2 className="hib-section-head__title" style={{ margin: 0, fontSize: 22, lineHeight: "27px", fontWeight: 700, letterSpacing: "-0.02em", color: "#3b1782", whiteSpace: "nowrap" }}>{title}</h2>
-        <p style={{ margin: 0, fontSize: 14, lineHeight: "20px", color: "#3F3F4A" }}>{subtitle}</p>
+        <h2 className="hib-section-head__title" style={{ margin: 0, fontSize: 16, lineHeight: "20px", fontWeight: 700, letterSpacing: "-0.01em", color: "#3b1782", whiteSpace: "nowrap" }}>{title}</h2>
+        <p style={{ margin: 0, fontSize: 12, lineHeight: "16.8px", color: "#6B6878" }}>{subtitle}</p>
       </div>
       {action ? <div style={{ flex: "none" }}><ProfileButton>{action}</ProfileButton></div> : null}
     </header>
@@ -410,19 +350,19 @@ const SELL_CSS = `
 .hib-sell__choice--fleet .hib-sell__photo { background: #D9F0EE; }
 .hib-sell__choice--fleet .hib-sell__photo img { object-position: 50% 45%; }
 .hib-sell__copy { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; min-width: 0; padding: 14px 16px; }
-.hib-sell__copy h3 { margin: 0; color: #191C1C; font-size: 17px; line-height: 22px; font-weight: 750; letter-spacing: -.015em; }
-.hib-sell__copy p { margin: 5px 0 10px; color: #5B5B66; font-size: 13px; line-height: 19px; }
-.hib-sell__copy .pprofilebtn { padding: 0; font-size: 13px; }
+.hib-sell__copy h3 { margin: 0; color: #191C1C; font-size: 14px; line-height: 18px; font-weight: 700; letter-spacing: -.01em; }
+.hib-sell__copy p { margin: 4px 0 10px; color: #6B6878; font-size: 12px; line-height: 16.8px; }
+.hib-sell__copy .pprofilebtn { padding: 0; }
 .hib-sell__benefit { position: relative; isolation: isolate; display: flex; flex-direction: column; align-items: flex-start; min-height: 296px; overflow: hidden; padding: 22px; border-radius: 14px; color: #fff;
   background: radial-gradient(110% 100% at -10% 112%, rgb(239 133 46 / 88%) 0%, rgb(239 133 46 / 38%) 27%, transparent 56%), linear-gradient(145deg, #32136F 0%, #4E22A9 55%, #7B4BE3 100%); box-shadow: rgb(59 23 130 / 18%) 0 12px 24px -18px; }
 .hib-sell__benefit::before { content: ""; position: absolute; z-index: -1; top: -85px; right: -48px; width: 250px; height: 210px; border: 42px solid rgb(255 255 255 / 10%); border-radius: 50%; }
 .hib-sell__benefit::after { content: ""; position: absolute; z-index: -1; right: -74px; bottom: -118px; width: 270px; height: 210px; border: 42px solid rgb(255 255 255 / 8%); border-radius: 50%; }
 .hib-sell__person { position: absolute; z-index: 0; right: -26px; bottom: -1px; width: min(68%, 238px); height: auto; pointer-events: none; }
 .hib-sell__benefit > :not(.hib-sell__person) { position: relative; z-index: 1; }
-.hib-sell__coin { display: inline-flex; align-items: center; height: 27px; padding: 0 12px; border: 1px solid rgb(255 255 255 / 28%); border-radius: 999px; background: rgb(255 255 255 / 12%); font-size: 11px; font-weight: 800; letter-spacing: .02em; }
-.hib-sell__benefit h3 { max-width: 190px; margin: 16px 0 0; font-size: 21px; line-height: 25px; font-weight: 750; letter-spacing: -.025em; }
-.hib-sell__benefit p { max-width: 190px; margin: 7px 0 0; color: rgb(255 255 255 / 88%); font-size: 13px; line-height: 19px; }
-.hib-sell__benefit .hib-glass { height: 38px; margin-top: auto; padding-inline: 24px; font-size: 13px; }
+.hib-sell__coin { display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border: 1px solid rgb(255 255 255 / 28%); border-radius: 999px; background: rgb(255 255 255 / 12%); font-size: 11px; font-weight: 800; letter-spacing: .02em; }
+.hib-sell__benefit h3 { max-width: 190px; margin: 14px 0 0; font-size: 18px; line-height: 22px; font-weight: 700; letter-spacing: -.02em; }
+.hib-sell__benefit p { max-width: 190px; margin: 6px 0 0; color: rgb(255 255 255 / 88%); font-size: 12px; line-height: 16.8px; }
+.hib-sell__benefit .hib-glass { height: 38px; margin-top: auto; padding-inline: 24px; }
 `;
 function SellSection(): JSX.Element {
   return (
@@ -463,12 +403,12 @@ function CategoryRail({ view }: { view: CategoriesView }): JSX.Element {
           <a href="#" className="hib-pcats__all">Ver todas las categorías{ARROW}</a>
         </header>
         <ul>
-          {CATEGORIES.map(({ label, count, shape, imageSrc }) => (
+          {CATEGORIES.map(({ label, count, vd, imageSrc }) => (
             <li key={label} style={{ display: "flex" }}>
-              <a href="#" className="hib-pcat" aria-label={`${label} · ${count}`}>
+              <a href="#" className="hib-pcat vd-host" aria-label={`${label} · ${count}`}>
                 <span className="hib-pcat__media"><img src={imageSrc} alt="" /></span>
                 <span className="hib-pcat__foot">
-                  <span className="hib-pcat__icon"><GradIcon shape={shape} /></span>
+                  <span className="hib-pcat__icon"><Vidrio s={vd} size={30} /></span>
                   <span className="hib-pcat__txt"><b>{label}</b><small>{count}</small></span>
                   <span className="hib-pcat__go" aria-hidden>{ARROW}</span>
                 </span>
@@ -484,12 +424,12 @@ function CategoryRail({ view }: { view: CategoriesView }): JSX.Element {
     <section aria-label="Explora por categoría" style={FLAT}>
       <SectionHead title="Explora por categoría" subtitle="Encuentra oportunidades por tipo de activo" action="Ver todas las categorías" />
       <ul className={view === "plain" ? "hib-cats--plain" : undefined} style={{ display: "grid", gridTemplateColumns: "repeat(5, minmax(0, 1fr))", gap: 10, margin: 0, padding: "0 0 6px", listStyle: "none" }}>
-        {CATEGORIES.map(({ label, count, shape, imageSrc }) => (
+        {CATEGORIES.map(({ label, count, vd, imageSrc }) => (
           <li key={label} style={{ display: "flex" }}>
-            <a href="#" className="hib-cat" aria-label={`${label} · ${count}`}>
+            <a href="#" className="hib-cat vd-host" aria-label={`${label} · ${count}`}>
               <img src={imageSrc} alt="" />
               <span className="hib-cat__foot">
-                <span className="hib-cat__icon"><GradIcon shape={shape} /></span>
+                <span className="hib-cat__icon"><Vidrio s={vd} size={32} /></span>
                 <span className="hib-cat__txt"><b>{label}</b><small>{count}</small></span>
                 <span className="hib-cat__go" aria-hidden><svg width="12" height="12" viewBox="0 0 20 20"><path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg></span>
               </span>
@@ -561,17 +501,12 @@ const OFFER_TYPES = [
     count: 21, unit: "subastas activas", cta: "Ver subastas",
     a: "#FF9639", b: "#BE3D00", ink: "#C2410C", soft: "rgba(255,150,57,0.16)", glow: "rgba(239,133,46,0.35)" },
 ] as const;
-const OfferTypeIcon = ({ id, size }: { id: "negotiable" | "live"; size: number }) => id === "negotiable" ? (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="m11 17 2 2a1 1 0 1 0 3-3" /><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4" /><path d="m21 3 1 11h-2" /><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3" /><path d="M3 4h8" /></svg>
-) : (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden><circle cx="12" cy="12" r="2.4" fill="currentColor" /><path d="M8.2 15.8a5.4 5.4 0 0 1 0-7.6M15.8 8.2a5.4 5.4 0 0 1 0 7.6M5.4 18.6a9.3 9.3 0 0 1 0-13.2M18.6 5.4a9.3 9.3 0 0 1 0 13.2" /></svg>
-);
 const OFFER_TYPE_CSS = `
 @keyframes hib-ot-run { from { left: -35%; } to { left: 100%; } }
 @keyframes hib-ot-pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.35; transform: scale(0.75); } }
 @keyframes hib-ot-idle { 0% { background-position: 0% 0%; } 100% { background-position: 100% 100%; } }
 .hib-ot__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding: 0; perspective: 900px; }
-.hib-ot__card { position: relative; isolation: isolate; display: grid; grid-template-columns: 60px minmax(0, 1fr); gap: 16px; align-items: start;
+.hib-ot__card { position: relative; isolation: isolate; display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 14px; align-items: start;
   padding: 18px 20px 22px; overflow: hidden; border-radius: 16px; color: #14112B; text-decoration: none;
   border: 1.5px solid transparent;
   background: radial-gradient(120% 90% at 100% 0%, var(--soft) 0%, transparent 55%) padding-box, #fff padding-box,
@@ -587,19 +522,18 @@ const OFFER_TYPE_CSS = `
 .hib-ot__glare { position: absolute; inset: 0; z-index: 2; pointer-events: none; opacity: 0; transition: opacity 0.2s;
   background: radial-gradient(circle at var(--mx, 50%) var(--my, 30%), rgba(255,255,255,0.75), transparent 42%); }
 .hib-ot__card:hover .hib-ot__glare { opacity: 1; }
-.hib-ot__tile { position: relative; display: grid; place-items: center; width: 60px; height: 60px; border-radius: 18px; color: #fff;
-  background: linear-gradient(145deg, var(--a) 0%, var(--b) 100%); box-shadow: 0 10px 22px -8px var(--glow), inset 0 1px 0 rgba(255,255,255,0.45); }
-.hib-ot__tile::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(180deg, rgba(255,255,255,0.35) 0%, transparent 55%); }
-.hib-ot__tile svg { position: relative; }
+/* Ícono de vidrio en los colores de la modalidad (sólido oscuro detrás, vidrio claro delante). */
+.hib-ot__tile { display: grid; place-items: center; width: 48px; height: 48px; }
+.hib-ot__tile .vd { --solid: var(--b); --glass: var(--a); }
 .hib-ot__body { position: relative; z-index: 1; display: grid; gap: 4px; min-width: 0; }
-.hib-ot__kicker { font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink); }
-.hib-ot__title { margin: 0; font-size: 22px; line-height: 1.1; font-weight: 800; letter-spacing: -0.02em; color: #14112B; }
-.hib-ot__text { margin: 2px 0 0; font-size: 13px; line-height: 1.45; color: #5B5870; }
+.hib-ot__kicker { font-size: 11px; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; color: var(--ink); }
+.hib-ot__title { margin: 0; font-size: 14px; line-height: 18px; font-weight: 700; letter-spacing: -0.01em; color: #14112B; }
+.hib-ot__text { margin: 2px 0 0; font-size: 12px; line-height: 16.8px; color: #6B6878; }
 .hib-ot__row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #F0EDF7; }
 .hib-ot__count { display: inline-flex; align-items: baseline; gap: 6px; font-size: 12px; color: #5B5870; }
-.hib-ot__count b { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; color: #14112B; font-variant-numeric: tabular-nums; }
+.hib-ot__count b { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; color: #14112B; font-variant-numeric: tabular-nums; }
 .hib-ot__count i { align-self: center; width: 7px; height: 7px; border-radius: 50%; background: var(--a); box-shadow: 0 0 0 3px var(--soft); animation: hib-ot-pulse 1.4s ease-in-out infinite; }
-.hib-ot__cta { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: #3B1782; white-space: nowrap; }
+.hib-ot__cta { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: #3B1782; white-space: nowrap; }
 .hib-ot__cta span { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; color: #fff; background: linear-gradient(135deg, var(--a), var(--b));
   transition: transform 0.2s; }
 .hib-ot__card:hover .hib-ot__cta span { transform: translateX(3px); }
@@ -612,9 +546,9 @@ function OfferTypeClara(): JSX.Element {
     <>
       <div className="hib-ot__grid">
         {OFFER_TYPES.map((t) => (
-          <a key={t.id} href="#" className="hib-ot__card"
+          <a key={t.id} href="#" className="hib-ot__card vd-host"
             style={{ "--a": t.a, "--b": t.b, "--ink": t.ink, "--soft": t.soft, "--glow": t.glow } as CSSProperties}>
-            <span className="hib-ot__tile"><OfferTypeIcon id={t.id} size={28} /></span>
+            <span className="hib-ot__tile"><Vidrio s={t.id === "live" ? "subasta" : "negociaciones"} size={44} /></span>
             <span className="hib-ot__body">
               <span className="hib-ot__kicker">{t.kicker}</span>
               <span className="hib-ot__title">{t.title}</span>
@@ -655,9 +589,11 @@ const OFFER_GRAD_CSS = `
 .hib-otg__body { position: relative; z-index: 1; display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 16px; align-items: center; height: 100%; padding: 20px 24px;
   transition: filter 0.35s, opacity 0.35s, transform 0.35s; }
 .hib-otg__card:hover .hib-otg__body, .hib-otg__card:focus-visible .hib-otg__body { filter: blur(6px); opacity: 0.55; transform: scale(0.98); }
-.hib-otg__icon { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; background: rgba(255,255,255,0.22); border: 1px solid rgba(255,255,255,0.55);
-  box-shadow: inset 0 1px 8px rgba(255,255,255,0.45), 0 6px 14px -6px rgba(0,0,0,0.25); }
-.hib-otg__txt b { font-size: 18px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; text-shadow: rgba(0,0,0,0.18) 0 1px 3px; }
+/* Ícono de vidrio sobre el degradado: sólido blanco translúcido detrás, vidrio blanco delante. */
+.hib-otg__icon { display: grid; place-items: center; width: 52px; height: 52px; }
+.hib-otg__icon .vd { --solid: rgba(255,255,255,0.5); --glass: #FFFFFF; }
+.hib-otg__icon .vd-detail { filter: brightness(0.35); }
+.hib-otg__txt b { font-size: 14px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; text-shadow: rgba(0,0,0,0.18) 0 1px 3px; }
 /* Vista «Con foto» (como el banner): el auto de fondo a la derecha y la sombra del color de la modalidad
    desde la izquierda; texto encima. El hover (crece, blur, botón al centro) es el mismo. */
 .hib-otg--photo .hib-otg__card { min-height: 128px; }
@@ -667,19 +603,24 @@ const OFFER_GRAD_CSS = `
 .hib-otg__bgimg img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 55%; }
 .hib-otg__shade { position: absolute; inset: 0; z-index: 0; pointer-events: none; background: var(--shade); }
 .hib-otg--photo .hib-otg__txt { gap: 6px; max-width: 60%; }
-.hib-otg--photo .hib-otg__txt b { font-size: 22px; letter-spacing: 0.02em; text-transform: none; }
+.hib-otg--photo .hib-otg__txt b { font-size: 16px; letter-spacing: 0; text-transform: none; }
 .hib-otg--photo .hib-otg__card:hover .hib-otg__bgimg, .hib-otg--photo .hib-otg__card:focus-visible .hib-otg__bgimg { filter: blur(6px); }
 .hib-otg__bgimg { transition: filter 0.35s; }
 /* Pill como la de las cards (ícono + texto en mayúsculas), en blanco para que resalte sobre el degradado. */
-.hib-otg__pill { justify-self: start; display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 12px 0 10px; border-radius: 999px;
-  font-size: 13px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink); background: #fff; box-shadow: rgba(0,0,0,0.16) 0 3px 8px; }
+.hib-otg__pill { justify-self: start; display: inline-flex; align-items: center; gap: 5px; height: 18px; padding: 0 8px 0 6px; border-radius: 999px; font-size: 9px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink); background: #fff; box-shadow: rgba(0,0,0,0.16) 0 3px 8px; }
 .hib-otg__txt { display: grid; gap: 4px; }
+.hib-otg__pill svg { flex: none; width: 10px; height: 10px; }
 .hib-otg--photo .hib-otg__txt { gap: 8px; }
-.hib-otg__txt > span:last-child { font-size: 13px; line-height: 1.35; opacity: 0.95; }
+.hib-otg__txt > span:last-child { font-size: 12px; line-height: 16.8px; opacity: 0.95; }
 .hib-otg__cta { position: absolute; left: 50%; top: 50%; z-index: 2; transform: translate(-50%, -40%) scale(0.92); opacity: 0; pointer-events: none;
-  transition: opacity 0.3s, transform 0.35s cubic-bezier(0.3,0,0,1); }
-.hib-otg__card:hover .hib-otg__cta, .hib-otg__card:focus-visible .hib-otg__cta { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-.hib-otg__cta.hib-glass { height: 40px; padding: 0 30px; font-size: 14px; }
+  transition: opacity 0.3s, transform 0.35s cubic-bezier(0.3,0,0,1), background-color 0.25s, box-shadow 0.25s; }
+.hib-otg__card:hover .hib-otg__cta, .hib-otg__card:focus-visible .hib-otg__cta { opacity: 1; transform: translate(-50%, -50%) scale(1); pointer-events: auto; }
+.hib-otg__cta.hib-glass { height: 36px; padding: 0 26px; }
+/* Hover y press del botón de vidrio (como el del banner), sin perder el centrado. El clic sigue siendo el de la card. */
+.hib-otg__card .hib-otg__cta.hib-glass:hover { transform: translate(-50%, calc(-50% - 1px)); background-color: rgba(255,255,255,0.1);
+  box-shadow: rgba(0,0,0,0.16) 0 12px 28px, inset 0 1px 8px rgba(255,255,255,0.6); }
+.hib-otg__card:active .hib-otg__cta.hib-glass { transform: translate(-50%, calc(-50% + 1px)) scale(0.97); background-color: rgba(32,0,104,0.22);
+  box-shadow: rgba(0,0,0,0.12) 0 2px 6px, inset 0 2px 8px rgba(32,0,104,0.4); }
 `;
 const OFFER_GRAD = [
   { id: "negotiable" as const, title: "Negociable", text: "Encuentra vehículos con precio conversable", cta: "Ver negociables", photo: "/demo/vehicles/autoplan-agya.png", ink: "#00777A",
@@ -706,7 +647,7 @@ function OfferTypeGradient({ photo }: { photo?: boolean }): JSX.Element {
                 <span>{t.text}</span>
               </span>
             </> : <>
-              <span className="hib-otg__icon"><OfferTypeIcon id={t.id} size={26} /></span>
+              <span className="hib-otg__icon"><Vidrio s={t.id === "live" ? "subasta" : "negociaciones"} size={44} /></span>
               <span className="hib-otg__txt"><b>{t.title}</b><span>{t.text}</span></span>
             </>}
           </span>
@@ -732,10 +673,10 @@ const OFFER_SEG_CSS = `
   transform: scaleX(0); transform-origin: left; transition: transform 0.35s cubic-bezier(0.3,0,0,1); }
 .hib-seg__opt:hover::after { transform: scaleX(1); }
 .hib-seg__opt:focus-visible { outline: 2px solid #8460E5; outline-offset: -4px; }
-.hib-seg__num { font-size: 44px; line-height: 1; font-weight: 800; letter-spacing: -0.04em; font-variant-numeric: tabular-nums;
+.hib-seg__num { font-size: 18px; line-height: 1; font-weight: 800; letter-spacing: -0.04em; font-variant-numeric: tabular-nums;
   background: linear-gradient(135deg, var(--a), var(--b)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .hib-seg__lbl { display: grid; gap: 3px; }
-.hib-seg__lbl b { font-size: 17px; font-weight: 800; letter-spacing: -0.01em; }
+.hib-seg__lbl b { font-size: 14px; font-weight: 700; letter-spacing: -0.01em; }
 .hib-seg__lbl span { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #6B6880; }
 .hib-seg__lbl i { width: 7px; height: 7px; border-radius: 50%; background: var(--a); animation: hib-seg-pulse 2s ease-in-out infinite; }
 .hib-seg__go { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; color: #3B1782; background: #fff; border: 1px solid #ECE8F6;
@@ -916,15 +857,9 @@ const LOTS_CSS = `
 /* Destacado de la Card gallery (352 de alto): foto más baja y detalles más chicos para que entre todo. */
 .hib-dense .lc .lc-media { min-height: 84px !important; }
 .hib-dense .lc .lc-body, .hib-dense .lp .lc-body { gap: 5px; padding: 8px 10px 12px; }
-.hib-dense .lc .lc-name { font-size: 15px; }
-.hib-dense .lc .lc-sub { margin-top: 0; font-size: 10.5px; }
-.hib-dense .lc .lc-chip { padding: 3px 5px; font-size: 9px; }
-.hib-dense .lc .lc-stats, .hib-dense .lc .lc-time, .hib-dense .lc .lc-inline, .hib-dense .lc .lc-social { font-size: 10px; }
+.hib-dense .lc .lc-sub { margin-top: 0; }
 .hib-dense .lc .lc-bar { height: 5px; }
-.hib-dense .lc .lc-label { font-size: 9.5px; }
-.hib-dense .lc .lc-price { font-size: 18px; }
 .hib-dense .lc .lc-pricerow > svg { width: 24px; height: 26px; }
-.hib-dense .lc .lc-offer { font-size: 12.5px; }
 .hib-dense .lc .lc-cta { height: 30px; margin-top: 4px; }
 .hib-dense .lc .lp-tiles span { padding: 4px 3px; }
 .hib-dense .lc .lc-sum__head { padding: 6px 10px; }
@@ -1056,8 +991,8 @@ function LotsSection({ view, card, store }: { view: LotsView; card: CardStyle; s
             <img src={store.logo} alt="" style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain", display: "block" }} />
           </span>
           <div style={{ display: "grid", gap: 2, minWidth: 0 }}>
-            <h3 style={{ margin: 0, fontSize: 20, lineHeight: "24px", fontWeight: 600, color: "#3b1782", whiteSpace: "nowrap" }}>{store.name}</h3>
-            <p style={{ margin: 0, fontSize: 14, lineHeight: "18px", color: "#191c1c" }}>{count} oportunidades</p>
+            <h3 style={{ margin: 0, fontSize: 16, lineHeight: "20px", fontWeight: 700, letterSpacing: "-0.01em", color: "#3b1782", whiteSpace: "nowrap" }}>{store.name}</h3>
+            <p style={{ margin: 0, fontSize: 12, lineHeight: "16.8px", color: "#6B6878" }}>{count} oportunidades</p>
           </div>
         </div>
         <div style={{ flex: "none" }}><ProfileButton className="hib-lots-cta" aria-label="Ver todo el lote"><span>Ver todo</span><span>el lote</span></ProfileButton></div>
@@ -1118,6 +1053,7 @@ const MOBILE_CSS = `
   .hib-top-grid { grid-template-columns: minmax(0, 1fr) !important; grid-template-rows: 300px auto 390px auto !important; gap: 14px !important; }
   .hib-top-grid > [data-slot="principal-banner"] { grid-column: 1 !important; grid-row: 1 !important; }
   .hib-top-grid > [data-slot="secondary-banner"] { grid-column: 1 !important; grid-row: 3 !important; height: 390px !important; }
+  .hib-top-grid > [data-slot="offer-type"] { grid-column: 1 !important; grid-row: 2 !important; }
   .hib-top-grid > .hib-switches { position: static !important; grid-column: 1 !important; grid-row: 4 !important; width: 100% !important; margin-top: 0; }
   .hib-home .hib-switches { position: static !important; width: 100% !important; margin-top: 12px; }
   .hib-home .hib-switch__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -1177,6 +1113,9 @@ const OPTION_A: Preset = {
   feedView: "timeline", offerView: "corta", heroH: 300, categoriesView: "normal",
 };
 const OPTION_B: Preset = { ...OPTION_A, offerView: "clara" };
+const PRESETS: Record<"a" | "b", Preset> = { a: OPTION_A, b: OPTION_B };
+type PresetId = keyof typeof PRESETS;
+const isPresetId = (v: unknown): v is PresetId => v === "a" || v === "b";
 function HeightSlider({ value, onChange }: { value: number; onChange: (v: number) => void }): JSX.Element {
   return (
     <div className="hib-switch hib-slider" role="group" aria-label="Alto del banner">
@@ -1229,11 +1168,30 @@ export default function HomeIndexBlock(): JSX.Element {
     mq.addEventListener("change", sync);
     return () => mq.removeEventListener("change", sync);
   }, []);
-  const applyPreset = (p: Preset) => {
+  const applyPreset = useCallback((id: PresetId) => {
+    const p = PRESETS[id];
     setLotsView(p.lotsView); setCardStyle(p.cardStyle); setLotsView2(p.lotsView2); setCardStyle2(p.cardStyle2);
     setCompaniesView(p.companiesView); setFeedView(p.feedView); setOfferView(p.offerView); setHeroH(p.heroH);
     setCategoriesView(p.categoriesView);
+  }, []);
+  // Al elegir A / B se avisa al selector de dispositivo (para el teléfono de la vista mobile).
+  const choosePreset = (id: PresetId) => {
+    applyPreset(id);
+    window.dispatchEvent(new CustomEvent("hib-preset", { detail: id }));
   };
+  // Dentro del teléfono: el preset llega en la URL (?opcion=b) y luego por postMessage desde la página de afuera.
+  useEffect(() => {
+    const initial = new URLSearchParams(window.location.search).get("opcion");
+    if (isPresetId(initial)) applyPreset(initial);
+    const onMessage = (e: MessageEvent) => {
+      if (e.origin === window.location.origin && e.data?.type === "hib-preset" && isPresetId(e.data.id)) applyPreset(e.data.id);
+    };
+    // Al pasar a la vista mobile se cierran los selectores para que se vean Opción A / B.
+    const onDevice = (e: Event) => { if ((e as CustomEvent<string>).detail === "mobile") setControls(false); };
+    window.addEventListener("message", onMessage);
+    window.addEventListener("hib-device", onDevice);
+    return () => { window.removeEventListener("message", onMessage); window.removeEventListener("hib-device", onDevice); };
+  }, [applyPreset]);
   // Orden: hero + actividad · Lotes para explorar · banner de campaña · Explora por categoría · Empresas y vendedores ·
   // Tipo de oferta y Categorías.
   // Columna con el mismo margen (16) y separación (16) que el bloque de Concorde; el alto lo da el contenido.
@@ -1241,8 +1199,8 @@ export default function HomeIndexBlock(): JSX.Element {
     <div data-block="homepage" className="hib-home" style={{ width: "100%", padding: "16px", boxSizing: "border-box", background: "#ffffff", display: "flex", flexDirection: "column", alignItems: "center", gap: GAP }}>
       {controls ? null : (
         <>
-          <button type="button" className="hib-option-toggle hib-option-toggle--a" onClick={() => applyPreset(OPTION_A)}>Opción A</button>
-          <button type="button" className="hib-option-toggle" onClick={() => applyPreset(OPTION_B)}>Opción B</button>
+          <button type="button" className="hib-option-toggle hib-option-toggle--a" onClick={() => choosePreset("a")}>Opción A</button>
+          <button type="button" className="hib-option-toggle" onClick={() => choosePreset("b")}>Opción B</button>
         </>
       )}
       <button type="button" className="hib-controls-toggle" aria-expanded={controls} onClick={() => setControls((v) => !v)}>
@@ -1251,13 +1209,15 @@ export default function HomeIndexBlock(): JSX.Element {
       {/* Proporción de la referencia: hero flexible + feed de mín. 300 (32 %), 368 de alto (600 × 368 · 300 × 368 con el sidebar cerrado). */}
       {/* «Corta»: Tipo de oferta va bajo el banner (mismo ancho) y VMC ahora ocupa las dos filas a su lado. */}
       <div className="hib-top-grid" style={{ position: "relative", width: "100%", display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(300px, 32%)", gap: GAP,
-        ...(offerView === "corta" ? { gridTemplateRows: `${heroH}px auto` } : { gridTemplateRows: "minmax(0, 1fr)", height: heroH }) }}>
+        gridTemplateRows: `${heroH}px auto` }}>
         <div data-slot="principal-banner" style={{ gridColumn: 1, gridRow: 1, minWidth: 0, display: "flex", height: "100%" }}><PrincipalBanner /></div>
         <div data-slot="secondary-banner" style={{ gridColumn: 2, gridRow: offerView === "corta" ? "1 / 3" : 1, minWidth: 0, minHeight: 0, display: "flex", height: "100%", position: "relative" }}>
           {/* El feed no empuja la fila: se dibuja absoluto y toma el alto que dejan banner + Tipo de oferta. */}
           <div style={{ position: "absolute", inset: 0, display: "flex" }}><VmcAhora view={feedView} /></div>
         </div>
-        {offerView === "corta" ? <div style={{ gridColumn: 1, gridRow: 2, minWidth: 0 }}><OfferTypeCard view="corta" /></div> : null}
+        {/* Tipo de oferta siempre en la fila 2: «Corta» bajo el banner (VMC ahora a su lado); las demás a todo el ancho.
+            En móvil todo va en una columna (banner · Tipo de oferta · VMC ahora), sea Opción A u Opción B. */}
+        <div data-slot="offer-type" style={{ gridColumn: offerView === "corta" ? 1 : "1 / -1", gridRow: 2, minWidth: 0 }}><OfferTypeCard view={offerView} /></div>
         <Switches visible={controls}>
           <ViewSwitch title="VMC ahora" options={FEED_VIEWS} value={feedView} onChange={setFeedView} />
           <HeightSlider value={heroH} onChange={setHeroH} />
@@ -1265,11 +1225,6 @@ export default function HomeIndexBlock(): JSX.Element {
           <ViewSwitch title="Tipo de oferta" options={OFFER_TYPE_VIEWS} value={offerView} onChange={setOfferView} />
         </Switches>
       </div>
-      {offerView === "corta" ? null : (
-        <div style={{ position: "relative", width: "100%" }}>
-          <OfferTypeCard view={offerView} />
-        </div>
-      )}
       <div style={{ position: "relative", width: "100%" }}>
         <LotsSection view={lotsView} card={cardStyle} store={STORES[0]} />
         <Switches visible={controls}>
@@ -1294,7 +1249,8 @@ export default function HomeIndexBlock(): JSX.Element {
         <CompaniesSection view={companiesView} />
         <Switches visible={controls}><ViewSwitch title="Empresas" options={COMPANIES_VIEWS} value={companiesView} onChange={setCompaniesView} /></Switches>
       </div>
-      <style>{SWITCH_CSS}{MOBILE_CSS}</style>
+      {/* Un solo texto: un <style> con varios hijos no hidrata igual en servidor y cliente. */}
+      <style>{SWITCH_CSS + MOBILE_CSS + VIDRIO_CSS}</style>
     </div>
   );
 }

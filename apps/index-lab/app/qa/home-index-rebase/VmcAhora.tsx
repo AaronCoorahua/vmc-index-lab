@@ -106,9 +106,9 @@ const CSS = `
 .va-av__in b { font-size: 12px; font-weight: 800; color: #3B1782; }
 .va-verified { flex: none; }
 /* Cabecera de la referencia: 68 de alto, padding 0 24, título 20 + bajada 14, «En vivo» a la derecha. */
-.va-head { box-sizing: border-box; flex: none; display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 68px; padding: 0 24px; border-bottom: 1px solid #E8DDFF; }
-.va-head h3 { margin: 0; font-size: 20px; line-height: 24px; font-weight: 600; color: #3B1782; white-space: nowrap; }
-.va-head p { margin: 0; font-size: 14px; line-height: 18px; color: #191C1C; white-space: nowrap; }
+.va-head { box-sizing: border-box; flex: none; display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 60px; padding: 0 20px; border-bottom: 1px solid #E8DDFF; }
+.va-head h3 { margin: 0; font-size: 16px; line-height: 20px; font-weight: 700; letter-spacing: -0.01em; color: #3B1782; white-space: nowrap; }
+.va-head p { margin: 0; font-size: 12px; line-height: 16.8px; color: #6B6878; white-space: nowrap; }
 .va-live { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #E2531A; }
 .va-live i { width: 6px; height: 6px; border-radius: 50%; background: #FF7A1A; animation: va-pulse 1.4s ease-in-out infinite; }
 /* Scroll integrado al sistema visual: discreto, redondeado y consistente entre vistas. */
@@ -130,28 +130,28 @@ const CSS = `
 
 /* Timeline (X / Twitter) */
 .va--timeline { background: #fff; box-shadow: rgba(0,0,0,0.07) 0 0 16px 4px; }
-.va-live { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #E2531A; }
+.va-live { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #E2531A; }
 .va-live i { width: 6px; height: 6px; border-radius: 50%; background: #FF7A1A; animation: va-pulse 1.4s ease-in-out infinite; }
-.va-newpill { position: absolute; top: 68px; left: 50%; z-index: 3; display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 999px;
+.va-newpill { position: absolute; top: 60px; left: 50%; z-index: 3; display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 999px;
   font-size: 12px; font-weight: 800; color: #fff; background: linear-gradient(135deg, #8460E5, #3B1782); box-shadow: rgba(59,23,130,0.35) 0 6px 14px;
   opacity: 0; pointer-events: none; animation: va-pill 2.2s ease forwards; }
 .va-posts { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; margin: 0; padding: 0; list-style: none; }
-.va-post { display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 12px; padding: 14px 24px 4px; }
+.va-post { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 10px; padding: 12px 20px 2px; }
 .va-post.va-enter { animation: va-in 0.45s cubic-bezier(0.3,0,0,1), va-flash 2.4s ease; }
 /* Hilo: el avatar y una línea fina que lo une con la publicación siguiente (como Threads). */
 .va-post__rail { display: flex; flex-direction: column; align-items: center; }
 .va-post__line { flex: 1; width: 2px; min-height: 12px; margin-top: 8px; border-radius: 2px; background: #E4E0F0; }
 .va-post:last-child .va-post__line { display: none; }
 .va-post__main { min-width: 0; padding-bottom: 12px; }
-.va-post__head { display: flex; align-items: center; gap: 5px; min-width: 0; font-size: 14px; line-height: 20px; }
+.va-post__head { display: flex; align-items: center; gap: 5px; min-width: 0; font-size: 13px; line-height: 18px; }
 .va-post__head b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; color: #14112B; }
-.va-post__head span { flex: none; color: #8A879C; font-size: 13px; font-weight: 400; }
-.va-post__text { margin: 2px 0 0; font-size: 14px; line-height: 1.4; color: #24203D; }
+.va-post__head span { flex: none; color: #8A879C; font-size: 12px; font-weight: 400; }
+.va-post__text { margin: 2px 0 0; font-size: 13px; line-height: 18px; color: #24203D; }
 .va-post__text em { font-style: normal; font-weight: 700; color: #4A2CE0; }
 .va-post__media { position: relative; display: block; margin-top: 10px; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 14px; background: #F3EFFD; }
 .va-post__media img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.va-post__media b { position: absolute; left: 10px; bottom: 10px; padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; color: #fff; background: rgba(16,0,48,0.62); }
-.va-acts { display: flex; gap: 18px; margin-top: 8px; margin-left: -6px; font-size: 13px; color: #6B6880; }
+.va-post__media b { position: absolute; left: 10px; bottom: 10px; padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; color: #fff; background: rgba(16,0,48,0.62); }
+.va-acts { display: flex; gap: 16px; margin-top: 6px; margin-left: -6px; font-size: 12px; color: #6B6880; }
 .va-acts span { display: inline-flex; align-items: center; gap: 6px; padding: 5px 6px; border-radius: 999px; }
 .va-acts span:hover { background: #F3EFFD; color: #3B1782; }
 
@@ -163,10 +163,10 @@ const CSS = `
 .va-item__thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .va-item__main { display: grid; gap: 3px; min-width: 0; }
 .va-item__pill { justify-self: start; display: inline-flex; align-items: center; height: 18px; padding: 0 8px; border-radius: 999px; border: 1.5px solid var(--k);
-  font-size: 9.5px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--k); background: color-mix(in srgb, var(--k) 10%, #fff); }
+  font-size: 9px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--k); background: color-mix(in srgb, var(--k) 10%, #fff); }
 .va-item__title { margin: 1px 0 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; line-height: 1.2; font-weight: 800; color: #14112B; }
 .va-item__value { font-size: 14px; line-height: 1.2; font-weight: 800; letter-spacing: -0.01em; color: #4C1EBC; }
-.va-item__meta { display: flex; align-items: center; gap: 3px; min-width: 0; font-size: 10.5px; color: #6B6880; white-space: nowrap; }
+.va-item__meta { display: flex; align-items: center; gap: 3px; min-width: 0; font-size: 11px; color: #6B6880; white-space: nowrap; }
 .va-item__meta > span:last-child { overflow: hidden; text-overflow: ellipsis; }
 .va-item__who { flex: none; max-width: 84px; overflow: hidden; text-overflow: ellipsis; }
 .va-item__meta .va-verified { width: 10px; height: 10px; }
@@ -281,7 +281,7 @@ export default function VmcAhora({ view }: { view: FeedView }): JSX.Element {
         <ol className="va-posts va-scroll" aria-live="polite">
           {items.map((e, i) => (
             <li key={e.id} className={`va-post${enter(i)}`}>
-              <div className="va-post__rail"><Avatar who={e.who} size={36} /><span className="va-post__line" /></div>
+              <div className="va-post__rail"><Avatar who={e.who} size={32} /><span className="va-post__line" /></div>
               <div className="va-post__main">
                 <div className="va-post__head"><b>{e.who}</b><Verified /><span>{AGO[i]}</span></div>
                 <p className="va-post__text">{e.title}. <em>{e.detail}</em></p>
