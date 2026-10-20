@@ -22,8 +22,8 @@ const FeedIcon = ({ on }: { on: boolean }) => (
   </svg>
 );
 
-type MobileFeedView = "card" | "tabs" | "slot" | "ticker";
-const isMobileFeedView = (v: unknown): v is MobileFeedView => v === "card" || v === "tabs" || v === "slot" || v === "ticker";
+type MobileFeedView = "card" | "more" | "tabs" | "slot" | "ticker";
+const isMobileFeedView = (v: unknown): v is MobileFeedView => ["card", "more", "tabs", "slot", "ticker"].includes(v as string);
 
 function BrandLogo() {
   return <img className={styles.brandLogo} src="/assets/brand/logo-voyager.svg" alt="VMC Subastas" />;
@@ -87,7 +87,7 @@ export default function HomeIndexRebase() {
         {feed(true)}
       </>
     ) : <HomeIndexBlock hideFeed onOpenFeed={() => openLive(true)} />;
-  } else mobileBody = mview === "slot" ? <HomeIndexBlock feedSlot /> : <HomeIndexBlock />;
+  } else mobileBody = mview === "slot" ? <HomeIndexBlock feedSlot /> : mview === "more" ? <HomeIndexBlock feedMore /> : <HomeIndexBlock />;
 
   useEffect(() => {
     const resize = () => setSidebarHeight(Math.max(720, window.innerHeight));

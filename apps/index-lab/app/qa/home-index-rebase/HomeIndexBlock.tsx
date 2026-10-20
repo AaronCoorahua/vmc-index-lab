@@ -21,7 +21,7 @@
  * Contenido de ejemplo; sin inventario real.
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { Fragment, cloneElement, isValidElement, useCallback, useEffect, useRef, useState } from "react";
 import type { CSSProperties, JSX, ReactNode } from "react";
 import {
   BadgeStatus, Button, OfferCard, ProfileButton,
@@ -50,7 +50,7 @@ const SHADOW = "rgba(0,0,0,0.07) 0px 0px 16px 4px"; // sombra de las secciones d
 type HeroSlide = {
   label: string; pill: "live" | "seller" | "negotiable";
   title: JSX.Element; lead: JSX.Element; cta: string; bg: string;
-  photo: { src: string; side: "l" | "r"; width: string; position: string; style?: CSSProperties };
+  photo: { src: string; side: "l" | "r"; width: string; position: string; flip?: boolean; style?: CSSProperties };
   copy: "left" | "right"; lot?: boolean;
 };
 const SLIDES: HeroSlide[] = [
@@ -60,8 +60,8 @@ const SLIDES: HeroSlide[] = [
     photo: { src: "/demo/inventory-suv-v1.png", side: "r", width: "60%", position: "50% 55%" }, copy: "left", lot: true },
   { label: "Publica tu auto y véndelo con VMC", pill: "seller",
     title: <>Publica tu auto<br />y <em>véndelo</em> con VMC</>, lead: <>Llega a compradores de todo el país. Elige subasta en vivo o precio negociable.</>,
-    cta: "Publicar mi auto", bg: "linear-gradient(100deg, #E8732A 0%, #C85A1E 26%, #3D2299 72%, #2A1670 100%)",
-    photo: { src: "/demo/inventory-suv-v1.png", side: "l", width: "58%", position: "40% 55%" }, copy: "right" },
+    cta: "Publicar mi auto", bg: "linear-gradient(100deg, #2A1670 0%, #3D2299 34%, #6B48DD 76%, #8460E5 100%)",
+    photo: { src: "/demo/inventory-suv-v1.png", side: "r", width: "60%", position: "50% 55%", flip: true }, copy: "left" },
   { label: "Negocia directo con el vendedor", pill: "negotiable",
     title: <>Negocia <em>directo</em><br />con el vendedor</>, lead: <><b>12 lotes negociables.</b> Envía tu oferta y cierra el precio.</>,
     cta: "Ver negociables", bg: "linear-gradient(100deg, #2A1670 0%, #3D2299 35%, #00838C 78%, #00D2D3 100%)",
@@ -79,7 +79,7 @@ const HERO_CSS = `
 .hp-slide.on { opacity: 1; visibility: visible; transition: opacity .5s ease, visibility 0s; }
 .hp-bg { position: absolute; inset: 0; }
 .hp-photo { position: absolute; top: 0; bottom: 0; width: var(--pw, 58%); }
-.hp-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.hp-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; transform: scaleX(var(--fx, 1)); } /* --fx: -1 = en espejo */
 .hp-photo.r { right: 0; -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 30%); mask-image: linear-gradient(90deg, transparent 0%, #000 30%); }
 .hp-photo.l { left: 0; -webkit-mask-image: linear-gradient(270deg, transparent 0%, #000 30%); mask-image: linear-gradient(270deg, transparent 0%, #000 30%); }
 .hp-copy { position: absolute; top: 0; bottom: 0; display: flex; flex-direction: column; justify-content: center; align-items: flex-start;
@@ -107,16 +107,172 @@ const HERO_CSS = `
   background: var(--vmc-color-glass-dark); border: var(--vmc-border-glass); -webkit-backdrop-filter: var(--vmc-glass-blur); backdrop-filter: var(--vmc-glass-blur); }
 .hp-arrow { display: grid; place-items: center; width: 24px; height: 24px; padding: 0; border: 0; border-radius: 50%; background-color: transparent; color: var(--vmc-color-base-white); cursor: pointer; transition: background-color .2s; }
 .hp-arrow:hover { background-color: rgba(255,255,255,.18); }
-.hp-segs { display: flex; gap: 4px; padding: 0 4px; }
-.hp-seg { position: relative; width: 22px; height: 24px; padding: 0; border: 0; background-color: transparent; cursor: pointer; }
-.hp-seg::before { content: ""; position: absolute; left: 0; right: 0; top: 10px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.4); }
-.hp-seg i { position: absolute; left: 0; top: 10px; height: 4px; width: 0; border-radius: 2px; background: var(--vmc-color-base-white); transition: width 0.3s ease; }
-.hp-seg.on i { width: 100%; } /* indica la diapositiva actual (no es temporizador) */
-.hp-arrow:focus-visible, .hp-seg:focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
+.hp-arrow:focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
+/* Versiones del indicador del carrusel (control QA «Banner · indicador»). */
+.hp-dots { position: absolute; left: 50%; bottom: 14px; z-index: 5; display: flex; align-items: center; gap: 6px; padding: 6px 8px; transform: translateX(-50%);
+  border-radius: var(--vmc-radius-full); background: rgba(16,0,48,0.28); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.hp-dot { width: 7px; height: 7px; padding: 0; border: 0; border-radius: var(--vmc-radius-full); background: rgba(255,255,255,0.5); cursor: pointer; transition: width 0.3s ease, background 0.3s; }
+.hp-dot.on { width: 20px; background: var(--vmc-color-base-white); }
+.hp-bars { position: absolute; top: 10px; left: 16px; right: 16px; z-index: 5; display: flex; gap: 6px; }
+.hp-bar { position: relative; flex: 1; height: 16px; padding: 0; border: 0; background: none; cursor: pointer; }
+.hp-bar::before, .hp-bar i { content: ""; position: absolute; left: 0; top: 6px; height: 3px; border-radius: 2px; }
+.hp-bar::before { right: 0; background: rgba(255,255,255,0.35); }
+.hp-bar i { width: 0; background: var(--vmc-color-base-white); }
+.hp-bar.done i { width: 100%; }
+.hp-bar.on i { animation: hp-fill var(--dur) linear forwards; }
+.hp.paused .hp-bar.on i { animation-play-state: paused; }
+@keyframes hp-fill { to { width: 100%; } }
+.hp-count { padding: 0 6px; font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: 0.02em; white-space: nowrap; }
+.hp-count small { font-size: 12px; font-weight: 600; opacity: 0.7; }
+.hp-side { position: absolute; top: 50%; z-index: 5; display: grid; place-items: center; width: 36px; height: 36px; margin-top: -18px; padding: 0; border-radius: 50%;
+  color: var(--vmc-color-base-white); background: var(--vmc-color-glass-dark); border: var(--vmc-border-glass); -webkit-backdrop-filter: var(--vmc-glass-blur); backdrop-filter: var(--vmc-glass-blur);
+  cursor: pointer; opacity: 0; transition: opacity 0.2s, background-color 0.2s; }
+.hp-side.prev { left: 10px; } .hp-side.next { right: 10px; }
+.hp:hover .hp-side, .hp:focus-within .hp-side { opacity: 1; }
+.hp-side:hover { background-color: rgba(255,255,255,0.22); }
+@media (hover: none) { .hp-side { opacity: 1; } }
+/* Indicadores en vidrio, como el botón del banner (hib-glass): blanco translúcido + blur + borde degradado VYStrokes1. */
+.hp-ctrl, .hp-dots, .hp-side { border: 0; background-color: transparent;
+  background-image: linear-gradient(180deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.08) 45%, rgba(255,255,255,0) 100%), linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.08) 45%, rgba(255,255,255,0.03) 100%);
+  -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px);
+  box-shadow: rgba(0,0,0,0.1) 0 8px 24px, inset 0 1px 6px rgba(255,255,255,0.45); }
+.hp-ctrl::before, .hp-dots::before, .hp-side::before { content: ""; position: absolute; inset: 0; padding: 1.5px; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(94deg, #FFFFFF 0%, #F4AC59 22.1%, #8460E5 74.5%, #FFFFFF 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
+.hp-ctrl { padding: 3px 5px; }
+.hp-dots { padding: 7px 10px; }
+.hp-side:hover { background-color: rgba(255,255,255,0.1); box-shadow: rgba(0,0,0,0.16) 0 12px 28px, inset 0 1px 8px rgba(255,255,255,0.6); }
+.hp-side:active { background-color: rgba(32,0,104,0.22); }
+.hp-arrow, .hp-count, .hp-side { text-shadow: rgba(0,0,0,0.25) 0 1px 3px; }
+/* Pestañas con nombre: segmentado de vidrio; la activa en blanco con una línea de progreso. */
+.hp-tabs { position: absolute; top: 12px; right: 12px; z-index: 5; display: flex; gap: 2px; padding: 3px; border-radius: var(--vmc-radius-full); }
+.hp-tab { position: relative; height: 26px; padding: 0 12px; overflow: hidden; border: 0; border-radius: var(--vmc-radius-full); background: transparent; cursor: pointer;
+  font: 700 11px/1 var(--vmc-font-display); color: rgba(255,255,255,0.85); text-shadow: rgba(0,0,0,0.25) 0 1px 3px; transition: background 0.25s, color 0.25s; }
+.hp-tab:hover { color: #fff; background: rgba(255,255,255,0.12); }
+.hp-tab.on { color: #3B1782; background: #fff; text-shadow: none; box-shadow: rgba(32,0,104,0.18) 0 2px 8px; }
+.hp-tab i { position: absolute; left: 10px; right: 10px; bottom: 3px; height: 2px; border-radius: 2px; background: rgba(59,23,130,0.15); }
+.hp-tab i::after { content: ""; position: absolute; inset: 0; width: 0; border-radius: inherit; background: #ED8936; animation: hp-fill var(--dur) linear forwards; }
+.hp.paused .hp-tab i::after { animation-play-state: paused; }
+/* Siguiente con vista previa: miniatura + nombre de la que viene; el anillo se llena hasta el cambio. */
+.hp-next { position: absolute; top: 12px; right: 12px; z-index: 5; display: grid; grid-template-columns: 44px auto 32px; align-items: center; gap: 10px;
+  padding: 5px 5px 5px 5px; border-radius: 14px; color: #fff; cursor: pointer; text-align: left; font-family: var(--vmc-font-display); }
+.hp-next__thumb { width: 44px; height: 32px; overflow: hidden; border-radius: 9px; background: rgba(255,255,255,0.2); }
+.hp-next__thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.hp-next__txt { display: grid; gap: 2px; padding-right: 2px; text-shadow: rgba(0,0,0,0.25) 0 1px 3px; }
+.hp-next__txt small { font-size: 9px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; opacity: 0.8; }
+.hp-next__txt b { font-size: 12px; font-weight: 700; white-space: nowrap; }
+.hp-next__go { position: relative; display: grid; place-items: center; width: 32px; height: 32px; }
+.hp-next__go svg.ring { position: absolute; inset: 0; transform: rotate(-90deg); }
+.hp-next__go .ring circle { fill: none; stroke-width: 2.5; }
+.hp-next__go .ring .track { stroke: rgba(255,255,255,0.3); }
+.hp-next__go .ring .prog { stroke: #fff; stroke-dasharray: 88; stroke-dashoffset: 88; stroke-linecap: round; animation: hp-ring var(--dur) linear forwards; }
+.hp.paused .hp-next__go .ring .prog { animation-play-state: paused; }
+@keyframes hp-ring { to { stroke-dashoffset: 0; } }
+.hp-next:hover { box-shadow: rgba(0,0,0,0.16) 0 12px 28px, inset 0 1px 8px rgba(255,255,255,0.6); }
+.hp-tab:focus-visible, .hp-next:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.hp-tabs, .hp-next { border: 0; background-color: transparent;
+  background-image: linear-gradient(180deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.08) 45%, rgba(255,255,255,0) 100%), linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.08) 45%, rgba(255,255,255,0.03) 100%);
+  -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px); box-shadow: rgba(0,0,0,0.1) 0 8px 24px, inset 0 1px 6px rgba(255,255,255,0.45); }
+.hp-tabs::before, .hp-next::before { content: ""; position: absolute; inset: 0; padding: 1.5px; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(94deg, #FFFFFF 0%, #F4AC59 22.1%, #8460E5 74.5%, #FFFFFF 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
+@media (prefers-reduced-motion: reduce) { .hp-tab i::after, .hp-next__go .ring .prog { animation: none; } }
+/* Editorial (ref. Showreel): ANTERIOR / SIGUIENTE verticales en los bordes, número grande y nombres separados por «/». */
+.hp-ed-side { position: absolute; top: 50%; z-index: 5; padding: 10px 6px; border: 0; background: none; cursor: pointer; writing-mode: vertical-rl;
+  font: 700 10px/1 var(--vmc-font-display); letter-spacing: 0.24em; text-transform: uppercase; color: rgba(255,255,255,0.72); text-shadow: rgba(0,0,0,0.3) 0 1px 3px; transition: color 0.2s; }
+.hp-ed-side.prev { left: 6px; transform: translateY(-50%) rotate(180deg); }
+.hp-ed-side.next { right: 6px; transform: translateY(-50%); }
+.hp-ed-side:hover { color: #fff; }
+.hp-ed-num { position: absolute; top: 12px; right: 32px; z-index: 5; display: flex; align-items: baseline; gap: 3px; color: #fff; text-shadow: rgba(0,0,0,0.3) 0 1px 4px; font-family: var(--vmc-font-display); }
+.hp-ed-num b { font-size: 30px; line-height: 1; font-weight: 300; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; animation: hp-num 0.55s cubic-bezier(0.2,0.8,0.2,1) both; }
+.hp-ed-num small { font-size: 11px; font-weight: 600; opacity: 0.7; }
+@keyframes hp-num { from { opacity: 0; transform: translateY(10px); } }
+.hp-ed-list { position: absolute; right: 32px; bottom: 12px; z-index: 5; display: flex; align-items: center; gap: 8px; font: 700 10px/1 var(--vmc-font-display);
+  letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.45); text-shadow: rgba(0,0,0,0.3) 0 1px 3px; }
+.hp-ed-list button { position: relative; padding: 5px 0; border: 0; background: none; font: inherit; letter-spacing: inherit; text-transform: inherit; color: inherit; cursor: pointer; transition: color 0.2s; }
+.hp-ed-list button:hover, .hp-ed-list button.on { color: #fff; }
+.hp-ed-list button.on::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: #fff; transform-origin: left; animation: hp-line 0.5s ease both; }
+@keyframes hp-line { from { transform: scaleX(0); } }
+.hp-ed-list i { font-style: normal; }
+/* Muestras (ref. Coffee): columna de círculos con el color de cada diapositiva, fracción con barra diagonal y flechas ↑ ↓. */
+.hp-sw { position: absolute; top: 50%; right: 18px; z-index: 5; display: flex; flex-direction: column; gap: 11px; transform: translateY(-50%); }
+.hp-sw button { width: 14px; height: 14px; padding: 0; border: 2px solid rgba(255,255,255,0.7); border-radius: 50%; background: rgba(255,255,255,0.25); cursor: pointer;
+  box-shadow: rgba(0,0,0,0.25) 0 2px 6px; transition: transform 0.25s cubic-bezier(0.3,0,0,1), border-color 0.25s, box-shadow 0.25s; }
+.hp-sw button:hover { transform: scale(1.12); }
+.hp-sw button.on { transform: scale(1.3); border-color: #fff; background: #fff; box-shadow: 0 0 0 3px rgba(255,255,255,0.28), rgba(0,0,0,0.3) 0 3px 8px; }
+.hp-frac { position: absolute; top: 12px; right: 16px; z-index: 5; width: 46px; height: 34px; color: #fff; font-family: var(--vmc-font-display); text-shadow: rgba(0,0,0,0.3) 0 1px 3px; }
+.hp-frac b { position: absolute; left: 0; top: 0; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; animation: hp-num 0.5s ease both; }
+.hp-frac small { position: absolute; right: 0; bottom: 0; font-size: 11px; font-weight: 600; opacity: 0.7; }
+.hp-frac i { position: absolute; left: 50%; top: 50%; width: 1px; height: 30px; background: rgba(255,255,255,0.75); transform: translate(-50%, -50%) rotate(38deg); }
+.hp-updown { position: absolute; right: 16px; bottom: 10px; z-index: 5; display: flex; flex-direction: column; gap: 2px; }
+.hp-updown button { display: grid; place-items: center; width: 26px; height: 24px; padding: 0; border: 0; background: none; color: rgba(255,255,255,0.8); cursor: pointer;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35)); transition: color 0.2s, transform 0.2s; }
+.hp-updown button:hover { color: #fff; }
+.hp-updown button:first-child:hover { transform: translateY(-2px); } .hp-updown button:last-child:hover { transform: translateY(2px); }
+/* Fracción (ref. Discover): «02/03» en naranja bajo el título y puntos con borde abajo a la izquierda. */
+.hp-frac2 { font: 700 13px/1 var(--vmc-font-display); letter-spacing: 0.08em; color: rgba(255,255,255,0.7); font-variant-numeric: tabular-nums; }
+.hp-frac2 b { color: #FFC995; }
+.hp-odots { position: absolute; left: 36px; bottom: 16px; z-index: 5; display: flex; gap: 9px; }
+.hp-odots button { width: 9px; height: 9px; padding: 0; border: 1.5px solid rgba(255,255,255,0.75); border-radius: 50%; background: transparent; cursor: pointer; transition: background 0.25s, border-color 0.25s, transform 0.25s; }
+.hp-odots button:hover { transform: scale(1.2); }
+.hp-odots button.on { border-color: #FFC995; background: #FFC995; }
+/* Flechas finas (ref. Yozenn): chevrones delgados a los lados, sin fondo. */
+.hp-thin { position: absolute; top: 50%; z-index: 5; display: grid; place-items: center; width: 34px; height: 54px; margin-top: -27px; padding: 0; border: 0; background: none;
+  color: #fff; cursor: pointer; opacity: 0.85; filter: drop-shadow(0 1px 3px rgba(0,0,0,0.4)); transition: opacity 0.2s, transform 0.25s cubic-bezier(0.3,0,0,1); }
+.hp-thin.prev { left: 4px; } .hp-thin.next { right: 4px; }
+.hp-thin:hover { opacity: 1; } .hp-thin.prev:hover { transform: translateX(-3px); } .hp-thin.next:hover { transform: translateX(3px); }
+.hp-ed-side:focus-visible, .hp-ed-list button:focus-visible, .hp-sw button:focus-visible, .hp-updown button:focus-visible, .hp-odots button:focus-visible, .hp-thin:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+/* Montaña de vidrio (ref. tarjeta promo): pestaña con hombros curvos que sube desde el borde inferior, en vidrio, con los
+   puntos adentro (el activo se alarga). La forma es un clip-path; el borde claro de arriba es un SVG con la misma curva. */
+.hp-mtn { position: absolute; left: 50%; bottom: 0; z-index: 5; width: 132px; height: 26px; transform: translateX(-50%); }
+.hp-mtn__glass { position: absolute; inset: 0; clip-path: path("M0 26C22 26 26 2 48 2H84C106 2 110 26 132 26Z");
+  background: linear-gradient(180deg, rgba(255,255,255,0.42) 0%, rgba(255,255,255,0.16) 100%); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.hp-mtn__edge { position: absolute; inset: 0; overflow: visible; pointer-events: none; }
+.hp-mtn__edge path { fill: none; stroke: rgba(255,255,255,0.75); stroke-width: 1.2; }
+.hp-mtn__dots { position: absolute; left: 50%; top: 11px; display: flex; align-items: center; gap: 6px; transform: translateX(-50%); }
+.hp-mtn__dots button { width: 6px; height: 6px; padding: 0; border: 0; border-radius: 999px; background: rgba(255,255,255,0.6); cursor: pointer;
+  box-shadow: rgba(32,0,104,0.25) 0 1px 2px; transition: width 0.3s ease, background 0.3s; }
+.hp-mtn__dots button.on { width: 18px; background: #fff; }
+.hp-mtn__dots button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+/* Con navegación a los lados, el texto se corre para no quedar debajo. */
+.hp--editorial .hp-copy.left, .hp--thin .hp-copy.left { left: 48px; } .hp--editorial .hp-copy.right, .hp--thin .hp-copy.right { right: 48px; }
+
+/* Efectos de texto al entrar la diapositiva (control «Banner · texto»); la foto hace un zoom lento salvo «Sin efecto». */
+.hp-slide.on .hp-photo img { animation: hp-kb 7.5s ease-out both; }
+@keyframes hp-kb { from { transform: scaleX(var(--fx, 1)) scale(1.08); } to { transform: scaleX(var(--fx, 1)); } }
+.hp--fx-none .hp-slide.on .hp-photo img { animation: none; }
+.hp--fx-rise .hp-slide.on .hp-copy > *, .hp--fx-letters .hp-slide.on .hp-copy > :not(.hp-h) { animation: hp-rise 0.7s cubic-bezier(0.2,0.8,0.2,1) both; }
+.hp--fx-blur .hp-slide.on .hp-copy > * { animation: hp-blur 0.8s ease both; }
+.hp--fx-mask .hp-slide.on .hp-copy > * { animation: hp-mask 0.75s cubic-bezier(0.7,0,0.2,1) both; }
+.hp-slide.on .hp-copy > :nth-child(2) { animation-delay: 0.08s; }
+.hp-slide.on .hp-copy > :nth-child(3) { animation-delay: 0.16s; }
+.hp-slide.on .hp-copy > :nth-child(4) { animation-delay: 0.24s; }
+.hp-slide.on .hp-copy > :nth-child(5) { animation-delay: 0.32s; }
+.hp--fx-letters .hp-slide.on .hp-copy > :nth-child(n+3) { animation-delay: 0.45s; }
+.hp--fx-letters .hp-slide.on .hp-copy > :nth-child(n+4) { animation-delay: 0.55s; }
+.hp--fx-letters .hp-slide.on .hp-copy > :nth-child(n+5) { animation-delay: 0.62s; }
+@keyframes hp-rise { from { opacity: 0; transform: translateY(18px); } }
+@keyframes hp-blur { from { opacity: 0; filter: blur(10px); transform: scale(1.03); } }
+@keyframes hp-mask { from { clip-path: inset(0 0 100% 0); transform: translateY(40%); } to { clip-path: inset(0 0 0 0); transform: none; } }
+/* Letras: cada letra del título sube y se enfoca, en cascada. */
+.hp-word { display: inline-block; white-space: nowrap; }
+.hp-ch { display: inline-block; }
+.hp--fx-letters .hp-slide.on .hp-ch { animation: hp-ch 0.6s cubic-bezier(0.2,0.8,0.2,1) both; animation-delay: calc(var(--i) * 22ms); }
+@keyframes hp-ch { from { opacity: 0; transform: translateY(0.55em) rotate(8deg); filter: blur(4px); } }
+.hp-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@media (prefers-reduced-motion: reduce) {
+  .hp-slide.on .hp-photo img, .hp-slide.on .hp-copy > *, .hp--fx-letters .hp-slide.on .hp-ch, .hp-ed-num b, .hp-frac b, .hp-ed-list button.on::after { animation: none !important; }
+}
+.hp--sides .hp-copy.left { left: 60px; } .hp--sides .hp-copy.right { right: 60px; }
+.hp-dot:focus-visible, .hp-bar:focus-visible, .hp-side:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .hp-bar.on i { animation: none; width: 100%; } .hp-dot { transition: none; } }
 @container hp (max-width: 960px) { .hp-copy { width: 50%; } .hp-h { font-size: var(--vmc-font-size-title); line-height: var(--vmc-line-height-title); } .hp-lot { width: 200px; right: 16px; bottom: 16px; } }
 @container hp (max-width: 700px) {
   .hp-photo { width: 100%; opacity: .6; left: 0; right: 0; }
   .hp-copy, .hp-copy.right { left: 20px; right: auto; width: calc(100% - 40px); }
+  .hp--sides .hp-copy, .hp--sides .hp-copy.right { left: 54px; width: calc(100% - 108px); }
+  .hp--editorial .hp-copy, .hp--editorial .hp-copy.right, .hp--thin .hp-copy, .hp--thin .hp-copy.right { left: 40px; width: calc(100% - 80px); }
+  .hp-odots { left: 20px; }
   .hp-lot { display: none; }
 }
 
@@ -139,8 +295,12 @@ const HERO_CSS = `
 .hib-glass:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
 `;
 
-const HandshakeIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="m11 17 2 2a1 1 0 1 0 3-3" /><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4" /><path d="m21 3 1 11h-2" /><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3" /><path d="M3 4h8" /></svg>
+// Pill «Para vendedores»: versión sólida simplificada del ícono «vender» de la skill (a 10 px no se usa el vidrio).
+const SellerGlyph = () => (
+  <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+    <path d="M6.6 11l1.6-3.1A2 2 0 0 1 10 6.8h3a2 2 0 0 1 1.8 1.1l1.6 3.1h1.8a2 2 0 0 1 2 2v3a1.5 1.5 0 0 1-1.5 1.5h-.9a2 2 0 0 1-3.6 0H9.8a2 2 0 0 1-3.6 0h-.9A1.5 1.5 0 0 1 3.8 16v-3a2 2 0 0 1 2-2z" />
+    <path d="M16.5 1.5h4.6a1 1 0 0 1 1 1v4.6a1 1 0 0 1-.3.7l-3.1 3.1-5.3-5.3 3.1-3.8a1 1 0 0 1 .8-.3z" />
+  </svg>
 );
 const TimerIcon = () => (
   <svg width="14" height="14" viewBox="0 0 22 22" fill="none" aria-hidden><path d="M4.63973 10C5.09082 6.38255 8.17668 3.58333 11.9163 3.58333C15.9664 3.58333 19.2496 6.86658 19.2496 10.9167C19.2496 14.9668 15.9664 18.25 11.9163 18.25H7.33333M11.9167 10.9167V7.25M10.0833 1.75H13.75M2.75 12.75H7.33333M4.58333 15.5H9.16667" stroke="#FFE2C2" strokeWidth="1.83333" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -157,7 +317,51 @@ function useCountdown(start: number): string {
   return `${pad(Math.floor(left / 3600))}:${pad(Math.floor((left % 3600) / 60))}:${pad(left % 60)}`;
 }
 
-function PrincipalBanner(): JSX.Element {
+export type BannerNav = "plain" | "tabs" | "dots" | "bars" | "counter" | "sides" | "next" | "editorial" | "swatch" | "fraction" | "thin";
+export const BANNER_NAVS: { id: BannerNav; label: string; hint: string }[] = [
+  { id: "tabs", label: "Pestañas con nombre", hint: "En vivo · Vende · Negocia, con progreso" },
+  { id: "dots", label: "Puntos", hint: "Abajo al centro; el activo se alarga" },
+  { id: "bars", label: "Barras de historia", hint: "Arriba; se llenan con el tiempo" },
+  { id: "counter", label: "Contador", hint: "‹ 1 / 3 › arriba a la derecha" },
+  { id: "sides", label: "Flechas laterales", hint: "Aparecen al pasar el mouse, con puntos" },
+  { id: "next", label: "Siguiente con vista previa", hint: "Miniatura de la que viene y anillo de tiempo" },
+  { id: "editorial", label: "Editorial", hint: "Ref. Showreel: Anterior / Siguiente verticales, número grande" },
+  { id: "swatch", label: "Muestras", hint: "Ref. Coffee: puntos en columna, 02 / 03 y flechas ↑ ↓" },
+  { id: "fraction", label: "Fracción y puntos", hint: "Ref. Discover: 02/03 bajo el título, puntos abajo" },
+  { id: "thin", label: "Flechas finas", hint: "Ref. Yozenn: chevrones delgados, sin fondo" },
+  { id: "plain", label: "Montaña de vidrio", hint: "Ref. tarjeta promo: pestaña curva de vidrio en el borde inferior, con puntos" },
+];
+export type BannerFx = "letters" | "rise" | "blur" | "mask" | "none";
+export const BANNER_FXS: { id: BannerFx; label: string; hint: string }[] = [
+  { id: "letters", label: "Letras", hint: "El título entra letra por letra" },
+  { id: "rise", label: "Subir en cascada", hint: "Pill, título, texto y botón suben en orden" },
+  { id: "blur", label: "Desenfoque", hint: "Aparece enfocándose" },
+  { id: "mask", label: "Revelar", hint: "Cada línea se descubre desde abajo" },
+  { id: "none", label: "Sin efecto", hint: "Solo el fundido entre diapositivas" },
+];
+const pad2 = (n: number) => String(n).padStart(2, "0");
+/** Parte el título en palabras y letras (para el efecto «Letras»); conserva <em> y <br>. */
+function Letters({ children }: { children: ReactNode }): JSX.Element {
+  let n = 0;
+  const walk = (node: ReactNode): ReactNode => {
+    if (typeof node === "string") {
+      return node.split(/(\s+)/).map((w, k) => (/^\s+$/.test(w) || !w ? w
+        : <span key={k} className="hp-word">{[...w].map((c, j) => <span key={j} className="hp-ch" style={{ "--i": n++ } as CSSProperties}>{c}</span>)}</span>));
+    }
+    if (Array.isArray(node)) return node.map((c, k) => <Fragment key={k}>{walk(c)}</Fragment>);
+    if (isValidElement<{ children?: ReactNode }>(node)) return cloneElement(node, undefined, walk(node.props.children));
+    return node;
+  };
+  return <>{walk(children)}</>;
+}
+// Texto plano del título (para lectores de pantalla cuando se parte en letras).
+const plain = (node: ReactNode): string =>
+  typeof node === "string" ? node : Array.isArray(node) ? node.map(plain).join("")
+    : isValidElement<{ children?: ReactNode }>(node) ? (node.type === "br" ? " " : plain(node.props.children)) : "";
+// Nombre corto de cada diapositiva (pestañas y vista previa).
+const SHORT: Record<HeroSlide["pill"], string> = { live: "En vivo", seller: "Vende", negotiable: "Negocia" };
+
+function PrincipalBanner({ nav = "plain", fx = "letters" }: { nav?: BannerNav; fx?: BannerFx }): JSX.Element {
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const timer = useCountdown(1 * 3600 + 15 * 60 + 27);
@@ -168,7 +372,7 @@ function PrincipalBanner(): JSX.Element {
     return () => clearTimeout(t);
   }, [index, paused]);
   return (
-    <section className={`hp${paused ? " paused" : ""}`} aria-roledescription="carrusel" aria-label="Destacados"
+    <section className={`hp hp--${nav} hp--fx-${fx}${paused ? " paused" : ""}`} aria-roledescription="carrusel" aria-label="Destacados"
       onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)} onBlur={() => setPaused(false)}
       onKeyDown={(e) => { if (e.key === "ArrowLeft") go(-1); if (e.key === "ArrowRight") go(1); }}>
@@ -177,12 +381,15 @@ function PrincipalBanner(): JSX.Element {
           aria-label={`${i + 1} de ${SLIDES.length}: ${sl.label}`} aria-hidden={i !== index} inert={i !== index}>
           <div className="hp-bg" style={{ background: sl.bg }} />
           <div className={`hp-photo ${sl.photo.side}`} style={{ "--pw": sl.photo.width, ...sl.photo.style } as CSSProperties}>
-            <img src={sl.photo.src} alt="" style={{ objectPosition: sl.photo.position }} />
+            <img src={sl.photo.src} alt="" style={{ objectPosition: sl.photo.position, ...(sl.photo.flip ? { "--fx": -1 } : {}) } as CSSProperties} />
           </div>
           <div className={`hp-copy ${sl.copy}`}>
             {sl.pill === "live" ? <BadgeStatus variant="live" />
-              : <span className={`hp-label hp-label--${sl.pill}`}>{sl.pill === "negotiable" ? <HandshakeIcon /> : null}{sl.pill === "seller" ? "Para vendedores" : "Negociable"}</span>}
-            <h2 className="hp-h">{sl.title}</h2>
+              : <span className={`hp-label hp-label--${sl.pill}`}>{sl.pill === "negotiable" ? <TagIcon /> : <SellerGlyph />}{sl.pill === "seller" ? "Para vendedores" : "Negociable"}</span>}
+            {fx === "letters"
+              ? <h2 className="hp-h"><span className="hp-sr">{plain(sl.title)}</span><span aria-hidden><Letters>{sl.title}</Letters></span></h2>
+              : <h2 className="hp-h">{sl.title}</h2>}
+            {nav === "fraction" ? <span className="hp-frac2" aria-hidden><b>{pad2(i + 1)}</b>/{pad2(SLIDES.length)}</span> : null}
             <p className="hp-p">{sl.lead}</p>
             <button type="button" className="hib-glass">{sl.cta}</button>
           </div>
@@ -195,15 +402,99 @@ function PrincipalBanner(): JSX.Element {
           ) : null}
         </div>
       ))}
-      <div className="hp-ctrl" role="group" aria-label="Navegar destacados">
-        <button type="button" className="hp-arrow" aria-label="Anterior" onClick={() => go(-1)}><Chevron dir="prev" /></button>
-        <div className="hp-segs" role="group" aria-label="Elegir diapositiva">
+      {nav === "editorial" ? (
+        <>
+          <button type="button" className="hp-ed-side prev" onClick={() => go(-1)}>Anterior</button>
+          <button type="button" className="hp-ed-side next" onClick={() => go(1)}>Siguiente</button>
+          <div className="hp-ed-num" aria-hidden><b key={index}>{pad2(index + 1)}</b><small>/ {pad2(SLIDES.length)}</small></div>
+          <div className="hp-ed-list" role="group" aria-label="Elegir diapositiva">
+            {SLIDES.map((sl, i) => (
+              <span key={sl.cta} style={{ display: "contents" }}>
+                {i > 0 ? <i aria-hidden>/</i> : null}
+                <button type="button" className={i === index ? "on" : undefined} aria-current={i === index} onClick={() => setIndex(i)}>{SHORT[sl.pill]}</button>
+              </span>
+            ))}
+          </div>
+        </>
+      ) : nav === "swatch" ? (
+        <>
+          <div className="hp-frac" aria-hidden><b key={index}>{pad2(index + 1)}</b><i /><small>{pad2(SLIDES.length)}</small></div>
+          <div className="hp-sw" role="group" aria-label="Elegir diapositiva">
+            {SLIDES.map((sl, i) => (
+              <button key={sl.cta} type="button" className={i === index ? "on" : undefined} aria-label={`Ir a la diapositiva ${i + 1}: ${SHORT[sl.pill]}`} aria-current={i === index} onClick={() => setIndex(i)} />
+            ))}
+          </div>
+          <div className="hp-updown">
+            <button type="button" aria-label="Anterior" onClick={() => go(-1)}><svg width="14" height="16" viewBox="0 0 14 16" aria-hidden><path d="M7 15V2M2 6.5L7 1.5l5 5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
+            <button type="button" aria-label="Siguiente" onClick={() => go(1)}><svg width="14" height="16" viewBox="0 0 14 16" aria-hidden><path d="M7 1v13M2 9.5l5 5 5-5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
+          </div>
+        </>
+      ) : nav === "fraction" ? (
+        <div className="hp-odots" role="group" aria-label="Elegir diapositiva">
           {SLIDES.map((sl, i) => (
-            <button key={sl.cta} type="button" className={`hp-seg${i === index ? " on" : ""}`} aria-label={`Ir a la diapositiva ${i + 1}`} aria-current={i === index} onClick={() => setIndex(i)}><i key={`${index}-${i}`} /></button>
+            <button key={sl.cta} type="button" className={i === index ? "on" : undefined} aria-label={`Ir a la diapositiva ${i + 1}: ${SHORT[sl.pill]}`} aria-current={i === index} onClick={() => setIndex(i)} />
           ))}
         </div>
-        <button type="button" className="hp-arrow" aria-label="Siguiente" onClick={() => go(1)}><Chevron dir="next" /></button>
-      </div>
+      ) : nav === "plain" ? (
+        <div className="hp-mtn">
+          <span className="hp-mtn__glass" aria-hidden />
+          <svg className="hp-mtn__edge" viewBox="0 0 132 26" aria-hidden><path d="M0 26C22 26 26 2 48 2H84C106 2 110 26 132 26" /></svg>
+          <div className="hp-mtn__dots" role="group" aria-label="Elegir diapositiva">
+            {SLIDES.map((sl, i) => (
+              <button key={sl.cta} type="button" className={i === index ? "on" : undefined} aria-label={`Ir a la diapositiva ${i + 1}: ${SHORT[sl.pill]}`} aria-current={i === index} onClick={() => setIndex(i)} />
+            ))}
+          </div>
+        </div>
+      ) : nav === "thin" ? (
+        <>
+          <button type="button" className="hp-thin prev" aria-label="Anterior" onClick={() => go(-1)}><svg width="16" height="34" viewBox="0 0 16 34" aria-hidden><path d="M14 2L2.5 17 14 32" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
+          <button type="button" className="hp-thin next" aria-label="Siguiente" onClick={() => go(1)}><svg width="16" height="34" viewBox="0 0 16 34" aria-hidden><path d="M2 2l11.5 15L2 32" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
+        </>
+      ) : nav === "counter" ? (
+        <div className="hp-ctrl" role="group" aria-label="Navegar destacados">
+          <button type="button" className="hp-arrow" aria-label="Anterior" onClick={() => go(-1)}><Chevron dir="prev" /></button>
+          <span className="hp-count" aria-live="polite">{index + 1} <small>/ {SLIDES.length}</small></span>
+          <button type="button" className="hp-arrow" aria-label="Siguiente" onClick={() => go(1)}><Chevron dir="next" /></button>
+        </div>
+      ) : nav === "tabs" ? (
+        <div className="hp-tabs" role="group" aria-label="Elegir diapositiva" style={{ "--dur": `${AUTOPLAY_MS}ms` } as CSSProperties}>
+          {SLIDES.map((sl, i) => (
+            <button key={sl.cta} type="button" className={`hp-tab${i === index ? " on" : ""}`} aria-current={i === index} onClick={() => setIndex(i)}>
+              {SHORT[sl.pill]}{i === index ? <i key={index} aria-hidden /> : null}
+            </button>
+          ))}
+        </div>
+      ) : nav === "next" ? (
+        <button type="button" className="hp-next" aria-label={`Siguiente: ${SLIDES[(index + 1) % SLIDES.length].label}`} onClick={() => go(1)}
+          style={{ "--dur": `${AUTOPLAY_MS}ms` } as CSSProperties}>
+          <span className="hp-next__thumb"><img src={SLIDES[(index + 1) % SLIDES.length].photo.src} alt="" /></span>
+          <span className="hp-next__txt"><small>Siguiente</small><b>{SHORT[SLIDES[(index + 1) % SLIDES.length].pill]}</b></span>
+          <span className="hp-next__go" aria-hidden>
+            <svg className="ring" width="32" height="32" viewBox="0 0 32 32"><circle className="track" cx="16" cy="16" r="14" /><circle key={index} className="prog" cx="16" cy="16" r="14" /></svg>
+            <Chevron dir="next" />
+          </span>
+        </button>
+      ) : nav === "bars" ? (
+        <div className="hp-bars" role="group" aria-label="Elegir diapositiva" style={{ "--dur": `${AUTOPLAY_MS}ms` } as CSSProperties}>
+          {SLIDES.map((sl, i) => (
+            <button key={sl.cta} type="button" className={`hp-bar${i === index ? " on" : i < index ? " done" : ""}`} aria-label={`Ir a la diapositiva ${i + 1}`} aria-current={i === index} onClick={() => setIndex(i)}><i key={`${index}-${i}`} /></button>
+          ))}
+        </div>
+      ) : (
+        <>
+          {nav === "sides" ? (
+            <>
+              <button type="button" className="hp-side prev" aria-label="Anterior" onClick={() => go(-1)}><Chevron dir="prev" /></button>
+              <button type="button" className="hp-side next" aria-label="Siguiente" onClick={() => go(1)}><Chevron dir="next" /></button>
+            </>
+          ) : null}
+          <div className="hp-dots" role="group" aria-label="Elegir diapositiva">
+            {SLIDES.map((sl, i) => (
+              <button key={sl.cta} type="button" className={`hp-dot${i === index ? " on" : ""}`} aria-label={`Ir a la diapositiva ${i + 1}`} aria-current={i === index} onClick={() => setIndex(i)} />
+            ))}
+          </div>
+        </>
+      )}
       <style>{HERO_CSS}</style>
     </section>
   );
@@ -1157,6 +1448,10 @@ const FEED_VIEWS: { id: FeedView; label: string; hint: string }[] = [
 const SWITCH_CSS = `
 .hib-switches { position: absolute; top: 0; left: calc(100% + 32px); z-index: 5; display: flex; flex-direction: column; gap: 12px;
   width: clamp(0px, calc(50vw - 536px), 360px); }
+/* Cada grupo no pasa del alto de su sección (si no, se monta sobre el de la siguiente): scroll propio, con aire para la sombra. */
+.hib-switches { box-sizing: border-box; max-height: 100%; margin: -4px; padding: 4px 8px 12px 4px; overflow-y: auto; overscroll-behavior: contain;
+  scrollbar-width: thin; scrollbar-color: #8460E5 transparent; }
+.hib-switches > * { flex: none; }
 .hib-switch { width: 100%; box-sizing: border-box; padding: 10px;
   border-radius: 12px; background: #fff; box-shadow: rgba(32,0,104,0.16) 0 6px 20px; font-family: ${FONT}; }
 .hib-switch > span { display: block; margin: 0 2px 8px; font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #8a879c; }
@@ -1200,6 +1495,9 @@ const MOBILE_CSS = `
   .hib-top-grid > [data-slot="offer-type"] { grid-column: 1 !important; grid-row: 2 !important; }
   /* Modo Feed: sin VMC ahora, la fila 3 (390) desaparece. */
   .hib-top-grid[data-nofeed] { grid-template-rows: 300px auto auto !important; }
+  /* «Ver más»: VMC ahora crece con su contenido (sin el alto fijo de 390 ni scroll interno). */
+  .hib-top-grid[data-feedmore] { grid-template-rows: 300px auto auto auto !important; }
+  .hib-top-grid[data-feedmore] > [data-slot="secondary-banner"] { height: auto !important; }
   .hib-top-grid > [data-slot="ticker"] { grid-column: 1 !important; grid-row: 3 !important; }
   /* Banner / Feed: el espacio crece para que el feed se lea (selector 36 + 8 + 356). */
   .hib-top-grid[data-feedslot] { grid-template-rows: 400px auto auto !important; }
@@ -1306,7 +1604,7 @@ const BFS_CSS = `
 .hib-bfs__body { position: relative; flex: 1; min-height: 0; display: flex; }
 .hib-bfs__body > * { flex: 1; }
 `;
-function BannerFeedSlot({ feedView }: { feedView: FeedView }): JSX.Element {
+function BannerFeedSlot({ feedView, nav, fx }: { feedView: FeedView; nav: BannerNav; fx: BannerFx }): JSX.Element {
   const [show, setShow] = useState<"banner" | "feed">("banner");
   return (
     <div className="hib-bfs">
@@ -1314,31 +1612,74 @@ function BannerFeedSlot({ feedView }: { feedView: FeedView }): JSX.Element {
         <button type="button" aria-pressed={show === "banner"} onClick={() => setShow("banner")}>Destacados</button>
         <button type="button" aria-pressed={show === "feed"} onClick={() => setShow("feed")}><i aria-hidden />En vivo</button>
       </div>
-      <div className="hib-bfs__body">{show === "banner" ? <PrincipalBanner /> : <VmcAhora view={feedView} live={false} />}</div>
+      <div className="hib-bfs__body">{show === "banner" ? <PrincipalBanner nav={nav} fx={fx} /> : <VmcAhora view={feedView} live={false} />}</div>
       <style>{BFS_CSS}</style>
     </div>
   );
 }
 
+// Todos los selectores de QA en una lista: el panel de la vista mobile los muestra igual que escritorio y los envía al teléfono.
+export type QaKey = "bannerNav" | "bannerFx" | "feedView" | "offerView" | "lotsView" | "cardStyle" | "lotsView2" | "cardStyle2"
+  | "categoriesView" | "bannerView" | "companiesView";
+type QaOption = { id: string; label: string; hint: string };
+export const QA_CONTROLS: { key: QaKey; title: string; options: QaOption[] }[] = [
+  { key: "bannerNav", title: "Banner · indicador", options: BANNER_NAVS },
+  { key: "bannerFx", title: "Banner · texto", options: BANNER_FXS },
+  { key: "feedView", title: "VMC ahora · vista", options: FEED_VIEWS },
+  { key: "offerView", title: "Tipo de oferta · vista", options: OFFER_TYPE_VIEWS },
+  { key: "lotsView", title: "Autoplan · lotes", options: LOTS_VIEWS },
+  { key: "cardStyle", title: "Autoplan · detail card", options: CARD_STYLES },
+  { key: "lotsView2", title: "Mapfre · lotes", options: LOTS_VIEWS },
+  { key: "cardStyle2", title: "Mapfre · detail card", options: CARD_STYLES },
+  { key: "categoriesView", title: "Categorías · vista", options: CATEGORIES_VIEWS },
+  { key: "bannerView", title: "Banner de maquinaria", options: BANNER_VIEWS },
+  { key: "companiesView", title: "Empresas · vista", options: COMPANIES_VIEWS },
+];
+const isQaValue = (key: QaKey, v: unknown) => QA_CONTROLS.some((c) => c.key === key && c.options.some((o) => o.id === v));
+// Último estado de los selectores (dentro del teléfono): si el bloque se vuelve a montar (pestañas, franja) no se pierde.
+const lastQa: Partial<Record<QaKey, string>> = {};
+const initQa = <T extends string>(key: QaKey, fallback: T): T => (lastQa[key] as T | undefined) ?? fallback;
+
 /** Variantes de VMC ahora en el móvil (QA):
  *  `hideFeed`   VMC ahora sale del inicio (modo Feed con barra inferior, pestañas arriba o franja).
  *  `feedSlot`   banner y VMC ahora se alternan en el mismo espacio.
  *  `onOpenFeed` muestra la franja «En vivo» de una línea; al tocarla se abre el feed completo. */
-export default function HomeIndexBlock({ hideFeed = false, feedSlot = false, onOpenFeed }: {
-  hideFeed?: boolean; feedSlot?: boolean; onOpenFeed?: () => void;
+export default function HomeIndexBlock({ hideFeed = false, feedSlot = false, onOpenFeed, feedMore = false }: {
+  hideFeed?: boolean; feedSlot?: boolean; onOpenFeed?: () => void; feedMore?: boolean;
 }): JSX.Element {
   // Cada tienda tiene su propio selector de vista de lotes y de Detail card.
-  const [lotsView, setLotsView] = useState<LotsView>(OPTION_A.lotsView);
-  const [cardStyle, setCardStyle] = useState<CardStyle>(OPTION_A.cardStyle);
-  const [lotsView2, setLotsView2] = useState<LotsView>(OPTION_A.lotsView2);
-  const [cardStyle2, setCardStyle2] = useState<CardStyle>(OPTION_A.cardStyle2);
-  const [companiesView, setCompaniesView] = useState<CompaniesView>(OPTION_A.companiesView);
-  const [feedView, setFeedView] = useState<FeedView>(OPTION_A.feedView);
-  const [offerView, setOfferView] = useState<OfferTypeView>(OPTION_A.offerView);
+  const [lotsView, setLotsView] = useState<LotsView>(() => initQa("lotsView", OPTION_A.lotsView));
+  const [cardStyle, setCardStyle] = useState<CardStyle>(() => initQa("cardStyle", OPTION_A.cardStyle));
+  const [lotsView2, setLotsView2] = useState<LotsView>(() => initQa("lotsView2", OPTION_A.lotsView2));
+  const [cardStyle2, setCardStyle2] = useState<CardStyle>(() => initQa("cardStyle2", OPTION_A.cardStyle2));
+  const [companiesView, setCompaniesView] = useState<CompaniesView>(() => initQa("companiesView", OPTION_A.companiesView));
+  const [feedView, setFeedView] = useState<FeedView>(() => initQa("feedView", OPTION_A.feedView));
+  const [offerView, setOfferView] = useState<OfferTypeView>(() => initQa("offerView", OPTION_A.offerView));
   const [heroH, setHeroH] = useState(OPTION_A.heroH); // alto del banner + VMC ahora (control QA)
-  const [categoriesView, setCategoriesView] = useState<CategoriesView>(OPTION_A.categoriesView);
-  const [bannerView, setBannerView] = useState<BannerView>("hero");
+  const [categoriesView, setCategoriesView] = useState<CategoriesView>(() => initQa("categoriesView", OPTION_A.categoriesView));
+  const [bannerView, setBannerView] = useState<BannerView>(() => initQa("bannerView", "hero"));
   const [controls, setControls] = useState(false);
+  const [bannerNav, setBannerNav] = useState<BannerNav>(() => initQa("bannerNav", "plain"));
+  const [bannerFx, setBannerFx] = useState<BannerFx>(() => initQa("bannerFx", "letters"));
+  const qa: Record<QaKey, string> = { bannerNav, bannerFx, feedView, offerView, lotsView, cardStyle, lotsView2, cardStyle2, categoriesView, bannerView, companiesView };
+  const setQa = useCallback((key: QaKey, v: string) => {
+    const set: Record<QaKey, (v: string) => void> = {
+      bannerNav: (x) => setBannerNav(x as BannerNav), bannerFx: (x) => setBannerFx(x as BannerFx),
+      feedView: (x) => setFeedView(x as FeedView), offerView: (x) => setOfferView(x as OfferTypeView), lotsView: (x) => setLotsView(x as LotsView),
+      cardStyle: (x) => setCardStyle(x as CardStyle), lotsView2: (x) => setLotsView2(x as LotsView), cardStyle2: (x) => setCardStyle2(x as CardStyle),
+      categoriesView: (x) => setCategoriesView(x as CategoriesView), bannerView: (x) => setBannerView(x as BannerView), companiesView: (x) => setCompaniesView(x as CompaniesView),
+    };
+    if (isQaValue(key, v)) set[key](v);
+  }, []);
+  // Dentro del teléfono: cada cambio se guarda y se informa a la página de afuera (su panel de controles lo refleja).
+  const qaKey = JSON.stringify(qa);
+  const firstReport = useRef(true);
+  useEffect(() => {
+    const state = JSON.parse(qaKey) as Record<QaKey, string>;
+    Object.assign(lastQa, state);
+    if (window.parent !== window) window.parent.postMessage({ type: "hib-state", state, initial: firstReport.current }, window.location.origin);
+    firstReport.current = false;
+  }, [qaKey]);
   // En móvil y tablet los selectores empiezan cerrados.
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 1023px)");
@@ -1360,17 +1701,20 @@ export default function HomeIndexBlock({ hideFeed = false, feedSlot = false, onO
   };
   // Dentro del teléfono: el preset llega en la URL (?opcion=b) y luego por postMessage desde la página de afuera.
   useEffect(() => {
-    const initial = new URLSearchParams(window.location.search).get("opcion");
+    const q = new URLSearchParams(window.location.search);
+    const initial = q.get("opcion");
     if (isPresetId(initial)) applyPreset(initial);
     const onMessage = (e: MessageEvent) => {
-      if (e.origin === window.location.origin && e.data?.type === "hib-preset" && isPresetId(e.data.id)) applyPreset(e.data.id);
+      if (e.origin !== window.location.origin) return;
+      if (e.data?.type === "hib-preset" && isPresetId(e.data.id)) applyPreset(e.data.id);
+      if (e.data?.type === "hib-set" && e.data.state) for (const [k, v] of Object.entries(e.data.state)) setQa(k as QaKey, String(v));
     };
     // Al pasar a la vista mobile se cierran los selectores para que se vean Opción A / B.
     const onDevice = (e: Event) => { if ((e as CustomEvent<string>).detail === "mobile") setControls(false); };
     window.addEventListener("message", onMessage);
     window.addEventListener("hib-device", onDevice);
     return () => { window.removeEventListener("message", onMessage); window.removeEventListener("hib-device", onDevice); };
-  }, [applyPreset]);
+  }, [applyPreset, setQa]);
   // Orden: hero + actividad · Lotes para explorar · banner de campaña · Explora por categoría · Empresas y vendedores ·
   // Tipo de oferta y Categorías.
   // Columna con el mismo margen (16) y separación (16) que el bloque de Concorde; el alto lo da el contenido.
@@ -1387,13 +1731,15 @@ export default function HomeIndexBlock({ hideFeed = false, feedSlot = false, onO
       </button>
       {/* Proporción de la referencia: hero flexible + feed de mín. 300 (32 %), 368 de alto (600 × 368 · 300 × 368 con el sidebar cerrado). */}
       {/* «Corta»: Tipo de oferta va bajo el banner (mismo ancho) y VMC ahora ocupa las dos filas a su lado. */}
-      <div className="hib-top-grid" data-nofeed={hideFeed || feedSlot || undefined} data-feedslot={feedSlot || undefined} style={{ position: "relative", width: "100%", display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(300px, 32%)", gap: GAP,
+      <div className="hib-top-grid" data-nofeed={hideFeed || feedSlot || undefined} data-feedslot={feedSlot || undefined} data-feedmore={feedMore || undefined} style={{ position: "relative", width: "100%", display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(300px, 32%)", gap: GAP,
         gridTemplateRows: `${heroH}px auto` }}>
-        <div data-slot="principal-banner" style={{ gridColumn: 1, gridRow: 1, minWidth: 0, display: "flex", height: "100%" }}>{feedSlot ? <BannerFeedSlot feedView={feedView} /> : <PrincipalBanner />}</div>
+        <div data-slot="principal-banner" style={{ gridColumn: 1, gridRow: 1, minWidth: 0, display: "flex", height: "100%" }}>{feedSlot ? <BannerFeedSlot feedView={feedView} nav={bannerNav} fx={bannerFx} /> : <PrincipalBanner nav={bannerNav} fx={bannerFx} />}</div>
         {hideFeed || feedSlot ? null : (
           <div data-slot="secondary-banner" style={{ gridColumn: 2, gridRow: offerView === "corta" ? "1 / 3" : 1, minWidth: 0, minHeight: 0, display: "flex", height: "100%", position: "relative" }}>
             {/* El feed no empuja la fila: se dibuja absoluto y toma el alto que dejan banner + Tipo de oferta. */}
-            <div style={{ position: "absolute", inset: 0, display: "flex" }}><VmcAhora view={feedView} /></div>
+            {feedMore
+              ? <div style={{ display: "flex", width: "100%" }}><VmcAhora view={feedView} more /></div>
+              : <div style={{ position: "absolute", inset: 0, display: "flex" }}><VmcAhora view={feedView} /></div>}
           </div>
         )}
         {/* Tipo de oferta siempre en la fila 2: «Corta» bajo el banner (VMC ahora a su lado); las demás a todo el ancho.
@@ -1401,6 +1747,8 @@ export default function HomeIndexBlock({ hideFeed = false, feedSlot = false, onO
         <div data-slot="offer-type" style={{ gridColumn: offerView === "corta" ? 1 : "1 / -1", gridRow: 2, minWidth: 0 }}><OfferTypeCard view={offerView} /></div>
         {onOpenFeed ? <div data-slot="ticker" style={{ gridColumn: "1 / -1", gridRow: 3, minWidth: 0 }}><VmcAhoraTicker onOpen={onOpenFeed} /></div> : null}
         <Switches visible={controls}>
+          <ViewSwitch title="Banner · indicador" suffix="" options={BANNER_NAVS} value={bannerNav} onChange={setBannerNav} />
+          <ViewSwitch title="Banner · texto" suffix="" options={BANNER_FXS} value={bannerFx} onChange={setBannerFx} />
           <ViewSwitch title="VMC ahora" options={FEED_VIEWS} value={feedView} onChange={setFeedView} />
           <HeightSlider value={heroH} onChange={setHeroH} />
           {/* El selector de Tipo de oferta va siempre aquí: es más alto que su sección y se montaba sobre el de Autoplan. */}

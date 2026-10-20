@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties, JSX } from "react";
 
+import { QA_CONTROLS, type QaKey } from "./HomeIndexBlock";
+
 /**
  * Selector de dispositivo de QA (sobre «Opción A / B»): laptop = la vista normal; celular = la misma página dentro de
  * un iPhone 14 Pro (pantalla 393 × 852, radio 55, Dynamic Island 126 × 37, barra de estado 54). El teléfono carga la
@@ -11,10 +13,11 @@ import type { CSSProperties, JSX } from "react";
  */
 type Device = "desktop" | "mobile";
 type PresetId = "a" | "b";
-type MobileFeedView = "card" | "tabs" | "slot" | "ticker";
+type MobileFeedView = "card" | "more" | "tabs" | "slot" | "ticker";
 // Versiones de VMC ahora en el móvil (sin modo Feed), para compararlas en el teléfono.
 const MOBILE_FEED_VIEWS: { id: MobileFeedView; label: string; hint: string }[] = [
   { id: "card", label: "Card en el inicio", hint: "Como hoy: VMC ahora debajo del Tipo de oferta, con su propio scroll" },
+  { id: "more", label: "Card con «Ver más»", hint: "Igual, sin scroll: muestra 2 y «Ver más» suma de a 3" },
   { id: "tabs", label: "Pestañas arriba", hint: "Inicio | En vivo bajo el header, fijas al bajar (recomendada)" },
   { id: "slot", label: "Banner / Feed", hint: "Se alternan en el espacio del banner" },
   { id: "ticker", label: "Franja en vivo", hint: "Una línea con lo último; al tocarla abre el feed" },
@@ -55,7 +58,7 @@ html[data-hib-device="mobile"] .hib-option-toggle--a { bottom: 138px; }
   color: #3b1782; background: rgba(255,255,255,0.94); box-shadow: rgba(32,0,104,0.16) 0 4px 14px; font: 700 12px/1 var(--vmc-font-display, 'Plus Jakarta Sans', sans-serif); cursor: pointer; }
 .hdp-ctrl:hover { border-color: #8460e5; background: #f8f6ff; }
 .hdp-ctrl:focus-visible { outline: 2px solid #8460e5; outline-offset: 3px; }
-.hdp-panel { position: fixed; top: 24px; right: 18px; z-index: 10; width: 290px; }
+.hdp-panel { position: fixed; top: 24px; right: 18px; z-index: 10; display: grid; gap: 12px; width: 290px; max-height: calc(100dvh - 260px); overflow-y: auto; }
 .hdp-panel .hib-switch__grid { grid-template-columns: 1fr; }
 .hdp-panel__note { margin: 8px 2px 0; font: 500 11px/1.4 var(--vmc-font-display, 'Plus Jakarta Sans', sans-serif); color: #6b6880; }
 .hdp-panel button:disabled { opacity: 0.45; cursor: not-allowed; }
@@ -107,6 +110,9 @@ export default function DevicePreview(): JSX.Element {
   const [controls, setControls] = useState(false);
   const [mview, setMview] = useState<MobileFeedView>("card");
   const mviewRef = useRef<MobileFeedView>("card");
+  // Selectores del teléfono: el bloque informa su estado (hib-state) y el panel envía cambios (hib-set).
+  const [phone, setPhone] = useState<Partial<Record<QaKey, string>>>({});
+  const desired = useRef<Partial<Record<QaKey, string>>>({});
   const frame = useRef<HTMLIFrameElement>(null);
 
   // Opción A / B: se recuerda la última y, si el teléfono está abierto, se le reenvía.
@@ -124,9 +130,20 @@ export default function DevicePreview(): JSX.Element {
       w.postMessage({ type: "hib-preset", id: preset.current }, window.location.origin);
       w.postMessage({ type: "hib-mview", view: mviewRef.current }, window.location.origin);
     };
+    // Estado de los selectores del teléfono. Si recién (re)carga y ya habíamos elegido algo, se le reenvía lo elegido.
+    const onState = (e: MessageEvent) => {
+      const w = frame.current?.contentWindow;
+      if (e.origin !== window.location.origin || e.data?.type !== "hib-state" || !w || e.source !== w) return;
+      if (e.data.initial && Object.keys(desired.current).length) { w.postMessage({ type: "hib-set", state: desired.current }, window.location.origin); return; }
+      desired.current = e.data.state;
+      setPhone(e.data.state);
+    };
     window.addEventListener("hib-preset", onPreset);
     window.addEventListener("message", onReady);
-    return () => { window.removeEventListener("hib-preset", onPreset); window.removeEventListener("message", onReady); };
+    window.addEventListener("message", onState);
+    return () => {
+      window.removeEventListener("hib-preset", onPreset); window.removeEventListener("message", onReady); window.removeEventListener("message", onState);
+    };
   }, []);
 
   // El teléfono se escala para entrar en el alto de la ventana (nunca más grande que 1:1).
@@ -158,6 +175,24 @@ export default function DevicePreview(): JSX.Element {
     feedRef.current = on;
     frame.current?.contentWindow?.postMessage({ type: "hib-feed", on }, window.location.origin);
   };
+  const chooseQa = (key: QaKey, v: string) => {
+    desired.current = { ...desired.current, [key]: v };
+    setPhone(desired.current);
+    frame.current?.contentWindow?.postMessage({ type: "hib-set", state: { [key]: v } }, window.location.origin);
+  };
+  // Mismos selectores que escritorio (lista QA_CONTROLS); «VMC ahora · móvil» va después de los del banner.
+  const qaSection = (c: (typeof QA_CONTROLS)[number]) => (
+    <div key={c.key} className="hib-switch" role="group" aria-label={c.title}>
+      <span>{c.title}</span>
+      <div className="hib-switch__grid">
+        {c.options.map((o) => (
+          <button key={o.id} type="button" aria-pressed={phone[c.key] === o.id} onClick={() => chooseQa(c.key, o.id)}><b>{o.label}</b><small>{o.hint}</small></button>
+        ))}
+      </div>
+    </div>
+  );
+  const bannerControls = QA_CONTROLS.filter((c) => c.key.startsWith("banner") && c.key !== "bannerView");
+  const otherControls = QA_CONTROLS.filter((c) => !bannerControls.includes(c));
   const chooseMview = (v: MobileFeedView) => {
     setMview(v);
     mviewRef.current = v;
@@ -174,6 +209,7 @@ export default function DevicePreview(): JSX.Element {
           </button>
           {controls ? (
             <div className="hdp-panel">
+              {bannerControls.map(qaSection)}
               <div className="hib-switch" role="group" aria-label="VMC ahora · móvil">
                 <span>VMC ahora · móvil</span>
                 <div className="hib-switch__grid">
@@ -183,6 +219,7 @@ export default function DevicePreview(): JSX.Element {
                 </div>
                 {feed ? <p className="hdp-panel__note">Con «Feed» activo manda la barra inferior; apágalo para comparar estas versiones.</p> : null}
               </div>
+              {otherControls.map(qaSection)}
             </div>
           ) : null}
         </>

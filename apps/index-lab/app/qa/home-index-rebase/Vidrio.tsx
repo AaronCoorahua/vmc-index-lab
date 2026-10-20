@@ -7,7 +7,7 @@ import "./vidrio.css";
  *  se cruzan, con el detalle en blanco. Referencia: sets de íconos glassmorphism de Dribbble/Figma (p. ej. Glazicons).
  *  ponytail: el vidrio es SVG puro (copia desenfocada de la forma de atrás, recortada por la de adelante), no backdrop-filter:
  *  se ve igual en todos los navegadores y se exporta tal cual a Figma. Retícula de 48 px. */
-export type Sec = "negociaciones" | "participaciones" | "compras" | "publicaciones" | "valorizaciones" | "billetera" | "auto" | "alertas" | "publicar" | "km" | "caja" | "combustible" | "fecha" | "ubicacion" | "equipo" | "docs" | "texto" | "precio" | "vehicular" | "equipos" | "maquinaria" | "materiales" | "articulos" | "empresa" | "verificado" | "crecimiento";
+export type Sec = "negociaciones" | "participaciones" | "compras" | "publicaciones" | "valorizaciones" | "billetera" | "auto" | "alertas" | "publicar" | "km" | "caja" | "combustible" | "fecha" | "ubicacion" | "equipo" | "docs" | "texto" | "precio" | "vehicular" | "equipos" | "maquinaria" | "materiales" | "articulos" | "empresa" | "verificado" | "crecimiento" | "vender";
 
 type Parts = { back: ReactNode; front: ReactNode; detail: ReactNode };
 const W = { fill: "none", stroke: "#fff", strokeWidth: 3, strokeLinecap: "round", strokeLinejoin: "round" } as const;
@@ -161,6 +161,12 @@ const PARTS: Record<Sec, Parts> = {
     back: <path className="vd-nd" d="M9 27l9-9 6 6L39 9M30 9h9v9" fill="none" stroke="currentColor" strokeWidth={4.5} strokeLinecap="round" strokeLinejoin="round" />,
     front: <rect x="6" y="20" width="28" height="22" rx="6" />,
     detail: <path d="M13 36v-3M20 36v-6M27 36v-9" {...W} strokeWidth={2.5} />,
+  },
+  // Vender (pill «Para vendedores» del banner, 21/10): etiqueta de precio (la de «precio», a la mitad) y ruedas sólidas, auto de vidrio delante.
+  vender: {
+    back: <><path transform="translate(21 2) scale(.5)" d="M22 7h15a4 4 0 0 1 4 4v15a4 4 0 0 1-1.2 2.8L26.6 42a4 4 0 0 1-5.6 0L8 29a4 4 0 0 1 0-5.6L19.2 8.2A4 4 0 0 1 22 7z" /><circle cx="14" cy="38" r="4.5" /><circle cx="33" cy="38" r="4.5" /></>,
+    front: <path d="M13.5 22l3.4-6.4a4 4 0 0 1 3.5-2.1h6.4a4 4 0 0 1 3.5 2.1l3.4 6.4h3.3a4 4 0 0 1 4 4v6a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3v-6a4 4 0 0 1 4-4z" />,
+    detail: <><circle cx="37.2" cy="9.8" r="1.8" fill="#fff" /><path d="M10 28h4M34.5 28h3.5" {...W} strokeWidth={2.5} /></>,
   },
   // Publicar (15/10): un + de vidrio sobre un círculo sólido que asoma arriba a la derecha.
   // Precio de lista (19/10): moneda sólida detrás, etiqueta de precio de vidrio con «$» (el MSRP de AVT es en US$).

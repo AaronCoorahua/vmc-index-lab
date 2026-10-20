@@ -45,6 +45,8 @@ const EVENTS: FeedEvent[] = [
     lot: "Toyota Hilux 2019", city: "Arequipa" },
 ];
 const AGO = ["Ahora", "hace 1 min", "hace 3 min", "hace 6 min", "hace 9 min"];
+// Tiempo de la posición i (con «Ver más» se muestran más de 5).
+const ago = (i: number) => AGO[i] ?? `hace ${(i - 2) * 4} min`;
 const KIND: Record<Kind, { label: string; badge: "live" | "proxima"; color: string; verb: string }> = {
   live: { label: "En vivo", badge: "live", color: "#F2701D", verb: "está en vivo" },
   bid: { label: "Puja", badge: "live", color: "#F2701D", verb: "recibió una puja" },
@@ -223,6 +225,17 @@ const CSS = `
 .va-pu__foot { padding: 6px 12px 10px; text-align: right; }
 .va-pu__foot a { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: #3B1782; text-decoration: none; }
 .va-pu__foot a:hover { color: #E2531A; }
+
+/* «Ver más» (móvil, sin scroll): la card crece con su contenido y un botón va sumando publicaciones. */
+.va--auto { height: auto; flex: none; }
+.va--auto .va-posts { flex: none; overflow: visible; }
+.va-reveal { animation: va-in 0.45s cubic-bezier(0.3,0,0,1) both; }
+.va-more { display: flex; align-items: center; justify-content: center; gap: 6px; width: calc(100% - 32px); height: 40px; margin: 6px 16px 14px; border: 1px solid #ECE8F6;
+  border-radius: 999px; background: #fff; color: #3B1782; cursor: pointer; font: 700 13px/1 var(--vmc-font-display, 'Plus Jakarta Sans', sans-serif); transition: background 0.2s, border-color 0.2s; }
+.va-more:hover { background: #F8F6FF; border-color: #CDBEFF; }
+.va-more:focus-visible { outline: 2px solid #8460E5; outline-offset: 2px; }
+.va-more svg { transition: transform 0.25s; }
+.va-more[data-less] svg { transform: rotate(180deg); }
 `;
 
 function LikeBtn({ n }: { n: number }): JSX.Element {
@@ -268,12 +281,23 @@ function Head({ live }: { live: boolean }): JSX.Element {
 }
 
 /** `live={false}`: sin la etiqueta «En vivo» de la cabecera, cuando la pestaña que abre el feed ya lo dice (móvil). */
-export default function VmcAhora({ view, live = true }: { view: FeedView; live?: boolean }): JSX.Element {
+/** `more`: sin scroll interno; muestra 2 publicaciones y «Ver más» suma de a 3 (móvil). */
+export default function VmcAhora({ view, live = true, more = false }: { view: FeedView; live?: boolean; more?: boolean }): JSX.Element {
   const [paused, setPaused] = useState(false);
-  const { items, tick } = useLiveFeed(view === "pulso" ? 4 : 5, paused);
+  const [shown, setShown] = useState(2);
+  const [revealFrom, setRevealFrom] = useState(Infinity);
+  const { items: all, tick } = useLiveFeed(view === "pulso" ? 4 : more ? EVENTS.length : 5, paused);
+  const items = more ? all.slice(0, shown) : all;
+  const moreBtn = more ? (
+    <button type="button" className="va-more" data-less={shown >= all.length || undefined}
+      onClick={() => { if (shown >= all.length) { setShown(2); setRevealFrom(Infinity); } else { setRevealFrom(shown); setShown((n) => Math.min(all.length, n + 3)); } }}>
+      {shown >= all.length ? "Ver menos" : "Ver más"}
+      <svg width="14" height="14" viewBox="0 0 20 20" aria-hidden><path d="M5 7.5l5 5 5-5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+    </button>
+  ) : null;
   const pause = { onMouseEnter: () => setPaused(true), onMouseLeave: () => setPaused(false) };
   // El evento de arriba entra animado (su key cambia en cada avance; los demás conservan la suya).
-  const enter = (i: number) => (i === 0 ? " va-enter" : "");
+  const enter = (i: number) => (i === 0 ? " va-enter" : i >= revealFrom ? " va-reveal" : "");
 
   if (view === "ebay") {
     return (
@@ -290,7 +314,7 @@ export default function VmcAhora({ view, live = true }: { view: FeedView; live?:
                 <span className="va-eb__who">{e.who}<Verified /></span>
                 <b className="va-eb__value">{e.price ?? "Negociable"}</b>
                 <span className="va-eb__rest">{e.detail}</span>
-                <span className="va-eb__foot"><span>{e.city} · {AGO[i]}</span>
+                <span className="va-eb__foot"><span>{e.city} · {ago(i)}</span>
                   <span className="va-eb__acts"><LikeBtn n={e.likes} /><button type="button" aria-label="Compartir">{Ico.share}</button></span>
                 </span>
               </div>
@@ -304,15 +328,15 @@ export default function VmcAhora({ view, live = true }: { view: FeedView; live?:
 
   if (view === "timeline") {
     return (
-      <aside className="va va--timeline" aria-label="VMC ahora" {...pause}>
+      <aside className={`va va--timeline${more ? " va--auto" : ""}`} aria-label="VMC ahora" {...pause}>
         <Head live={live} />
         {tick > 0 ? <span key={tick} className="va-newpill" aria-hidden>{Ico.arrowUp}Nuevo</span> : null}
-        <ol className="va-posts va-scroll" aria-live="polite">
+        <ol className={`va-posts${more ? "" : " va-scroll"}`} aria-live="polite">
           {items.map((e, i) => (
             <li key={e.id} className={`va-post${enter(i)}`}>
               <div className="va-post__rail"><Avatar who={e.who} size={32} /><span className="va-post__line" /></div>
               <div className="va-post__main">
-                <div className="va-post__head"><b>{e.who}</b><Verified /><span>{AGO[i]}</span></div>
+                <div className="va-post__head"><b>{e.who}</b><Verified /><span>{ago(i)}</span></div>
                 <p className="va-post__text">{e.title}. <em>{e.detail}</em></p>
                 {i === 0 ? <span className="va-post__media"><img src={e.imageSrc} alt="" /><b>{KIND[e.kind].label}</b></span> : null}
                 <div className="va-acts"><span>{Ico.heart}{e.likes}</span><span>{Ico.reply}{e.replies}</span><span>{Ico.repost}</span><span>{Ico.share}</span></div>
@@ -320,6 +344,7 @@ export default function VmcAhora({ view, live = true }: { view: FeedView; live?:
             </li>
           ))}
         </ol>
+        {moreBtn}
         <style>{CSS}</style>
       </aside>
     );
@@ -346,7 +371,7 @@ export default function VmcAhora({ view, live = true }: { view: FeedView; live?:
         <ol className="va-tline" aria-live="polite">
           {items.map((e, i) => (
             <li key={e.id} className={`va-ev${enter(i)}`} style={{ "--c": KIND[e.kind].color } as CSSProperties}>
-              <div className="va-ev__meta"><span style={{ color: KIND[e.kind].color }}>{KIND[e.kind].label}</span><span className="va-ev__ago">{AGO[i]}</span></div>
+              <div className="va-ev__meta"><span style={{ color: KIND[e.kind].color }}>{KIND[e.kind].label}</span><span className="va-ev__ago">{ago(i)}</span></div>
               <p>{e.title}</p>
               <small>{e.detail}</small>
             </li>
@@ -359,10 +384,10 @@ export default function VmcAhora({ view, live = true }: { view: FeedView; live?:
   }
 
   return (
-    <aside className="va va--normal" aria-label="VMC ahora" {...pause}>
+    <aside className={`va va--normal${more ? " va--auto" : ""}`} aria-label="VMC ahora" {...pause}>
       <Head live={live} />
       {tick > 0 ? <span key={tick} className="va-newpill" aria-hidden>{Ico.arrowUp}Nuevo</span> : null}
-      <ol className="va-posts va-scroll" aria-live="polite">
+      <ol className={`va-posts${more ? "" : " va-scroll"}`} aria-live="polite">
         {/* Fila tipo listado de eBay, 4 líneas a la altura de la foto: la pill cuenta el evento, el título es el
             lote, un solo dato fuerte (el precio, si hay) y una línea gris con empresa · ciudad · tiempo. */}
         {items.map((e, i) => (
@@ -372,11 +397,12 @@ export default function VmcAhora({ view, live = true }: { view: FeedView; live?:
               <span className="va-item__pill" style={{ "--k": KIND[e.kind].color } as CSSProperties}>{KIND[e.kind].label}</span>
               <p className="va-item__title">{e.lot}</p>
               {e.price ? <b className="va-item__value">{e.price}</b> : null}
-              <span className="va-item__meta"><span className="va-item__who">{e.who}</span><Verified /><span>· {e.city} · {AGO[i]}</span></span>
+              <span className="va-item__meta"><span className="va-item__who">{e.who}</span><Verified /><span>· {e.city} · {ago(i)}</span></span>
             </div>
           </li>
         ))}
       </ol>
+      {moreBtn}
       <style>{CSS}</style>
     </aside>
   );
