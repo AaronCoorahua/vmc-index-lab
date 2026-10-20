@@ -218,38 +218,184 @@ const POINTS = [
   { icon: "crecimiento" as VidrioName, text: "Oportunidades para hacer crecer tu negocio" },
 ];
 
-function CampaignBanner(): JSX.Element {
+// Foto en un panel redondeado (sin máscara que la ensucie con el lila), botón compacto de 40 px y
+// beneficios separados por un filete. En móvil se apila: copy, foto y beneficios, con el CTA a lo ancho.
+const CAMPAIGN_CSS = `
+.hib-campaign { position: relative; box-sizing: border-box; width: 100%; height: ${BANNER_HEIGHT}px; overflow: hidden; border-radius: 16px;
+  display: grid; grid-template-columns: 300px minmax(0, 1fr) 220px; align-items: center; gap: 16px; padding: 10px;
+  background: radial-gradient(120% 160% at 0% 0%, #F6F2FF 0%, #ECE4FF 60%, #F3EEFF 100%); border: 1px solid #E6DEFF;
+  box-shadow: ${SHADOW}; font-family: ${FONT}; }
+.hib-campaign__copy { display: grid; justify-items: start; gap: 4px; padding-left: 14px; }
+.hib-campaign__eyebrow { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; color: #5C38D6; }
+.hib-campaign__eyebrow::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #8460E5; box-shadow: 0 0 0 3px #DCD2FB; }
+.hib-campaign h2 { margin: 0; font-size: 20px; font-weight: 800; line-height: 23px; letter-spacing: -0.02em; color: #1B1442; text-wrap: balance; }
+.hib-campaign p { margin: 0 0 8px; font-size: 12px; line-height: 16px; font-weight: 400; color: #6B6878; }
+.hib-campaign .pvbtn { height: 40px; padding: 0 24px; font-size: 14px; }
+.hib-campaign__media { position: relative; height: 100%; overflow: hidden; border-radius: 12px; }
+.hib-campaign__media img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 60% 55%; transition: transform 600ms cubic-bezier(0.2,0,0,1); }
+.hib-campaign:hover .hib-campaign__media img { transform: scale(1.04); }
+.hib-campaign ul { display: grid; gap: 12px; margin: 0; padding: 0 10px 0 16px; list-style: none; border-left: 1px solid #DCD2FB; }
+.hib-campaign li { display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: center; font-size: 12px; line-height: 16px; font-weight: 500; color: #4A4560; }
+@media (max-width: 1023px) {
+  .hib-campaign { grid-template-columns: minmax(0, 1fr); height: auto; padding: 20px; gap: 16px; }
+  .hib-campaign__copy { padding: 0; }
+  .hib-campaign .pvbtn { width: 100%; }
+  .hib-campaign__media { height: 160px; }
+  .hib-campaign ul { padding: 16px 0 0; border-left: 0; border-top: 1px solid #DCD2FB; }
+}
+@media (prefers-reduced-motion: reduce) { .hib-campaign__media img { transition: none; } }
+`;
+
+// Variaciones con la excavadora recortada (sin fondo): «Recorte» suelta sobre el lila con sombra de piso,
+// «Forma» sobre un círculo degradado naranja→morado (los colores del CTA) y «Protagonista», grande y
+// pegada al borde derecho, con los beneficios en fila bajo el copy.
+const CAMPAIGN_VARIANT_CSS = `
+.hib-campaign--recorte .hib-campaign__media, .hib-campaign--forma .hib-campaign__media,
+.hib-campaign--hero .hib-campaign__media { overflow: visible; border-radius: 0; align-self: stretch; }
+.hib-campaign__media img.hib-campaign__cut { position: absolute; z-index: 1; left: 50%; top: 50%; width: auto; height: 118%; transform: translate(-50%, -50%); filter: drop-shadow(0 10px 12px rgba(27,20,66,0.18)); }
+.hib-campaign--recorte .hib-campaign__media::before { content: ""; position: absolute; inset: 8% 6%; border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255,255,255,0.9), rgba(255,255,255,0)); }
+.hib-campaign--recorte .hib-campaign__media::after, .hib-campaign--hero .hib-campaign__media::after { content: ""; position: absolute; left: 18%; right: 14%; bottom: 4px; height: 14px;
+  border-radius: 50%; background: radial-gradient(closest-side, rgba(27,20,66,0.22), rgba(27,20,66,0)); }
+.hib-campaign--forma .hib-campaign__media::before { content: ""; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); height: 128%; aspect-ratio: 1; border-radius: 50%;
+  background: linear-gradient(135deg, #FBC47D 0%, #ED8936 35%, #8460E5 100%); opacity: 0.9; }
+.hib-campaign--hero { grid-template-columns: minmax(0, 1fr) 420px; padding-left: 10px; }
+.hib-campaign--hero .hib-campaign__media img.hib-campaign__cut { left: auto; top: auto; right: -24px; bottom: -6px; height: 128%; transform: none; }
+.hib-campaign--hero .hib-campaign__media::before { content: ""; position: absolute; right: -40px; top: -30%; width: 120%; height: 160%; border-radius: 50%;
+  background: radial-gradient(closest-side, #FFFFFF 0%, rgba(255,255,255,0) 100%); }
+.hib-campaign--hero .hib-campaign__media::after { left: 20%; right: -10%; }
+.hib-campaign--hero h2 { white-space: nowrap; font-size: 22px; line-height: 26px; }
+.hib-campaign--hero .hib-campaign__copy > p { display: none; } /* los beneficios en fila ya hacen de bajada */
+.hib-campaign--hero .hib-campaign__copy ul { display: flex; gap: 18px; padding: 0; margin: 6px 0 12px; border: 0; }
+.hib-campaign--hero .hib-campaign__copy li { grid-template-columns: 22px 1fr; gap: 6px; font-size: 11px; line-height: 14px; max-width: 200px; }
+.hib-campaign:hover .hib-campaign__media img.hib-campaign__cut { transform: translate(-50%, -50%) scale(1.03); }
+.hib-campaign--hero:hover .hib-campaign__media img.hib-campaign__cut { transform: scale(1.03); transform-origin: right bottom; }
+.hib-campaign__ico { display: grid; place-items: center; }
+/* D y E: la excavadora pasa por detrás del panel de beneficios, que es vidrio esmerilado de verdad (backdrop-filter). */
+.hib-campaign--overlap { grid-template-columns: 300px minmax(0, 1fr) 236px; }
+.hib-campaign--overlap .hib-campaign__media { overflow: visible; border-radius: 0; align-self: stretch; }
+.hib-campaign--overlap .hib-campaign__media img.hib-campaign__cut { left: auto; top: auto; right: -96px; bottom: -14px; height: 136%; transform: none; }
+.hib-campaign--overlap:hover .hib-campaign__media img.hib-campaign__cut { transform: translateX(-6px); }
+.hib-campaign--overlap ul { position: relative; z-index: 2; gap: 8px; padding: 12px; border: 1px solid rgba(255,255,255,0.7); border-radius: 14px;
+  background: rgba(255,255,255,0.5); backdrop-filter: blur(14px) saturate(150%); -webkit-backdrop-filter: blur(14px) saturate(150%);
+  box-shadow: rgba(59,23,130,0.14) 0 12px 28px -10px, inset 0 1px 0 rgba(255,255,255,0.9); }
+.hib-campaign--overlap li { grid-template-columns: 30px 1fr; font-size: 11.5px; line-height: 15px; }
+.hib-campaign--overlap .hib-campaign__ico { width: 30px; height: 30px; border-radius: 50%; background: #fff; box-shadow: rgba(59,23,130,0.12) 0 2px 6px; }
+/* D · oscuro: mismo fondo que «Un solo pago» (morado + brasa naranja + anillos). Los íconos van en círculo blanco
+   porque el vidrio de Vidrio está calibrado para fondo claro. */
+.hib-campaign--glass { isolation: isolate; border: 0; color: #fff;
+  background: radial-gradient(70% 160% at -6% 120%, rgb(239 133 46 / 80%) 0%, rgb(239 133 46 / 30%) 30%, transparent 60%), linear-gradient(120deg, #32136F 0%, #4E22A9 55%, #7B4BE3 100%); }
+.hib-campaign--glass::before { content: ""; position: absolute; z-index: -1; top: -120px; left: 34%; width: 300px; height: 260px; border: 42px solid rgb(255 255 255 / 9%); border-radius: 50%; }
+.hib-campaign--glass::after { content: ""; position: absolute; z-index: -1; right: -60px; bottom: -150px; width: 300px; height: 240px; border: 42px solid rgb(255 255 255 / 7%); border-radius: 50%; }
+.hib-campaign--glass h2 { color: #fff; }
+.hib-campaign--glass p { color: rgb(255 255 255 / 84%); }
+.hib-campaign--glass .hib-campaign__eyebrow { height: 20px; margin-bottom: 2px; padding: 0 10px 0 8px; border: 1px solid rgb(255 255 255 / 28%); border-radius: 999px; background: rgb(255 255 255 / 12%); color: #fff; font-weight: 700; }
+.hib-campaign--glass .hib-campaign__eyebrow::before { background: #FBC47D; box-shadow: 0 0 0 3px rgb(251 196 125 / 25%); }
+.hib-campaign--glass .hib-glass { height: 36px; padding-inline: 26px; }
+.hib-campaign--glass p { margin-bottom: 4px; }
+.hib-campaign--glass .hib-campaign__media::after { content: ""; position: absolute; right: -40px; left: 30%; bottom: 0; height: 16px; border-radius: 50%; background: radial-gradient(closest-side, rgba(16,4,48,0.45), rgba(16,4,48,0)); }
+.hib-campaign--glass ul { border-color: rgb(255 255 255 / 30%); background: rgb(255 255 255 / 12%); box-shadow: rgba(16,4,48,0.3) 0 12px 28px -10px, inset 0 1px 0 rgb(255 255 255 / 35%); }
+.hib-campaign--glass li { color: #fff; }
+@media (max-width: 1023px) {
+  .hib-campaign--overlap { grid-template-columns: minmax(0, 1fr); }
+  .hib-campaign--overlap .hib-campaign__media { height: 160px; }
+  .hib-campaign--overlap .hib-campaign__media img.hib-campaign__cut { left: 50%; right: auto; top: 50%; bottom: auto; height: 110%; transform: translate(-50%, -50%); }
+  .hib-campaign--overlap ul { margin-top: -28px; }
+  .hib-campaign--glass .hib-glass { width: 100%; }
+  .hib-campaign__media img.hib-campaign__cut { height: 110%; }
+  .hib-campaign--hero h2 { white-space: normal; }
+  .hib-campaign--hero .hib-campaign__copy > p { display: block; }
+  .hib-campaign--hero .hib-campaign__media img.hib-campaign__cut { left: 50%; right: auto; top: 50%; bottom: auto; height: 110%; transform: translate(-50%, -50%); }
+  .hib-campaign--hero .hib-campaign__media { height: 160px; }
+  .hib-campaign--hero .hib-campaign__copy ul { flex-direction: column; gap: 8px; }
+  .hib-campaign--hero .hib-campaign__copy li { max-width: none; font-size: 12px; }
+}
+`;
+// Capa de riqueza para A, C y E (se aplica después de las variantes y las sobrescribe).
+const CAMPAIGN_RICH_CSS = `
+.hib-campaign h2 em { font-style: normal; }
+.hib-campaign--recorte h2 em, .hib-campaign--hero h2 em, .hib-campaign--claro h2 em {
+  background: linear-gradient(90deg, #ED8936 0%, #C4618F 50%, #8460E5 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.hib-campaign--glass h2 em { color: #FFE2C2; }
+.hib-campaign--recorte, .hib-campaign--hero, .hib-campaign--claro { padding-block: 6px; }
+.hib-campaign--recorte p, .hib-campaign--claro p { margin-bottom: 4px; }
+.hib-campaign--recorte .hib-campaign__eyebrow, .hib-campaign--hero .hib-campaign__eyebrow, .hib-campaign--claro .hib-campaign__eyebrow {
+  height: 20px; padding: 0 9px 0 7px; border: 1px solid #fff; border-radius: 999px; background: rgba(255,255,255,0.7);
+  box-shadow: rgba(59,23,130,0.1) 0 2px 8px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+
+/* A · Escenario: halo cálido y piso; beneficios en filas de vidrio. */
+.hib-campaign--recorte .hib-campaign__media { background: radial-gradient(42% 58% at 50% 60%, rgba(251,196,125,0.55), rgba(251,196,125,0) 100%); }
+.hib-campaign--recorte .hib-campaign__media::before { display: none; }
+.hib-campaign--recorte .hib-campaign__media::after { left: 8%; right: 8%; bottom: 0; height: 26px; background: radial-gradient(closest-side, rgba(59,23,130,0.3), rgba(59,23,130,0)); }
+.hib-campaign--recorte ul { gap: 6px; padding: 0; border: 0; }
+.hib-campaign--recorte li, .hib-campaign--hero .hib-campaign__copy li { grid-template-columns: 26px 1fr; gap: 8px; padding: 6px 10px 6px 6px; font-size: 11.5px; line-height: 14px;
+  border: 1px solid #fff; border-radius: 12px; background: rgba(255,255,255,0.62); box-shadow: rgba(59,23,130,0.08) 0 4px 12px;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: transform 150ms ease, background 150ms ease; }
+.hib-campaign--recorte li:hover, .hib-campaign--hero .hib-campaign__copy li:hover { transform: translateX(2px); background: #fff; }
+
+/* C · Protagonista: panel morado en diagonal (mismo morado de «Un solo pago»); la máquina rompe el corte. */
+.hib-campaign--hero { isolation: isolate; grid-template-columns: minmax(0, 1fr) 300px; }
+.hib-campaign--hero h2 { font-size: 21px; line-height: 24px; }
+.hib-campaign--hero::before { content: ""; position: absolute; z-index: -1; top: 0; right: 0; bottom: 0; width: 40%; clip-path: polygon(22% 0, 100% 0, 100% 100%, 0 100%);
+  background: radial-gradient(60% 80% at 30% 110%, rgb(239 133 46 / 75%), transparent 70%), linear-gradient(135deg, #4E22A9 0%, #7B4BE3 100%); }
+.hib-campaign--hero::after { content: ""; position: absolute; z-index: -1; right: -70px; top: -110px; width: 260px; height: 230px; border: 36px solid rgb(255 255 255 / 10%); border-radius: 50%; }
+.hib-campaign--hero .hib-campaign__media::before { display: none; }
+.hib-campaign--hero .hib-campaign__media::after { left: 10%; right: -6%; bottom: 0; height: 18px; background: radial-gradient(closest-side, rgba(16,4,48,0.45), rgba(16,4,48,0)); }
+.hib-campaign--hero .hib-campaign__copy ul { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 4px 0 8px; width: 100%; }
+.hib-campaign--hero .hib-campaign__copy li { max-width: none; grid-template-columns: 22px 1fr; padding: 6px 8px 6px 6px; font-size: 11px; }
+
+/* E · Vidrio claro: manchas de color y trama de puntos, para que el panel de vidrio tenga algo que desenfocar. */
+.hib-campaign--claro { isolation: isolate;
+  background: radial-gradient(34% 90% at 66% 30%, rgba(251,196,125,0.6), rgba(251,196,125,0) 100%),
+    radial-gradient(30% 90% at 96% 100%, rgba(132,96,229,0.5), rgba(132,96,229,0) 100%), linear-gradient(100deg, #F6F2FF 0%, #ECE4FF 100%); }
+.hib-campaign--claro::before { content: ""; position: absolute; z-index: -1; inset: 0; background-image: radial-gradient(rgba(91,53,194,0.2) 1px, transparent 1.4px); background-size: 14px 14px;
+  -webkit-mask-image: linear-gradient(90deg, transparent 30%, #000 75%); mask-image: linear-gradient(90deg, transparent 30%, #000 75%); }
+.hib-campaign--claro .hib-campaign__media::after { content: ""; position: absolute; left: 10%; right: -60px; bottom: 0; height: 18px; border-radius: 50%; background: radial-gradient(closest-side, rgba(59,23,130,0.3), rgba(59,23,130,0)); }
+.hib-campaign--claro ul { border-color: rgba(255,255,255,0.9); background: linear-gradient(160deg, rgba(255,255,255,0.7), rgba(255,255,255,0.35));
+  backdrop-filter: blur(18px) saturate(160%); -webkit-backdrop-filter: blur(18px) saturate(160%); }
+@media (max-width: 1023px) {
+  .hib-campaign--recorte, .hib-campaign--hero, .hib-campaign--claro { padding: 20px; }
+  .hib-campaign--hero { grid-template-columns: minmax(0, 1fr); }
+  .hib-campaign--hero::before, .hib-campaign--hero::after { display: none; }
+  .hib-campaign--hero .hib-campaign__media { overflow: hidden; border-radius: 14px; clip-path: polygon(0 14%, 100% 0, 100% 100%, 0 100%);
+    background: radial-gradient(60% 80% at 20% 110%, rgb(239 133 46 / 75%), transparent 70%), linear-gradient(135deg, #4E22A9 0%, #7B4BE3 100%); }
+  .hib-campaign--hero .hib-campaign__copy ul { grid-template-columns: minmax(0, 1fr); }
+}
+`;
+type BannerView = "panel" | "recorte" | "forma" | "hero" | "glass" | "claro";
+const BANNER_VIEWS: { id: BannerView; label: string; hint: string }[] = [
+  { id: "panel", label: "Panel", hint: "Foto con fondo en panel redondeado" },
+  { id: "recorte", label: "A · Recorte", hint: "Excavadora sin fondo sobre el lila" },
+  { id: "forma", label: "B · Forma", hint: "Sobre círculo degradado del CTA" },
+  { id: "hero", label: "C · Protagonista", hint: "Máquina grande a la derecha, beneficios en fila" },
+  { id: "glass", label: "D · Vidrio oscuro", hint: "Fondo de «Un solo pago», panel de vidrio sobre la máquina" },
+  { id: "claro", label: "E · Vidrio claro", hint: "Lila con panel de vidrio blanco sobre la máquina" },
+];
+
+function CampaignBanner({ view }: { view: BannerView }): JSX.Element {
+  const points = (
+    <ul>
+      {POINTS.map(({ icon, text }) => (
+        <li key={text}><span className="hib-campaign__ico"><Vidrio s={icon} size={view === "panel" || view === "forma" ? 28 : view === "recorte" ? 24 : 22} /></span>{text}</li>
+      ))}
+    </ul>
+  );
   return (
-    <section
-      className="hib-campaign"
-      aria-label="Maquinaria que mueve tu negocio"
-      style={{
-        position: "relative", boxSizing: "border-box", width: "100%", height: BANNER_HEIGHT, overflow: "hidden", borderRadius: 16,
-        display: "grid", gridTemplateColumns: "272px minmax(0, 1fr) 214px", alignItems: "center",
-        background: "linear-gradient(100deg, #F6F2FF 0%, #ECE4FF 55%, #F3EEFF 100%)", boxShadow: SHADOW, fontFamily: FONT,
-      }}
-    >
-      <div style={{ position: "relative", zIndex: 1, display: "grid", justifyItems: "start", gap: 8, padding: "0 0 0 24px" }}>
-        <h2 style={{ margin: 0, fontSize: 18, fontWeight: 800, lineHeight: "22px", letterSpacing: "-0.01em", color: "#3b1782" }}>Maquinaria que mueve tu negocio</h2>
-        <p style={{ margin: 0, fontSize: 12, lineHeight: "16.8px", color: "#6B6878" }}>Equipos industriales y vehículos de empresas confiables, en un solo lugar.</p>
-        <Button variant="primary">Ver maquinaria</Button>
+    <section className={`hib-campaign hib-campaign--${view}${view === "glass" || view === "claro" ? " hib-campaign--overlap" : ""}`} aria-label="Maquinaria que mueve tu negocio">
+      <div className="hib-campaign__copy">
+        <small className="hib-campaign__eyebrow">2 lotes disponibles</small>
+        <h2>Maquinaria que <em>mueve</em> tu negocio</h2>
+        <p>Equipos industriales y vehículos de empresas confiables, en un solo lugar.</p>
+        {view === "hero" ? points : null}
+        {view === "glass" ? <a className="hib-glass" href="#">Ver maquinaria</a> : <Button variant="primary">Ver maquinaria</Button>}
       </div>
-      <img
-        src="/demo/inventory-excavator-v1.png" alt=""
-        style={{
-          width: "100%", height: BANNER_HEIGHT, objectFit: "cover",
-          maskImage: "linear-gradient(90deg, transparent 0%, #000 22%, #000 78%, transparent 100%)",
-          WebkitMaskImage: "linear-gradient(90deg, transparent 0%, #000 22%, #000 78%, transparent 100%)",
-        }}
-      />
-      <ul style={{ display: "grid", gap: 10, margin: 0, padding: "0 20px 0 4px", listStyle: "none" }}>
-        {POINTS.map(({ icon, text }) => (
-          <li key={text} style={{ display: "grid", gridTemplateColumns: "32px 1fr", gap: 10, alignItems: "center", fontSize: 12, lineHeight: "16px", fontWeight: 600, color: "#3b1782" }}>
-            <Vidrio s={icon} size={32} />
-            {text}
-          </li>
-        ))}
-      </ul>
+      <div className="hib-campaign__media">
+        {view === "panel"
+          ? <img src="/demo/inventory-excavator-v1.png" alt="" />
+          : <img className="hib-campaign__cut" src="/demo/inventory-excavator-cutout.png" alt="" />}
+      </div>
+      {view === "hero" ? null : points}
+      <style>{CAMPAIGN_CSS + CAMPAIGN_VARIANT_CSS + CAMPAIGN_RICH_CSS}</style>
     </section>
   );
 }
@@ -1079,10 +1225,6 @@ const MOBILE_CSS = `
   .hib-otg--photo .hib-otg__card { min-height: 128px; }
   .hp-copy, .hp-copy.right { left: 20px; right: auto; width: calc(100% - 40px); }
   .hp-p { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
-  .hib-campaign { grid-template-columns: minmax(0, 1fr) !important; height: auto !important; min-height: 390px; padding: 24px !important; gap: 16px; }
-  .hib-campaign > div { padding: 0 !important; }
-  .hib-campaign > img { height: 148px !important; grid-row: 2; }
-  .hib-campaign > ul { grid-row: 3; padding: 0 !important; }
   .hib-sell__layout { grid-template-columns: minmax(0, 1fr) !important; }
   .hib-sell__benefit { min-height: 270px; }
   .hib-home section[aria-label="Explora por categoría"] > ul { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
@@ -1195,6 +1337,7 @@ export default function HomeIndexBlock({ hideFeed = false, feedSlot = false, onO
   const [offerView, setOfferView] = useState<OfferTypeView>(OPTION_A.offerView);
   const [heroH, setHeroH] = useState(OPTION_A.heroH); // alto del banner + VMC ahora (control QA)
   const [categoriesView, setCategoriesView] = useState<CategoriesView>(OPTION_A.categoriesView);
+  const [bannerView, setBannerView] = useState<BannerView>("hero");
   const [controls, setControls] = useState(false);
   // En móvil y tablet los selectores empiezan cerrados.
   useEffect(() => {
@@ -1282,7 +1425,10 @@ export default function HomeIndexBlock({ hideFeed = false, feedSlot = false, onO
         <CategoryRail view={categoriesView} />
         <Switches visible={controls}><ViewSwitch title="Categorías" options={CATEGORIES_VIEWS} value={categoriesView} onChange={setCategoriesView} /></Switches>
       </div>
-      <div data-slot="banner" style={{ width: "100%" }}><CampaignBanner /></div>
+      <div data-slot="banner" style={{ position: "relative", width: "100%" }}>
+        <CampaignBanner view={bannerView} />
+        <Switches visible={controls}><ViewSwitch title="Banner" options={BANNER_VIEWS} value={bannerView} onChange={setBannerView} /></Switches>
+      </div>
       <div style={{ width: "100%" }}><SellSection /></div>
       <div style={{ position: "relative", width: "100%" }}>
         <CompaniesSection view={companiesView} />
