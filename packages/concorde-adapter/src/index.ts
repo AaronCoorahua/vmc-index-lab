@@ -26,8 +26,6 @@ export { default as Button, UserIcon } from "../../../apps/index-lab/concorde/co
 export type { ButtonProps } from "../../../apps/index-lab/concorde/components/Button";
 export { default as BadgeStatus } from "../../../apps/index-lab/concorde/components/BadgeStatus";
 export type { BadgeStatusProps } from "../../../apps/index-lab/concorde/components/BadgeStatus";
-export { default as LikeButton } from "../../../apps/index-lab/concorde/components/LikeButton";
-export type { LikeButtonProps } from "../../../apps/index-lab/concorde/components/LikeButton";
 export { default as OfferCard } from "../../../apps/index-lab/concorde/components/OfferCard";
 export type { OfferCardProps } from "../../../apps/index-lab/concorde/components/OfferCard";
 export { default as OfferType } from "../../../apps/index-lab/concorde/components/OfferType";
@@ -36,6 +34,13 @@ export { default as CategoryCard } from "../../../apps/index-lab/concorde/compon
 export type { CategoryCardProps } from "../../../apps/index-lab/concorde/components/CategoryCard";
 export { default as CardTitle } from "../../../apps/index-lab/concorde/components/CardTitle";
 export type { CardTitleProps } from "../../../apps/index-lab/concorde/components/CardTitle";
+export { default as TodayIcon } from "../../../apps/index-lab/concorde/components/TodayIcon";
+export { default as OfferIcon } from "../../../apps/index-lab/concorde/components/OfferIcon";
+export { default as CategoryIcon } from "../../../apps/index-lab/concorde/components/CategoryIcon";
+export { default as BusinessIcon } from "../../../apps/index-lab/concorde/components/BusinessIcon";
+export { default as ServiceCenterIcon } from "../../../apps/index-lab/concorde/components/ServiceCenterIcon";
+export { default as LikeButton } from "../../../apps/index-lab/concorde/components/LikeButton";
+export type { LikeButtonProps } from "../../../apps/index-lab/concorde/components/LikeButton";
 export { default as ProfileButton } from "../../../apps/index-lab/concorde/components/ProfileButton";
 export type { ProfileButtonProps } from "../../../apps/index-lab/concorde/components/ProfileButton";
 export {

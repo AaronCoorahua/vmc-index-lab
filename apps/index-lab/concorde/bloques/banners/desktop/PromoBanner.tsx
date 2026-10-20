@@ -155,7 +155,7 @@ function Counter({ count, size = 92 }: { count: number | string; size?: number }
   );
 }
 
-function PhotoSlot({ width, side, fadeColor }: { width: number; side: "left" | "right"; fadeColor: string }): JSX.Element {
+function PhotoSlot({ width, side, fadeColor, imageSrc }: { width: number; side: "left" | "right"; fadeColor: string; imageSrc?: string }): JSX.Element {
   const clip = side === "right" ? "polygon(18% 0, 100% 0, 100% 100%, 0 100%)" : undefined;
   const fade =
     side === "left"
@@ -163,6 +163,9 @@ function PhotoSlot({ width, side, fadeColor }: { width: number; side: "left" | "
       : `linear-gradient(75deg, ${fadeColor} 0%, transparent 42%)`;
   return (
     <div style={{ width, position: "relative", flexShrink: 0, clipPath: clip, background: "repeating-linear-gradient(45deg, #d9cfe6 0, #d9cfe6 20px, #cec2df 20px, #cec2df 40px)" }}>
+      {imageSrc ? (
+        <img src={imageSrc} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+      ) : (
       <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", color: "#8a7ba8", gap: 8 }}>
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8a7ba8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <rect x="3" y="3" width="18" height="18" rx="2" />
@@ -171,6 +174,7 @@ function PhotoSlot({ width, side, fadeColor }: { width: number; side: "left" | "
         </svg>
         <span style={{ fontFamily: "monospace", fontSize: 12, fontWeight: 600, letterSpacing: "0.06em" }}>FOTO</span>
       </div>
+      )}
       <div style={{ position: "absolute", inset: 0, background: fade, pointerEvents: "none" }} />
     </div>
   );
@@ -306,6 +310,10 @@ export interface PromoBannerProps {
   count: number | string;
   timer?: string;
   chip?: { label: string; icon?: "car" };
+  /** Foto real para los layouts photo-left / photo-right (sin esto, muestra el placeholder «FOTO»). */
+  imageSrc?: string;
+  /** Ancho de la foto en px de diseño (default 186 photo-left · 238 photo-right). */
+  photoWidth?: number;
   className?: string;
 }
 
@@ -319,6 +327,8 @@ export default function PromoBanner({
   count,
   timer,
   chip,
+  imageSrc,
+  photoWidth,
   className = "",
 }: PromoBannerProps): JSX.Element {
   const tg = TONE_GRADIENTS[tone];
@@ -604,7 +614,7 @@ export default function PromoBanner({
     return (
       <div data-slot="promo-banner" className={`${className}`.trim()} style={{ ...shell(BACKGROUNDS.orange), display: "flex", alignItems: "stretch" }}>
         <Decor warm="255,226,194" />
-        <PhotoSlot width={186} side="left" fadeColor={C.orange} />
+        <PhotoSlot width={photoWidth ?? 186} side="left" fadeColor={C.orange} imageSrc={imageSrc} />
         <Sheen />
         <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "center", gap: 9, padding: "0 8px 0 22px", position: "relative", zIndex: 2 }}>
           <Pill text={pillText} icon={pillIcon} />
@@ -655,7 +665,7 @@ export default function PromoBanner({
           </div>
           {chip && <Chip chip={chip} />}
         </div>
-        <PhotoSlot width={238} side="right" fadeColor={C.orangeDeep} />
+        <PhotoSlot width={photoWidth ?? 238} side="right" fadeColor={C.orangeDeep} imageSrc={imageSrc} />
       </div>
     );
   }

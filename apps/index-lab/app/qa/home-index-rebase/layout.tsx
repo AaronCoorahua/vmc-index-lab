@@ -7,6 +7,5 @@ const display = Plus_Jakarta_Sans({ subsets: ["latin"], display: "swap", variabl
 const mono = Roboto_Mono({ subsets: ["latin"], display: "swap", variable: "--vmc-font-mono" });
 
 export default function HomePreviewLayout({ children }: Readonly<{ children: ReactNode }>) {
-  // Toda la pantalla con el morado del header (#2E0F70); las secciones van como cards encima.
-  return <div className={`${display.variable} ${mono.variable}`} style={{ minHeight: "100vh", background: "#2E0F70" }}>{children}</div>;
+  return <div className={`${display.variable} ${mono.variable}`}>{children}</div>;
 }

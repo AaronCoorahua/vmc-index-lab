@@ -1,15 +1,68 @@
-/* Lienzo fijo de 1024 centrado (como vmc-index-final-review): el sidebar solo empuja al contenido.
-   Abierto 226 + 798 · cerrado 76 + 948. --sb lo fija el estado del sidebar. */
-.desktopShell { --sb: 226px; display: grid; grid-template-columns: var(--sb) minmax(0, 1fr);
-  grid-template-rows: 30px 64px minmax(0, 1fr); width: min(100%, 1024px); min-width: 0; margin: 0 auto;
-  transition: grid-template-columns 0.28s cubic-bezier(0.4, 0, 0.2, 1); }
-.desktopShell[data-collapsed] { --sb: 76px; }
+.desktopShell { overflow-x: clip; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: 30px 64px minmax(0, 1fr); width: 100%; min-width: 0; margin: 0; /* ticker y header a todo el ancho; el contenido se limita y centra en el componente */ }
+/* Modo ancho completo: ticker, header y sidebar siguen a la ventana; el contenido se centra con tope de 1024. */
+.desktopShell.wide { width: 100%; }
 .tickerRow { grid-column: 1 / -1; grid-row: 1; min-width: 0; }
-.desktopShell > header { position: sticky; top: 0; z-index: 4; grid-column: 2; grid-row: 2; }
-/* overflow visible y encima del header: la cabecera del Sidebar (logo + hamburguesa) mide 226 aunque
-   el sidebar se cierre a 76, y debe verse sobre el header (así lo diseña Concorde). */
-.sidebarRail { position: sticky; top: 0; z-index: 5; grid-column: 1; grid-row: 2 / -1; align-self: start; height: 100dvh; overflow: visible; }
-.mainColumn { min-width: 0; grid-column: 2; grid-row: 3; background: #ffffff; } /* contenido sobre blanco; morado alrededor */
+/* Header: barra morada a todo el ancho; su contenido (hamburguesa · logo · Ingresa) se alinea al ancho del contenido. */
+.headerWrap { position: sticky; top: 0; z-index: 6; grid-column: 1; grid-row: 2; background: #2E0F70; }
+.headerFrame { position: relative; }
+.topbar { border-radius: 0; }
+.brandRow { display: inline-flex; align-items: center; gap: 10px; }
+.menuButton { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 10px; background: transparent; cursor: pointer; transition: background 0.15s; }
+.menuButton:hover { background: rgba(255, 255, 255, 0.08); }
+.menuButton:active { background: rgba(255, 255, 255, 0.14); }
+.menuButton:focus-visible { outline: 2px solid #8460E5; outline-offset: 2px; }
+/* Menú desplegable bajo el header: vidrio translúcido (tokens glass del DS) para ver el contenido de atrás.
+   Reusa el Sidebar de Concorde; se anulan sus fondos sólidos inline y se oculta su cabecera y su banner. */
+.menuPanel { max-height: calc(100dvh - 110px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; position: absolute; top: 100%; left: 0; z-index: 7; width: 252px; box-sizing: border-box; padding: 10px 6px 14px; border-radius: 0 0 22px 22px;
+  /* Receta Button/Glass (Figma 7566:25905) a escala de panel: base transparente + dos rellenos blancos + blur. El panel queda casi transparente (blur + saturación + un
+     tinte mínimo); la legibilidad la da un oscurecido localizado dentro de cada ítem, no un fondo morado. */
+  background-color: transparent;
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0.08) 45%, rgba(255, 255, 255, 0) 100%), linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.08) 45%, rgba(255, 255, 255, 0.03) 100%), linear-gradient(rgba(46, 15, 112, 0.18), rgba(46, 15, 112, 0.18));
+  -webkit-backdrop-filter: blur(22px) saturate(180%) brightness(0.86); backdrop-filter: blur(22px) saturate(180%) brightness(0.86);
+  box-shadow: rgba(0, 0, 0, 0.1) 0 8px 24px, inset 0 1px 6px rgba(255, 255, 255, 0.45);
+  opacity: 0; visibility: hidden; transform: translateY(-8px); pointer-events: none; transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s 0.2s; }
+.menuPanel[data-open="true"] { opacity: 1; visibility: visible; transform: none; pointer-events: auto; transition: opacity 0.2s ease, transform 0.2s ease; }
+.menuPanel::before { content: ""; position: absolute; inset: 0; padding: 1.5px; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(94deg, #FFFFFF 0%, #F4AC59 22.1%, #8460E5 74.5%, #FFFFFF 100%); /* VYStrokes1 */
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
+.menuPanel [data-slot="sidebar"] { background: transparent !important; height: auto !important; width: 100% !important; }
+.menuPanel [data-slot="sidebar"] > div:first-child { display: none !important; }
+.menuPanel [data-slot="sidebar"] > div:last-child { padding-top: 0 !important; height: auto !important; width: 100% !important; }
+.menuPanel :global(.sb-content-frame) { width: auto !important; margin: 0 4px !important; flex: none !important; background: transparent !important; border: 0 !important; box-shadow: none !important; }
+.menuPanel :global(.sb-banner) { display: none !important; }
+/* Vidrio claro y transparente: los ítems en reposo son vidrio blanco translúcido con poco blur (se ve lo de atrás) y texto vault, que se lee
+   igual sobre fondos claros u oscuros sin oscurecer nada. Hover y activo (naranja) conservan los de Concorde. */
+.menuPanel { -webkit-backdrop-filter: blur(14px) saturate(160%); backdrop-filter: blur(14px) saturate(160%); }
+.menuPanel :global(.sbi-item):not(:global(.sbi-item--active)):not(:global(.sbi-item--hover)) {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.58) 0%, rgba(255, 255, 255, 0.34) 100%) !important; background-color: transparent !important; border: 1px solid rgba(255, 255, 255, 0.65) !important;
+  -webkit-backdrop-filter: blur(6px) saturate(150%) !important; backdrop-filter: blur(6px) saturate(150%) !important;
+  box-shadow: rgba(32, 0, 104, 0.16) 0 6px 16px -6px, inset 0 1px 0 rgba(255, 255, 255, 0.7) !important; }
+.menuPanel :global(.sbi-item):not(:global(.sbi-item--active)):not(:global(.sbi-item--hover)) :global(.sbi-label) { color: #2E0F70 !important; font-weight: 700; text-shadow: rgba(255, 255, 255, 0.6) 0 1px 0; }
+.menuPanel :global(.sbi-item):not(:global(.sbi-item--active)):not(:global(.sbi-item--hover)) svg text { fill: #2E0F70; }
+/* Los íconos de Concorde son lila/blanco (pensados para vidrio oscuro): en reposo se oscurecen para leerse sobre vidrio claro. */
+.menuPanel :global(.sbi-item):not(:global(.sbi-item--active)):not(:global(.sbi-item--hover)) > svg:first-child { filter: brightness(0.32) saturate(2.2); }
+/* Subítems (En Vivo, Negociable…): mismo vidrio claro y texto vault; el anillo naranja / VYStrokes de Concorde marca hover y selección. */
+.menuPanel :global(.sbsi-item) { background: linear-gradient(180deg, rgba(255, 255, 255, 0.58) 0%, rgba(255, 255, 255, 0.34) 100%) !important; border: 1px solid rgba(255, 255, 255, 0.65);
+  -webkit-backdrop-filter: blur(6px) saturate(150%); backdrop-filter: blur(6px) saturate(150%); box-shadow: rgba(32, 0, 104, 0.14) 0 4px 12px -4px, inset 0 1px 0 rgba(255, 255, 255, 0.7); }
+.menuPanel :global(.sbsi-label) { color: #2E0F70 !important; font-weight: 700; text-shadow: rgba(255, 255, 255, 0.6) 0 1px 0; }
+.menuPanel :global(.sbsi-count) { color: rgba(46, 15, 112, 0.8) !important; font-weight: 600; }
+.menuPanel :global(.sbi-item--hover) :global(.sbi-label), .menuPanel :global(.sbi-item--active) :global(.sbi-label) { color: #ffffff !important; font-weight: 700; text-shadow: rgba(10, 0, 40, 0.5) 0 1px 2px; }
+@media (prefers-reduced-motion: reduce) { .menuPanel, .menuPanel[data-open="true"], .menuButton { transition: none; } }
+.mainColumn { min-width: 0; grid-column: 1; grid-row: 3; }
+.contentFrame { min-width: 0; transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1), margin-left 0.28s cubic-bezier(0.4, 0, 0.2, 1); }
+@media (prefers-reduced-motion: reduce) { .desktopShell, .contentFrame { transition: none; } }
+.winnerBackdrop { position: relative; width: 100%; min-height: 100dvh; background: #2E0F70; }
+.winnerShell { --winner-sidebar-width: 76px; display: grid; grid-template-columns: var(--winner-sidebar-width) minmax(0, 1fr); grid-template-rows: 64px minmax(0, 1fr); width: min(100%, 1024px); min-width: 0; margin: 0 auto; overflow-x: clip; background: #fff; transition: grid-template-columns 0.28s cubic-bezier(0.4, 0, 0.2, 1); }
+.winnerShell[data-sidebar-collapsed="false"] { --winner-sidebar-width: 226px; }
+.winnerSidebar { position: sticky; top: 0; z-index: 7; grid-column: 1; grid-row: 1 / -1; align-self: start; height: 100dvh; overflow: visible; }
+.winnerHeader { position: sticky; top: 0; z-index: 6; grid-column: 2; grid-row: 1; min-width: 0; background: #2E0F70; }
+.winnerHeader > * { border-radius: 0; }
+.winnerMain { width: 100%; min-width: 0; grid-column: 2; grid-row: 2; }
+.winnerMain .contentFrame { width: 100% !important; margin-left: 0 !important; }
+.winnerFeedArrow { pointer-events: none; position: absolute; top: 120px; right: 258px; z-index: 3; width: 200px; height: 240px; overflow: visible; fill: none; stroke: #F2701D; stroke-linecap: round; stroke-linejoin: round; stroke-width: 9; filter: drop-shadow(0 3px 0 rgba(76, 19, 7, 0.16)); }
+.winnerFeedArrow text { fill: #FFB078; stroke: none; font-family: var(--vmc-font-display, "Plus Jakarta Sans", sans-serif); font-size: 12px; font-weight: 800; letter-spacing: .03em; }
+@media (max-width: 1320px) { .winnerFeedArrow { display: none; } }
+@media (prefers-reduced-motion: reduce) { .winnerShell { transition: none; } }
 .mobileShell { display: none; }
 .brandLogo { display: block; width: 119px; height: 45px; object-fit: contain; }
 .mobileBrand { display: inline-flex; align-items: center; gap: 10px; }
@@ -31,8 +84,8 @@
 .storeInitial { display: inline-grid; place-items: center; flex: 0 0 auto; width: 40px; height: 40px; }
 
 @media (max-width: 1023px) {
-  .desktopShell { display: none; }
-  .mobileShell { display: block; }
+  .desktopShell, .winnerShell { display: none; }
+  .mobileShell { display: block; overflow-x: clip; max-width: 100vw; }
   .page { width: 100%; padding: 18px 16px 44px; gap: 26px; }
   .firstFold { grid-template-columns: 1fr; }
   .categoryRail { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -42,3 +95,57 @@
 @media (max-width: 560px) {
   .categoryRail, .storeLinks { grid-template-columns: 1fr; }
 }
+
+/* Guía de revisión: vertical, plegable y fuera del frame para no cubrir la página. */
+.reviewControls { position: fixed; right: 14px; bottom: 14px; z-index: 51; display: grid; justify-items: end; gap: 9px; width: 244px; font-family: var(--vmc-font-display, "Plus Jakarta Sans", sans-serif); }
+.reviewRoadmap { width: 100%; display: grid; grid-template-columns: minmax(0, 1.14fr) 20px minmax(0, .96fr); align-items: center; gap: 5px; padding: 9px 11px; box-sizing: border-box; border: 1px solid rgba(207, 186, 255, 0.8); border-radius: 12px; background: rgba(49, 18, 111, 0.92); color: #fff; box-shadow: rgba(22, 5, 62, 0.25) 0 8px 20px; }
+.reviewRoadmapHeadline { grid-column: 1 / -1; margin: -2px -2px 3px; padding: 6px 7px; border: 1px solid rgba(255, 190, 118, 0.72); border-radius: 8px; background: linear-gradient(100deg, rgba(242, 112, 29, 0.30), rgba(242, 112, 29, 0.06)); }
+.reviewRoadmapHeadline strong, .reviewRoadmapHeadline span { display: block; }
+.reviewRoadmapHeadline strong { color: #FFF0D6; font-size: 15px; font-weight: 900; letter-spacing: .045em; line-height: 16px; text-transform: uppercase; }
+.reviewRoadmapHeadline span { margin-top: 2px; color: #FFCE9E; font-size: 9px; font-weight: 800; line-height: 11px; }
+.reviewRoadmapStop { min-width: 0; }
+.reviewRoadmapStop strong, .reviewRoadmapStop small { display: block; overflow: visible; white-space: normal; }
+.reviewRoadmapStop strong { margin-top: 3px; font-size: 11px; line-height: 13px; }
+.reviewRoadmapStop small { margin-top: 3px; color: #DCD1FF; font-size: 9px; font-weight: 700; line-height: 11px; }
+.reviewRoadmapMarker { display: inline-flex; align-items: center; min-height: 15px; padding: 0 5px; border-radius: 999px; background: #F57D27; color: #fff; font-size: 8px; font-weight: 900; letter-spacing: .06em; line-height: 15px; text-transform: uppercase; }
+.reviewRoadmapLine { position: relative; height: 2px; border-radius: 2px; background: linear-gradient(90deg, #F57D27, #74E5D7); }
+.reviewRoadmapLine::after { content: ""; position: absolute; right: -1px; top: 50%; width: 6px; height: 6px; border-top: 2px solid #74E5D7; border-right: 2px solid #74E5D7; transform: translateY(-50%) rotate(45deg); }
+.reviewRoadmapFuture .reviewRoadmapMarker { background: #59CDBF; color: #123C43; }
+.reviewRoadmapFuture strong { color: #A7FFF4; }
+.reviewNote { position: relative; width: 208px; padding: 11px 13px; border: 1px solid #E7C95C; border-radius: 3px 3px 12px 3px; background: #FFF4B8; color: #5B4610; box-shadow: rgba(94, 67, 5, 0.18) 0 8px 20px; transform: rotate(-1deg); }
+.reviewNote::after { content: ""; position: absolute; right: 26px; bottom: -9px; width: 16px; height: 16px; background: #FFF4B8; border-right: 1px solid #E7C95C; border-bottom: 1px solid #E7C95C; transform: rotate(45deg); }
+.reviewNote strong { display: block; font-size: 12px; line-height: 17px; }
+.reviewNote p { margin: 3px 0 0; font-size: 10px; line-height: 14px; }
+.reviewWinnerNote { position: relative; width: 220px; padding: 11px 13px; box-sizing: border-box; border: 1px solid #E7C95C; border-radius: 3px 3px 12px 3px; background: #FFF4B8; color: #5B4610; box-shadow: rgba(94, 67, 5, 0.18) 0 8px 20px; transform: rotate(-1deg); }
+.reviewWinnerNote::after { content: ""; position: absolute; right: 26px; bottom: -9px; width: 16px; height: 16px; background: #FFF4B8; border-right: 1px solid #E7C95C; border-bottom: 1px solid #E7C95C; transform: rotate(45deg); }
+.reviewWinnerNote strong { display: block; font-size: 11px; line-height: 15px; }
+.reviewWinnerNote p { margin: 4px 0 0; font-size: 9px; line-height: 13px; }
+.reviewDock { width: 100%; box-sizing: border-box; padding: 11px; border: 1px solid #D9D3EB; border-radius: 14px; background: rgba(255, 255, 255, 0.96); box-shadow: rgba(32, 0, 104, 0.22) 0 10px 30px; backdrop-filter: blur(12px); }
+.reviewDockHeader { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.reviewDockTitle { display: block; margin: 0 2px; color: #6B6880; font-size: 11px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
+.reviewClose { border: 0; background: transparent; color: #6240C4; cursor: pointer; font: inherit; font-size: 10px; font-weight: 800; text-decoration: underline; text-underline-offset: 2px; }
+.reviewOrigin { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 7px; padding: 7px 8px; border: 1px solid #E2DFEC; border-radius: 7px; background: #fff; color: #514B63; font-size: 10px; font-weight: 700; }
+.reviewOrigin button { border: 1px solid #E2DFEC; border-radius: 5px; background: #FBF9FF; color: #514B63; cursor: pointer; font: inherit; font-size: 10px; font-weight: 800; line-height: 18px; padding: 0 7px; }
+.reviewOrigin button:hover { border-color: #AE8EFF; background: #F1EBFF; }
+.reviewOrigin button[aria-pressed="true"] { border-color: #6A40D2; background: #F1EBFF; color: #32136F; box-shadow: inset 0 0 0 1px #CFBAFF; }
+.reviewGroup { display: grid; grid-template-columns: minmax(0, 1fr) 106px; gap: 8px; align-items: center; padding: 8px 0; border-top: 1px solid #EEEAF5; }
+.reviewGroup strong, .reviewGroup small { display: block; }
+.reviewGroup strong { color: #30295B; font-size: 11px; line-height: 14px; }
+.reviewGroup small { margin-top: 2px; color: #6B6880; font-size: 9px; line-height: 12px; }
+.reviewOptions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
+.reviewOptions button { min-width: 0; padding: 7px 3px; border: 1px solid #E2DFEC; border-radius: 7px; background: #fff; color: #191C1C; cursor: pointer; font: inherit; font-size: 10px; font-weight: 700; text-align: center; }
+.reviewOptions button:hover { border-color: #AE8EFF; background: #FBF9FF; }
+.reviewOptions button[aria-pressed="true"] { border-color: #6A40D2; background: linear-gradient(145deg, #F1EBFF, #FFF8F0); box-shadow: inset 0 0 0 1px #CFBAFF; }
+.reviewOptions .reviewFutureButton { border-color: #69CFC4; background: linear-gradient(145deg, #EEFFFA, #F4F1FF); color: #185D62; }
+.reviewOptions .reviewFutureButton span { display: block; margin-top: 1px; color: #228A80; font-size: 7px; font-weight: 900; letter-spacing: .05em; line-height: 8px; text-transform: uppercase; }
+.reviewOptions .reviewFutureButton:hover, .reviewOptions .reviewFutureButton[aria-pressed="true"] { border-color: #269C92; background: linear-gradient(145deg, #DFFBF5, #F1EBFF); box-shadow: inset 0 0 0 1px #9AE5DC; }
+.reviewWinner { grid-template-columns: minmax(0, 1fr) 66px; margin-top: 2px; padding: 9px 8px; border: 1px solid #E7B14B; border-radius: 9px; background: linear-gradient(135deg, #FFF7D0, #FFF1E6 58%, #F1EBFF); box-shadow: 0 6px 18px rgba(101, 57, 12, 0.10); }
+.reviewWinner strong { color: #49206E; }
+.reviewWinner strong span { display: inline-flex; margin-left: 4px; padding: 1px 5px; border-radius: 999px; background: #F2701D; color: #fff; font-size: 8px; letter-spacing: .04em; text-transform: uppercase; vertical-align: 1px; }
+.reviewWinner small { color: #6B5660; }
+.reviewWinnerButton { min-width: 0; padding: 7px 3px; border: 1px solid #E18B2B; border-radius: 7px; background: #fff; color: #8A4810; cursor: pointer; font: inherit; font-size: 10px; font-weight: 800; text-align: center; }
+.reviewWinnerButton:hover, .reviewWinnerButton[aria-pressed="true"] { border-color: #C86814; background: linear-gradient(145deg, #FFE3B1, #FFF); box-shadow: inset 0 0 0 1px #F7B252; }
+.reviewRationale { margin: 2px 1px 0; padding-top: 8px; border-top: 1px solid #EEEAF5; color: #514B63; font-size: 10px; line-height: 14px; }
+.reviewOpen { min-height: 72px; padding: 10px 8px; border: 1px solid #A88AEA; border-radius: 10px 0 0 10px; background: linear-gradient(180deg, #5B2BB8, #32136F); color: #fff; box-shadow: rgba(32, 0, 104, 0.22) 0 8px 24px; cursor: pointer; font: inherit; font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; writing-mode: vertical-rl; }
+.reviewOpen:hover { background: linear-gradient(180deg, #6B37D5, #3D1988); }
+@media (max-width: 640px) { .reviewControls { display: none; } }

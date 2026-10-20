@@ -1,0 +1,39 @@
+{
+  "package": "VMC Index Final Review portable snapshot",
+  "packagedAtUtc": "2026-10-20",
+  "sourceDirectory": "D:\\JULIO\\VMC\\vmc-index-lab-main\\vmc-index-lab-main",
+  "repository": "https://github.com/AaronCoorahua/vmc-index-lab",
+  "deploymentEvidence": {
+    "vercelProjectName": "vmc-index-final-review",
+    "referenceUrl": "https://vmc-index-final-review.vercel.app/qa/home-index-rebase",
+    "publicCheck": "HTTP 200; matched route and application markers Autoplan, Toyota Yaris, and /assets/brand/logo-voyager.svg",
+    "limitation": "No deployment commit ID or local deployment record was available; exact deployed-tree equivalence is not claimed."
+  },
+  "git": {
+    "branch": "main",
+    "head": "96009e41e050b5f5d04212a598c8b9514e5df32c",
+    "workingTree": "clean",
+    "untrackedFilesDetected": 0
+  },
+  "included": [
+    "application source",
+    "package manifests and package-lock.json",
+    "assets, docs, evidence, references, config and scripts",
+    "DELIVERY_README.md",
+    "CURRENT_CHANGES.md"
+  ],
+  "excluded": [
+    ".git",
+    ".vercel",
+    "node_modules",
+    ".next",
+    "caches and *.tsbuildinfo",
+    "logs",
+    ".claude",
+    "coverage",
+    ".env and .env.*",
+    "private keys and credentials"
+  ],
+  "localReferenceUrl": "http://localhost:3002/qa/home-index-rebase",
+  "visualQaStatus": "pending; not approved by this package"
+}
