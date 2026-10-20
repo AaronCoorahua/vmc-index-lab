@@ -258,16 +258,17 @@ export function VmcAhoraTicker({ onOpen }: { onOpen: () => void }): JSX.Element 
   );
 }
 
-function Head(): JSX.Element {
+function Head({ live }: { live: boolean }): JSX.Element {
   return (
     <header className="va-head">
       <div style={{ display: "grid", gap: 2, minWidth: 0 }}><h3>VMC ahora</h3><p>Actividad en tiempo real</p></div>
-      <span className="va-live"><i />En vivo</span>
+      {live ? <span className="va-live"><i />En vivo</span> : null}
     </header>
   );
 }
 
-export default function VmcAhora({ view }: { view: FeedView }): JSX.Element {
+/** `live={false}`: sin la etiqueta «En vivo» de la cabecera, cuando la pestaña que abre el feed ya lo dice (móvil). */
+export default function VmcAhora({ view, live = true }: { view: FeedView; live?: boolean }): JSX.Element {
   const [paused, setPaused] = useState(false);
   const { items, tick } = useLiveFeed(view === "pulso" ? 4 : 5, paused);
   const pause = { onMouseEnter: () => setPaused(true), onMouseLeave: () => setPaused(false) };
@@ -277,7 +278,7 @@ export default function VmcAhora({ view }: { view: FeedView }): JSX.Element {
   if (view === "ebay") {
     return (
       <aside className="va va--timeline" aria-label="VMC ahora" {...pause}>
-        <Head />
+        <Head live={live} />
         {tick > 0 ? <span key={tick} className="va-newpill" aria-hidden>{Ico.arrowUp}Nuevo</span> : null}
         <ol className="va-posts va-scroll" aria-live="polite">
           {items.map((e, i) => (
@@ -304,7 +305,7 @@ export default function VmcAhora({ view }: { view: FeedView }): JSX.Element {
   if (view === "timeline") {
     return (
       <aside className="va va--timeline" aria-label="VMC ahora" {...pause}>
-        <Head />
+        <Head live={live} />
         {tick > 0 ? <span key={tick} className="va-newpill" aria-hidden>{Ico.arrowUp}Nuevo</span> : null}
         <ol className="va-posts va-scroll" aria-live="polite">
           {items.map((e, i) => (
@@ -359,7 +360,7 @@ export default function VmcAhora({ view }: { view: FeedView }): JSX.Element {
 
   return (
     <aside className="va va--normal" aria-label="VMC ahora" {...pause}>
-      <Head />
+      <Head live={live} />
       {tick > 0 ? <span key={tick} className="va-newpill" aria-hidden>{Ico.arrowUp}Nuevo</span> : null}
       <ol className="va-posts va-scroll" aria-live="polite">
         {/* Fila tipo listado de eBay, 4 líneas a la altura de la foto: la pill cuenta el evento, el título es el

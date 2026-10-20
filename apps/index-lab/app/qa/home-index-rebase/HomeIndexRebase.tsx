@@ -58,8 +58,9 @@ export default function HomeIndexRebase() {
   }, []);
   const goTab = (t: "home" | "feed") => { setTab(t); window.scrollTo(0, 0); };
   const openLive = (on: boolean) => { setLiveOpen(on); window.scrollTo(0, 0); };
-  const feed = (sub: boolean) => (
-    <main className={styles.feedView} data-sub={sub || undefined} aria-label="Feed de VMC ahora"><VmcAhora view="timeline" /></main>
+  // `live`: false cuando la pestaña «En vivo» ya lo dice, para no repetir la etiqueta en la cabecera del feed.
+  const feed = (sub: boolean, live = true) => (
+    <main className={styles.feedView} data-sub={sub || undefined} aria-label="Feed de VMC ahora"><VmcAhora view="timeline" live={live} /></main>
   );
   // Contenido del móvil según el modo: Feed (barra inferior) manda; si no, la variante elegida en los controles.
   let mobileBody: JSX.Element;
@@ -71,7 +72,7 @@ export default function HomeIndexRebase() {
           <button type="button" aria-current={!liveOpen ? "page" : undefined} onClick={() => openLive(false)}>Inicio</button>
           <button type="button" aria-current={liveOpen ? "page" : undefined} onClick={() => openLive(true)}><i aria-hidden />En vivo</button>
         </nav>
-        {liveOpen ? feed(true) : <HomeIndexBlock hideFeed />}
+        {liveOpen ? feed(true, false) : <HomeIndexBlock hideFeed />}
       </>
     );
   } else if (mview === "ticker") {

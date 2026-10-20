@@ -387,7 +387,7 @@ function SellSection(): JSX.Element {
           <span className="hib-sell__coin">25 SubasCoins · 0% comisión</span>
           <h3>Un solo pago, hasta que lo vendas</h3>
           <p>Sin pagos mensuales ni renovaciones: el 100% de la venta es tuyo.</p>
-          <a className="hib-glass" href="https://www.subastop.com/cita#vende">Agenda tu consultoría gratis</a>
+          <a className="hib-glass" href="https://www.vmcsubastas.com/landing-subascars">Publica ahora</a>
         </aside>
       </div>
       <style>{SELL_CSS}</style>
@@ -1172,7 +1172,7 @@ function BannerFeedSlot({ feedView }: { feedView: FeedView }): JSX.Element {
         <button type="button" aria-pressed={show === "banner"} onClick={() => setShow("banner")}>Destacados</button>
         <button type="button" aria-pressed={show === "feed"} onClick={() => setShow("feed")}><i aria-hidden />En vivo</button>
       </div>
-      <div className="hib-bfs__body">{show === "banner" ? <PrincipalBanner /> : <VmcAhora view={feedView} />}</div>
+      <div className="hib-bfs__body">{show === "banner" ? <PrincipalBanner /> : <VmcAhora view={feedView} live={false} />}</div>
       <style>{BFS_CSS}</style>
     </div>
   );
