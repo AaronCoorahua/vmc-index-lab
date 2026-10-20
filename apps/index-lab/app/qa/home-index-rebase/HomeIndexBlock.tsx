@@ -501,7 +501,7 @@ function PrincipalBanner({ nav = "plain", fx = "letters" }: { nav?: BannerNav; f
 }
 
 // Banner de campaña 766 × 168 (el del bloque es 100 de alto; aquí crece para que entre el contenido).
-const BANNER_HEIGHT = 168;
+const BANNER_HEIGHT = 204; // con aire arriba y abajo: el copy y el panel de beneficios no tocan los bordes
 // Íconos de vidrio (set de mi-garaje-lab): sólido detrás, vidrio delante y detalle en blanco.
 const POINTS = [
   { icon: "empresa" as VidrioName, text: "Activos de empresas de confianza" },
@@ -513,8 +513,8 @@ const POINTS = [
 // beneficios separados por un filete. En móvil se apila: copy, foto y beneficios, con el CTA a lo ancho.
 const CAMPAIGN_CSS = `
 .hib-campaign { position: relative; box-sizing: border-box; width: 100%; height: ${BANNER_HEIGHT}px; overflow: hidden; border-radius: 16px;
-  display: grid; grid-template-columns: 300px minmax(0, 1fr) 220px; align-items: center; gap: 16px; padding: 10px;
-  background: radial-gradient(120% 160% at 0% 0%, #F6F2FF 0%, #ECE4FF 60%, #F3EEFF 100%); border: 1px solid #E6DEFF;
+  display: grid; grid-template-columns: 300px minmax(0, 1fr) 220px; align-items: center; gap: 16px; padding: 20px 14px;
+  background: linear-gradient(100deg, #FFFFFF 0%, #F8F5FF 55%, #EFE9FF 100%); border: 1px solid #ECE6FB;
   box-shadow: ${SHADOW}; font-family: ${FONT}; }
 .hib-campaign__copy { display: grid; justify-items: start; gap: 4px; padding-left: 14px; }
 .hib-campaign__eyebrow { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; color: #5C38D6; }
@@ -549,7 +549,7 @@ const CAMPAIGN_VARIANT_CSS = `
 .hib-campaign--recorte .hib-campaign__media::after, .hib-campaign--hero .hib-campaign__media::after { content: ""; position: absolute; left: 18%; right: 14%; bottom: 4px; height: 14px;
   border-radius: 50%; background: radial-gradient(closest-side, rgba(27,20,66,0.22), rgba(27,20,66,0)); }
 .hib-campaign--forma .hib-campaign__media::before { content: ""; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); height: 128%; aspect-ratio: 1; border-radius: 50%;
-  background: linear-gradient(135deg, #FBC47D 0%, #ED8936 35%, #8460E5 100%); opacity: 0.9; }
+  background: linear-gradient(135deg, #F1ECFF 0%, #DCD0FF 100%); }
 .hib-campaign--hero { grid-template-columns: minmax(0, 1fr) 420px; padding-left: 10px; }
 .hib-campaign--hero .hib-campaign__media img.hib-campaign__cut { left: auto; top: auto; right: -24px; bottom: -6px; height: 128%; transform: none; }
 .hib-campaign--hero .hib-campaign__media::before { content: ""; position: absolute; right: -40px; top: -30%; width: 120%; height: 160%; border-radius: 50%;
@@ -572,27 +572,19 @@ const CAMPAIGN_VARIANT_CSS = `
   box-shadow: rgba(59,23,130,0.14) 0 12px 28px -10px, inset 0 1px 0 rgba(255,255,255,0.9); }
 .hib-campaign--overlap li { grid-template-columns: 30px 1fr; font-size: 11.5px; line-height: 15px; }
 .hib-campaign--overlap .hib-campaign__ico { width: 30px; height: 30px; border-radius: 50%; background: #fff; box-shadow: rgba(59,23,130,0.12) 0 2px 6px; }
-/* D · oscuro: mismo fondo que «Un solo pago» (morado + brasa naranja + anillos). Los íconos van en círculo blanco
-   porque el vidrio de Vidrio está calibrado para fondo claro. */
-.hib-campaign--glass { isolation: isolate; border: 0; color: #fff;
-  background: radial-gradient(70% 160% at -6% 120%, rgb(239 133 46 / 80%) 0%, rgb(239 133 46 / 30%) 30%, transparent 60%), linear-gradient(120deg, #32136F 0%, #4E22A9 55%, #7B4BE3 100%); }
-.hib-campaign--glass::before { content: ""; position: absolute; z-index: -1; top: -120px; left: 34%; width: 300px; height: 260px; border: 42px solid rgb(255 255 255 / 9%); border-radius: 50%; }
-.hib-campaign--glass::after { content: ""; position: absolute; z-index: -1; right: -60px; bottom: -150px; width: 300px; height: 240px; border: 42px solid rgb(255 255 255 / 7%); border-radius: 50%; }
-.hib-campaign--glass h2 { color: #fff; }
-.hib-campaign--glass p { color: rgb(255 255 255 / 84%); }
-.hib-campaign--glass .hib-campaign__eyebrow { height: 20px; margin-bottom: 2px; padding: 0 10px 0 8px; border: 1px solid rgb(255 255 255 / 28%); border-radius: 999px; background: rgb(255 255 255 / 12%); color: #fff; font-weight: 700; }
-.hib-campaign--glass .hib-campaign__eyebrow::before { background: #FBC47D; box-shadow: 0 0 0 3px rgb(251 196 125 / 25%); }
-.hib-campaign--glass .hib-glass { height: 36px; padding-inline: 26px; }
+/* D · Anillos: fondo claro lineal con dos anillos lila muy suaves detrás; panel de vidrio blanco sobre la máquina. */
+.hib-campaign--glass { isolation: isolate; }
+.hib-campaign--glass::before { content: ""; position: absolute; z-index: -1; top: -120px; left: 34%; width: 300px; height: 260px; border: 42px solid rgb(132 96 229 / 7%); border-radius: 50%; }
+.hib-campaign--glass::after { content: ""; position: absolute; z-index: -1; right: -60px; bottom: -150px; width: 300px; height: 240px; border: 42px solid rgb(132 96 229 / 6%); border-radius: 50%; }
+.hib-campaign--glass .hib-campaign__eyebrow { height: 20px; margin-bottom: 2px; padding: 0 10px 0 8px; border: 1px solid #fff; border-radius: 999px; background: rgba(255,255,255,0.7); box-shadow: rgba(59,23,130,0.1) 0 2px 8px; }
 .hib-campaign--glass p { margin-bottom: 4px; }
-.hib-campaign--glass .hib-campaign__media::after { content: ""; position: absolute; right: -40px; left: 30%; bottom: 0; height: 16px; border-radius: 50%; background: radial-gradient(closest-side, rgba(16,4,48,0.45), rgba(16,4,48,0)); }
-.hib-campaign--glass ul { border-color: rgb(255 255 255 / 30%); background: rgb(255 255 255 / 12%); box-shadow: rgba(16,4,48,0.3) 0 12px 28px -10px, inset 0 1px 0 rgb(255 255 255 / 35%); }
-.hib-campaign--glass li { color: #fff; }
+.hib-campaign--glass .hib-campaign__media::after { content: ""; position: absolute; right: -40px; left: 30%; bottom: 0; height: 16px; border-radius: 50%; background: radial-gradient(closest-side, rgba(59,23,130,0.28), rgba(59,23,130,0)); }
 @media (max-width: 1023px) {
   .hib-campaign--overlap { grid-template-columns: minmax(0, 1fr); }
   .hib-campaign--overlap .hib-campaign__media { height: 160px; }
   .hib-campaign--overlap .hib-campaign__media img.hib-campaign__cut { left: 50%; right: auto; top: 50%; bottom: auto; height: 110%; transform: translate(-50%, -50%); }
   .hib-campaign--overlap ul { margin-top: -28px; }
-  .hib-campaign--glass .hib-glass { width: 100%; }
+  .hib-campaign--glass .pvbtn { width: 100%; }
   .hib-campaign__media img.hib-campaign__cut { height: 110%; }
   .hib-campaign--hero h2 { white-space: normal; }
   .hib-campaign--hero .hib-campaign__copy > p { display: block; }
@@ -607,15 +599,15 @@ const CAMPAIGN_RICH_CSS = `
 .hib-campaign h2 em { font-style: normal; }
 .hib-campaign--recorte h2 em, .hib-campaign--hero h2 em, .hib-campaign--claro h2 em {
   background: linear-gradient(90deg, #ED8936 0%, #C4618F 50%, #8460E5 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.hib-campaign--glass h2 em { color: #FFE2C2; }
-.hib-campaign--recorte, .hib-campaign--hero, .hib-campaign--claro { padding-block: 6px; }
+.hib-campaign--glass h2 em { background: linear-gradient(90deg, #ED8936 0%, #C4618F 50%, #8460E5 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.hib-campaign--recorte, .hib-campaign--hero, .hib-campaign--claro { padding-block: 20px; }
 .hib-campaign--recorte p, .hib-campaign--claro p { margin-bottom: 4px; }
 .hib-campaign--recorte .hib-campaign__eyebrow, .hib-campaign--hero .hib-campaign__eyebrow, .hib-campaign--claro .hib-campaign__eyebrow {
   height: 20px; padding: 0 9px 0 7px; border: 1px solid #fff; border-radius: 999px; background: rgba(255,255,255,0.7);
   box-shadow: rgba(59,23,130,0.1) 0 2px 8px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
 
 /* A · Escenario: halo cálido y piso; beneficios en filas de vidrio. */
-.hib-campaign--recorte .hib-campaign__media { background: radial-gradient(42% 58% at 50% 60%, rgba(251,196,125,0.55), rgba(251,196,125,0) 100%); }
+.hib-campaign--recorte .hib-campaign__media { background: radial-gradient(42% 58% at 50% 60%, rgba(132,96,229,0.16), rgba(132,96,229,0) 100%); }
 .hib-campaign--recorte .hib-campaign__media::before { display: none; }
 .hib-campaign--recorte .hib-campaign__media::after { left: 8%; right: 8%; bottom: 0; height: 26px; background: radial-gradient(closest-side, rgba(59,23,130,0.3), rgba(59,23,130,0)); }
 .hib-campaign--recorte ul { gap: 6px; padding: 0; border: 0; }
@@ -624,21 +616,19 @@ const CAMPAIGN_RICH_CSS = `
   backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: transform 150ms ease, background 150ms ease; }
 .hib-campaign--recorte li:hover, .hib-campaign--hero .hib-campaign__copy li:hover { transform: translateX(2px); background: #fff; }
 
-/* C · Protagonista: panel morado en diagonal (mismo morado de «Un solo pago»); la máquina rompe el corte. */
+/* C · Protagonista: panel lila claro en diagonal (lineal, dentro del sistema); la máquina rompe el corte. */
 .hib-campaign--hero { isolation: isolate; grid-template-columns: minmax(0, 1fr) 300px; }
 .hib-campaign--hero h2 { font-size: 21px; line-height: 24px; }
 .hib-campaign--hero::before { content: ""; position: absolute; z-index: -1; top: 0; right: 0; bottom: 0; width: 40%; clip-path: polygon(22% 0, 100% 0, 100% 100%, 0 100%);
-  background: radial-gradient(60% 80% at 30% 110%, rgb(239 133 46 / 75%), transparent 70%), linear-gradient(135deg, #4E22A9 0%, #7B4BE3 100%); }
-.hib-campaign--hero::after { content: ""; position: absolute; z-index: -1; right: -70px; top: -110px; width: 260px; height: 230px; border: 36px solid rgb(255 255 255 / 10%); border-radius: 50%; }
+  background: linear-gradient(135deg, #EEE8FF 0%, #DDD2FF 100%); }
+.hib-campaign--hero::after { content: ""; position: absolute; z-index: -1; right: -70px; top: -110px; width: 260px; height: 230px; border: 36px solid rgb(132 96 229 / 8%); border-radius: 50%; }
 .hib-campaign--hero .hib-campaign__media::before { display: none; }
-.hib-campaign--hero .hib-campaign__media::after { left: 10%; right: -6%; bottom: 0; height: 18px; background: radial-gradient(closest-side, rgba(16,4,48,0.45), rgba(16,4,48,0)); }
+.hib-campaign--hero .hib-campaign__media::after { left: 10%; right: -6%; bottom: 0; height: 18px; background: radial-gradient(closest-side, rgba(59,23,130,0.28), rgba(59,23,130,0)); }
 .hib-campaign--hero .hib-campaign__copy ul { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 4px 0 8px; width: 100%; }
 .hib-campaign--hero .hib-campaign__copy li { max-width: none; grid-template-columns: 22px 1fr; padding: 6px 8px 6px 6px; font-size: 11px; }
 
-/* E · Vidrio claro: manchas de color y trama de puntos, para que el panel de vidrio tenga algo que desenfocar. */
-.hib-campaign--claro { isolation: isolate;
-  background: radial-gradient(34% 90% at 66% 30%, rgba(251,196,125,0.6), rgba(251,196,125,0) 100%),
-    radial-gradient(30% 90% at 96% 100%, rgba(132,96,229,0.5), rgba(132,96,229,0) 100%), linear-gradient(100deg, #F6F2FF 0%, #ECE4FF 100%); }
+/* E · Vidrio claro: fondo lineal claro con trama de puntos, para que el panel de vidrio tenga algo que desenfocar. */
+.hib-campaign--claro { isolation: isolate; }
 .hib-campaign--claro::before { content: ""; position: absolute; z-index: -1; inset: 0; background-image: radial-gradient(rgba(91,53,194,0.2) 1px, transparent 1.4px); background-size: 14px 14px;
   -webkit-mask-image: linear-gradient(90deg, transparent 30%, #000 75%); mask-image: linear-gradient(90deg, transparent 30%, #000 75%); }
 .hib-campaign--claro .hib-campaign__media::after { content: ""; position: absolute; left: 10%; right: -60px; bottom: 0; height: 18px; border-radius: 50%; background: radial-gradient(closest-side, rgba(59,23,130,0.3), rgba(59,23,130,0)); }
@@ -649,7 +639,7 @@ const CAMPAIGN_RICH_CSS = `
   .hib-campaign--hero { grid-template-columns: minmax(0, 1fr); }
   .hib-campaign--hero::before, .hib-campaign--hero::after { display: none; }
   .hib-campaign--hero .hib-campaign__media { overflow: hidden; border-radius: 14px; clip-path: polygon(0 14%, 100% 0, 100% 100%, 0 100%);
-    background: radial-gradient(60% 80% at 20% 110%, rgb(239 133 46 / 75%), transparent 70%), linear-gradient(135deg, #4E22A9 0%, #7B4BE3 100%); }
+    background: linear-gradient(135deg, #EEE8FF 0%, #DDD2FF 100%); }
   .hib-campaign--hero .hib-campaign__copy ul { grid-template-columns: minmax(0, 1fr); }
 }
 `;
@@ -659,7 +649,7 @@ const BANNER_VIEWS: { id: BannerView; label: string; hint: string }[] = [
   { id: "recorte", label: "A · Recorte", hint: "Excavadora sin fondo sobre el lila" },
   { id: "forma", label: "B · Forma", hint: "Sobre círculo degradado del CTA" },
   { id: "hero", label: "C · Protagonista", hint: "Máquina grande a la derecha, beneficios en fila" },
-  { id: "glass", label: "D · Vidrio oscuro", hint: "Fondo de «Un solo pago», panel de vidrio sobre la máquina" },
+  { id: "glass", label: "D · Anillos", hint: "Fondo claro con anillos lila, panel de vidrio sobre la máquina" },
   { id: "claro", label: "E · Vidrio claro", hint: "Lila con panel de vidrio blanco sobre la máquina" },
 ];
 
@@ -678,7 +668,7 @@ function CampaignBanner({ view }: { view: BannerView }): JSX.Element {
         <h2>Maquinaria que <em>mueve</em> tu negocio</h2>
         <p>Equipos industriales y vehículos de empresas confiables, en un solo lugar.</p>
         {view === "hero" ? points : null}
-        {view === "glass" ? <a className="hib-glass" href="#">Ver maquinaria</a> : <Button variant="primary">Ver maquinaria</Button>}
+        <Button variant="primary">Ver maquinaria</Button>
       </div>
       <div className="hib-campaign__media">
         {view === "panel"
