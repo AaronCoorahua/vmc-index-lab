@@ -37,7 +37,7 @@ export default function HomeIndexRebase() {
   const [feedMode, setFeedMode] = useState(false);
   const [tab, setTab] = useState<"home" | "feed">("home");
   // Variante de VMC ahora en el móvil sin modo Feed (control «VMC ahora · móvil» de la vista celular).
-  const [mview, setMview] = useState<MobileFeedView>("card");
+  const [mview, setMview] = useState<MobileFeedView>("more");
   const [liveOpen, setLiveOpen] = useState(false); // pestaña «En vivo» abierta, o feed abierto desde la franja
 
   useEffect(() => {

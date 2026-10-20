@@ -16,8 +16,8 @@ type PresetId = "a" | "b";
 type MobileFeedView = "card" | "more" | "tabs" | "slot" | "ticker";
 // Versiones de VMC ahora en el móvil (sin modo Feed), para compararlas en el teléfono.
 const MOBILE_FEED_VIEWS: { id: MobileFeedView; label: string; hint: string }[] = [
-  { id: "card", label: "Card en el inicio", hint: "Como hoy: VMC ahora debajo del Tipo de oferta, con su propio scroll" },
-  { id: "more", label: "Card con «Ver más»", hint: "Igual, sin scroll: muestra 2 y «Ver más» suma de a 3" },
+  { id: "card", label: "Card en el inicio", hint: "VMC ahora debajo del Tipo de oferta, con su propio scroll" },
+  { id: "more", label: "Card con «Ver más»", hint: "Por defecto: sin scroll, muestra 2 y «Ver más» suma de a 3" },
   { id: "tabs", label: "Pestañas arriba", hint: "Inicio | En vivo bajo el header, fijas al bajar (recomendada)" },
   { id: "slot", label: "Banner / Feed", hint: "Se alternan en el espacio del banner" },
   { id: "ticker", label: "Franja en vivo", hint: "Una línea con lo último; al tocarla abre el feed" },
@@ -108,8 +108,8 @@ export default function DevicePreview(): JSX.Element {
   const feedRef = useRef(false);
   const preset = useRef<PresetId>("a");
   const [controls, setControls] = useState(false);
-  const [mview, setMview] = useState<MobileFeedView>("card");
-  const mviewRef = useRef<MobileFeedView>("card");
+  const [mview, setMview] = useState<MobileFeedView>("more");
+  const mviewRef = useRef<MobileFeedView>("more");
   // Selectores del teléfono: el bloque informa su estado (hib-state) y el panel envía cambios (hib-set).
   const [phone, setPhone] = useState<Partial<Record<QaKey, string>>>({});
   const desired = useRef<Partial<Record<QaKey, string>>>({});
