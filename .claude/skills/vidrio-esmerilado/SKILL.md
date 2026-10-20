@@ -31,24 +31,25 @@ El objetivo es que cualquiera obtenga **exactamente** los mismos íconos que el 
    Para la captura: `google-chrome --headless=new --window-size=1100,1100 --virtual-time-budget=4000 --screenshot=<skill>/assets/referencia.png file://<skill>/assets/referencia.html`.
    Luego **mira la imagen** y compárala con los demás íconos.
 
-## Íconos de categoría · versión 1 (20/10/2026, para mejorar)
+## Íconos de categoría · versión 2 (21/10/2026)
 
 `vehicular`, `equipos`, `maquinaria`, `materiales` y `articulos` (tarjetas de categoría de la home: Vehicular,
-Equipos diversos, Maquinaria, Materiales, Artículos diversos). Son una **primera versión**: funcionan, pero hay que
-pulirlos antes de usarlos en producción. Maqueta en `assets/categorias-v1.png` (tarjetas a 32 y 40 px).
+Equipos diversos, Maquinaria, Materiales, Artículos diversos). La v2 corrige los «débiles» de la v1 con la regla de
+accesibilidad de abajo: el rasgo que identifica al objeto va en la parte **sólida**. Maqueta en `assets/categorias-v2.png`
+(tarjetas a 32 y 40 px).
 
 Para probarlos: `<Vidrio s="vehicular" size={32} />` dentro de un contenedor `vd-host`. Para regenerar la maqueta,
 usa el mismo comando de la referencia con `scripts/categorias.tsx`, pasando `<skill>/assets` y la ruta del HTML de salida.
 
-| Ícono | Estado | Qué mejorar |
+| Ícono | v2 | Notas |
 |---|---|---|
-| `materiales` | Bien | — |
-| `maquinaria` | Bien a 32+ | A 24 px se empasta. |
-| `articulos` | Bien | El gráfico podría ser otra cosa más «artículo» (caja, etiqueta). |
-| `vehicular` | **Débil** | Casi todo es vidrio claro: se ve pálido y chico. Hacer sólida la cabina (como `auto`). |
-| `equipos` | **Débil** | Se lee como engranaje, no como sierra: el cuerpo debe tener mango de pistola. |
+| `vehicular` | Auto de perfil: cabina y ruedas sólidas, carrocería de vidrio con faro | Antes casi todo vidrio, pálido. |
+| `equipos` | Sierra circular: disco dentado sólido, cuerpo de vidrio con mango de pistola | Antes se leía como engranaje. |
+| `maquinaria` | Excavadora (como la foto de la tarjeta): brazo, cucharón y orugas sólidos, cabina de vidrio | Antes era grúa pórtico. |
+| `materiales` | Sin cambios: dos capas apiladas | — |
+| `articulos` | Caja de vidrio con objetos sólidos que asoman (pelota y un equipo) | Antes laptop con gráfico («estadísticas»). Alternativa: laptop sin gráfico. |
 
-Al mejorarlos: misma receta, mismos colores, comparar con `referencia.png` y regenerar ambas imágenes.
+Al cambiarlos: misma receta, mismos colores, comparar con `referencia.png` y regenerar ambas imágenes.
 
 ## La receta (no la cambies)
 

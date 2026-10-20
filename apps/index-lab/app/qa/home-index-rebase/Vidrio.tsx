@@ -113,23 +113,23 @@ const PARTS: Record<Sec, Parts> = {
     detail: <path d="M26.5 10l8.5 8.5" {...W} strokeWidth={2.5} />,
   },
   // Categorías de oferta (20/10): Vehicular, Equipos diversos, Maquinaria, Materiales y Artículos diversos.
-  // Vehicular: auto de perfil; ruedas sólidas, carrocería de vidrio con ventana.
+  // Vehicular (v2): auto de perfil; cabina y ruedas sólidas (el rasgo que lo identifica), carrocería de vidrio con faro.
   vehicular: {
-    back: <><circle cx="14" cy="34" r="6" /><circle cx="34" cy="34" r="6" /></>,
-    front: <path d="M15 12h14a5 5 0 0 1 4 2l5 7h3a4 4 0 0 1 4 4v5a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3v-6a4 4 0 0 1 4-4h2l2-6a5 5 0 0 1 4-2z" />,
-    detail: <path d="M16 21.5l1.5-4.5h9.5l3.3 4.5z" fill="#fff" />,
+    back: <><path d="M12.5 24l4.6-8.6a4 4 0 0 1 3.5-2.1h8.9a4 4 0 0 1 3.2 1.6L39 24z" /><circle cx="14" cy="35" r="5.5" /><circle cx="34" cy="35" r="5.5" /></>,
+    front: <rect x="4" y="20" width="40" height="14" rx="6" />,
+    detail: <><circle cx="39" cy="25.5" r="2" fill="#fff" /><path d="M21 26.5h5" {...W} strokeWidth={2.5} /><circle cx="14" cy="35" r="2" fill="#fff" /><circle cx="34" cy="35" r="2" fill="#fff" /></>,
   },
-  // Equipos diversos: disco dentado sólido, cuerpo de sierra de vidrio con gatillo.
+  // Equipos diversos (v2): sierra circular; disco dentado sólido detrás, cuerpo de vidrio con mango de pistola.
   equipos: {
-    back: <circle cx="30" cy="30" r="12" stroke="currentColor" strokeWidth={4} strokeDasharray="3.2 2.6" />,
-    front: <rect x="4" y="10" width="29" height="17" rx="6" />,
-    detail: <><circle cx="30" cy="30" r="3.5" fill="#fff" /><path d="M10.5 18.5h10" {...W} strokeWidth={2.5} /></>,
+    back: <path d="M31.0 17.5 L34.6 21.1 L36.2 22.0 L38.3 19.9 L39.2 25.0 L40.0 26.6 L42.9 26.1 L40.6 30.7 L40.3 32.5 L42.9 33.9 L38.3 36.2 L37.0 37.5 L38.3 40.1 L33.3 39.3 L31.5 39.6 L31.0 42.5 L27.4 38.9 L25.8 38.0 L23.7 40.1 L22.8 35.0 L22.0 33.4 L19.1 33.9 L21.4 29.3 L21.7 27.5 L19.1 26.1 L23.7 23.8 L25.0 22.5 L23.7 19.9 L28.7 20.7 L30.5 20.4Z" />,
+    front: <path d="M9 8h16a6 6 0 0 1 6 6v4a6 6 0 0 1-6 6h-5.5l-3.6 12.4A3 3 0 0 1 13 38.6h-2.6a2.5 2.5 0 0 1-2.4-3.2L11.3 24H9a5 5 0 0 1-5-5v-6a5 5 0 0 1 5-5z" />,
+    detail: <><circle cx="31" cy="30" r="3" fill="#fff" /><path d="M10 14.5h9" {...W} strokeWidth={2.5} /></>,
   },
-  // Maquinaria: grúa pórtico; cable, gancho y base sólidos, torre y pluma de vidrio.
+  // Maquinaria (v2): excavadora como la foto de la categoría; brazo, cucharón y orugas sólidos, cabina de vidrio.
   maquinaria: {
-    back: <><path d="M33 13v12" fill="none" stroke="currentColor" strokeWidth={4} strokeLinecap="round" /><path d="M33 26a5 5 0 1 1-5 5" fill="none" stroke="currentColor" strokeWidth={4} strokeLinecap="round" /><rect x="3" y="37" width="20" height="6" rx="3" /></>,
-    front: <><rect x="4" y="6" width="40" height="9" rx="4.5" /><rect x="8" y="6" width="10" height="34" rx="4" /></>,
-    detail: <path d="M13 19v15M25 10.5h12" {...W} strokeWidth={2.5} />,
+    back: <><path d="M27 23L35 11l7 8" fill="none" stroke="currentColor" strokeWidth={4.5} strokeLinecap="round" strokeLinejoin="round" /><path d="M38.5 19.5h7l-1.6 6.5a2 2 0 0 1-1.9 1.5h-3.5z" /><rect x="3" y="36" width="30" height="8" rx="4" /></>,
+    front: <path d="M17 10h9a3 3 0 0 1 3 3v24H6v-11a4 4 0 0 1 4-4h4v-9a3 3 0 0 1 3-3z" />,
+    detail: <><rect x="19.5" y="13" width="6.5" height="6" rx="1.5" fill="#fff" /><g fill="#fff"><circle cx="10" cy="40" r="1.8" /><circle cx="18" cy="40" r="1.8" /><circle cx="26" cy="40" r="1.8" /></g></>,
   },
   // Materiales: dos capas apiladas; la de abajo sólida, la de arriba de vidrio.
   materiales: {
@@ -137,11 +137,11 @@ const PARTS: Record<Sec, Parts> = {
     front: <path d="M21.6 8.2a5 5 0 0 1 4.8 0l16.4 8.4a1.6 1.6 0 0 1 0 2.8l-16.4 8.4a5 5 0 0 1-4.8 0L5.2 19.4a1.6 1.6 0 0 1 0-2.8z" />,
     detail: <path d="M17 18l7-3.5 7 3.5" {...W} strokeWidth={2.5} />,
   },
-  // Artículos diversos: laptop; base sólida, pantalla de vidrio con gráfico.
+  // Artículos diversos (v2): caja de vidrio con objetos sólidos que asoman (pelota y un equipo), cinta en blanco.
   articulos: {
-    back: <rect x="3" y="33" width="42" height="8" rx="4" />,
-    front: <rect x="8" y="8" width="32" height="29" rx="5" />,
-    detail: <path d="M15 26l5-5 4 4 8-8" {...W} strokeWidth={2.5} />,
+    back: <><circle cx="15" cy="11" r="7" /><rect x="26" y="3" width="11" height="17" rx="3" transform="rotate(14 31.5 11.5)" /></>,
+    front: <><rect x="5" y="15" width="38" height="8" rx="3" /><path d="M8 25h32v13a4 4 0 0 1-4 4H12a4 4 0 0 1-4-4z" /></>,
+    detail: <path d="M24 15v8M19 32h10" {...W} strokeWidth={2.5} />,
   },
   // Banner de maquinaria de la home (vmc-index-lab, 21/10): empresa, verificado y crecimiento.
   // Empresa: ala sólida a la derecha, edificio de vidrio delante con ventanas y puerta.
