@@ -7,7 +7,7 @@
  * de las cards del homepage. Si se aprueban, deberían subir a Concorde como componentes propios.
  *
  *   · FichaCard     «Ficha»: foto con contador y puntos + datos del lote. En vivo: barra de avance,
- *                   «Empieza en» y precio base con el SubasCoin. Negociable: grilla de datos, ubicación,
+ *                   «Empieza en» y precio actual con el SubasCoin. Negociable: grilla de datos, ubicación,
  *                   precio y aviso «Negociable · Contacta al vendedor».
  *   · ImmersiveCard «Inmersiva»: foto a toda la card, datos sobre degradado oscuro (md / sm).
  *   · SummaryCard   «Resumen»: foto, título centrado, datos en una línea, Ofertas / Visitas y precio base.
@@ -20,9 +20,8 @@
  *   · GlassCard     «Cristal»: marco con degradado morado/lila, foto con borde y reflejo de vidrio y el
  *                   precio en una cápsula de vidrio.
  */
-import { useId } from "react";
+import { useId, useState } from "react";
 import type { JSX, PointerEvent } from "react";
-import { LikeButton } from "@vmc/concorde-adapter";
 
 export type LotData = {
   name: string; year: number; price?: string; variant: "live" | "negotiable"; live?: boolean; imageSrc: string;
@@ -44,20 +43,19 @@ const CSS = `
 /* Pills (estado / destacado) y like */
 .lc-pills { position: absolute; top: 8px; left: 8px; z-index: 2; display: flex; gap: 4px; }
 .lc-pill { display: inline-flex; align-items: center; gap: 5px; height: 22px; padding: 0 9px 0 7px; border-radius: 999px; color: #fff;
-  font-size: 11px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; box-shadow: rgba(0,0,0,0.18) 0 2px 6px; }
+  font-size: 10px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; box-shadow: rgba(0,0,0,0.18) 0 2px 6px; }
 .lc-pill--live { background: linear-gradient(135deg, #ff9639 0%, #ef852e 40%, #be3d00 100%); }
 .lc-pill--live i { width: 6px; height: 6px; border-radius: 50%; background: #fff; }
+.lc-pill--negotiable { background: linear-gradient(135deg, #00DAE0 0%, #008688 100%); }
 .lc-pill--featured { background: linear-gradient(135deg, #8460e5 0%, #3b1782 100%); padding: 0 9px; }
-.lc-likepos { position: absolute; top: 8px; right: 8px; z-index: 2; display: grid; place-items: center; }
+.lc-like { position: absolute; top: 8px; right: 8px; z-index: 2; display: grid; place-items: center; width: 28px; height: 28px; padding: 0;
+  border: 0; border-radius: 50%; color: #6b3fe0; background: #fff; box-shadow: rgba(32,0,104,0.18) 0 2px 8px; cursor: pointer; }
 
 /* Foto con contador y puntos */
 .lc-media { position: relative; flex: none; height: 132px; background: #ECEAF3; }
 .lc-media > img { display: block; width: 100%; height: 100%; object-fit: cover; }
-/* La destacada hereda la curva de «Curva» como detalle de la foto. No se cambia el alto ni el encuadre. */
-.lc--featured-curve .lc-media { overflow: hidden; border-bottom-right-radius: 100% 44px; }
-.lc--featured-curve .lc-media > img { object-position: center; }
 .lc-count { position: absolute; left: 8px; bottom: 8px; display: inline-flex; align-items: center; gap: 4px; height: 20px; padding: 0 7px;
-  border-radius: 6px; font-size: 11px; font-weight: 700; color: #fff; background: rgba(16,0,48,0.6); }
+  border-radius: 6px; font-size: 10px; font-weight: 700; color: #fff; background: rgba(16,0,48,0.6); }
 .lc-dots { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); display: flex; gap: 4px; }
 .lc-dots i { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.55); }
 .lc-dots i:first-child { background: #fff; }
@@ -65,20 +63,20 @@ const CSS = `
 /* Ficha */
 .lc-body { flex: 1; display: flex; flex-direction: column; gap: 8px; padding: 10px 10px 16px; }
 .lc-name { margin: 0; font-size: 16px; font-weight: 800; line-height: 1.15; color: #1b1442; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.lc-sub { margin: 2px 0 0; font-size: 12px; color: #6b6880; }
+.lc-sub { margin: 2px 0 0; font-size: 11px; color: #6b6880; }
 .lc-chips { display: flex; flex-wrap: wrap; gap: 4px; }
-.lc-chip { display: inline-flex; align-items: center; gap: 3px; padding: 3px 6px; border: 1px solid #E3E1EC; border-radius: 6px; font-size: 10.5px; color: #3f3f4a; }
-.lc-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 11.5px; line-height: 1.2; color: #3f3f4a; }
+.lc-chip { display: inline-flex; align-items: center; gap: 3px; padding: 3px 6px; border: 1px solid #E3E1EC; border-radius: 6px; font-size: 9.5px; color: #3f3f4a; }
+.lc-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 10.5px; line-height: 1.2; color: #3f3f4a; }
 .lc-stats span { display: flex; align-items: center; gap: 4px; }
 .lc-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
-.lc-tile { display: grid; justify-items: center; gap: 2px; padding: 5px 2px; border-radius: 6px; font-size: 10.5px; text-align: center; color: #3f3f4a; background: #F5F3FB; }
-.lc-meta { display: flex; flex-wrap: wrap; gap: 4px 8px; font-size: 11px; color: #3f3f4a; }
+.lc-tile { display: grid; justify-items: center; gap: 2px; padding: 5px 2px; border-radius: 6px; font-size: 9.5px; text-align: center; color: #3f3f4a; background: #F5F3FB; }
+.lc-meta { display: flex; flex-wrap: wrap; gap: 4px 8px; font-size: 10px; color: #3f3f4a; }
 .lc-meta span { display: inline-flex; align-items: center; gap: 3px; }
-.lc-label { margin: 0; font-size: 11.5px; color: #6b6880; display: flex; align-items: center; gap: 4px; }
+.lc-label { margin: 0; font-size: 10.5px; color: #6b6880; display: flex; align-items: center; gap: 4px; }
 .lc-price { margin: 0; font-size: 20px; font-weight: 800; line-height: 1.1; color: #4c1ebc; white-space: nowrap; }
 .lc-bar { height: 6px; border-radius: 3px; background: #ECEAF3; overflow: hidden; }
 .lc-bar > i { display: block; height: 100%; border-radius: 3px; background: linear-gradient(90deg, #ff9639 0%, #ef852e 60%, #be3d00 100%); }
-.lc-time { display: flex; align-items: center; gap: 4px; font-size: 11.5px; color: #3f3f4a; }
+.lc-time { display: flex; align-items: center; gap: 4px; font-size: 10.5px; color: #3f3f4a; }
 .lc-pricerow { display: flex; align-items: center; gap: 8px; }
 .lc-pricerow .lc-label { margin-bottom: 1px; }
 .lc-offer { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 800; color: #00777A; }
@@ -94,46 +92,27 @@ const CSS = `
 .lc-imm__year { font-size: 12px; color: rgba(255,255,255,0.75); }
 .lc-imm__price { display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 17px; font-weight: 800; white-space: nowrap; }
 .lc-imm__neg { margin-top: 6px; font-size: 13px; font-weight: 700; color: #7CF3F5; }
-.lc--sm .lc-pill { height: 18px; font-size: 10px; padding: 0 7px 0 6px; }
-.lc--sm .lc-likepos { top: 6px; right: 6px; }
-.lc--sm .lc-likepos .clike { width: 22px !important; height: 22px !important; }
-.lc--sm .lc-likepos .clike svg { width: 12px; height: 12px; }
+.lc--sm .lc-pill { height: 18px; font-size: 8.5px; padding: 0 7px 0 6px; }
+.lc--sm .lc-like { width: 22px; height: 22px; top: 6px; right: 6px; }
+.lc--sm .lc-like svg { width: 12px; height: 12px; }
 .lc--sm .lc-pills { top: 6px; left: 6px; }
 .lc--sm .lc-imm__info { padding: 0 9px 12px; }
 .lc--sm .lc-imm__info .lc-dots { margin-bottom: 6px; }
 .lc--sm .lc-imm__name { font-size: 13.5px; }
-.lc--sm .lc-imm__year { font-size: 11px; }
+.lc--sm .lc-imm__year { font-size: 10px; }
 .lc--sm .lc-imm__price { margin-top: 3px; font-size: 12.5px; gap: 4px; }
-.lc--sm .lc-imm__neg { margin-top: 3px; font-size: 12px; }
-
-/* Curva compacta: variante para las cards secundarias de la galería. La foto cierra con
-   una curva asimétrica, mientras título, año y valor quedan siempre sobre blanco. */
-.lc--compact-curve { min-height: 170px; border-radius: 9px; box-shadow: rgba(31, 14, 77, 0.12) 0 5px 13px; }
-.lc-compact-curve__media { position: relative; flex: none; height: 76px; overflow: hidden; background: #ECEAF3; border-bottom-right-radius: 100% 28px; }
-.lc-compact-curve__media > img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.lc-compact-curve__media::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(135deg, rgba(255,255,255,0.18), transparent 45%); }
-.lc-compact-curve__body { position: relative; display: flex; flex: 1; flex-direction: column; gap: 3px; padding: 7px 8px 10px; }
-.lc-compact-curve__name { margin: 0; overflow: hidden; color: #3B1782; font-size: 13.5px; font-weight: 800; line-height: 1.15; text-overflow: ellipsis; white-space: nowrap; }
-.lc-compact-curve__meta { display: flex; align-items: center; gap: 4px; color: #615D73; font-size: 10.5px; line-height: 1.15; }
-.lc-compact-curve__meta i { width: 3px; height: 3px; border-radius: 50%; background: #A7A1B7; }
-.lc-compact-curve__footer { display: flex; align-items: center; justify-content: flex-start; gap: 4px; margin-top: auto; padding-top: 5px; border-top: 1px solid #F0EDF7; color: #4C1EBC; font-size: 11px; font-weight: 800; white-space: nowrap; }
-.lc-compact-curve__footer > span { overflow: hidden; text-overflow: ellipsis; }
-.lc-compact-curve__footer svg { flex: none; color: #8460E5; }
-.lc-compact-curve__base-price { display: inline-flex; align-items: center; gap: 4px; min-width: 0; }
-.lc--negotiable .lc-compact-curve__footer { color: #007E83; }
-.lc-compact-curve__status { color: #8A56E8; font-size: 9.5px; font-weight: 800; letter-spacing: 0.03em; text-transform: uppercase; }
-.lc--live .lc-compact-curve__status { color: #D95412; }
+.lc--sm .lc-imm__neg { margin-top: 3px; font-size: 11px; }
 /* Resumen */
 .lc-sum { flex: 1; display: flex; flex-direction: column; text-align: center; padding-bottom: 6px; }
 .lc-sum__head { padding: 10px 10px 8px; }
 .lc-sum__title { margin: 0; font-size: 15px; font-weight: 800; line-height: 1.2; color: #1b1442; }
-.lc-sum__specs { margin: 4px 0 0; font-size: 11px; line-height: 1.35; color: #3f3f4a; }
+.lc-sum__specs { margin: 4px 0 0; font-size: 10px; line-height: 1.35; color: #3f3f4a; }
 .lc-sum__stats { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid #ECEAF3; border-bottom: 1px solid #ECEAF3; }
-.lc-sum__stats span { display: grid; align-content: space-between; gap: 1px; padding: 7px 4px; font-size: 11px; line-height: 1.2; color: #6b6880; } /* números a la misma altura aunque la etiqueta ocupe 2 líneas */
+.lc-sum__stats span { display: grid; align-content: space-between; gap: 1px; padding: 7px 4px; font-size: 10px; line-height: 1.2; color: #6b6880; } /* números a la misma altura aunque la etiqueta ocupe 2 líneas */
 .lc-sum__stats span + span { border-left: 1px solid #ECEAF3; }
 .lc-sum__stats b { font-size: 13px; color: #1b1442; }
 .lc-sum__price { flex: 1; display: grid; align-content: center; justify-items: center; gap: 2px; padding: 8px 8px 10px; }
-.lc-sum__price small { font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em; color: #6b6880; }
+.lc-sum__price small { font-size: 9.5px; font-weight: 700; letter-spacing: 0.06em; color: #6b6880; }
 .lc-sum__price span { display: inline-flex; align-items: center; gap: 6px; }
 .lc-sum__price .lc-price { font-size: 19px; }
 /* Relieve: el fondo de la card es el degradado de estado y el cuerpo blanco, redondeado abajo, deja ver una
@@ -177,7 +156,7 @@ const CSS = `
   box-shadow: 0 0 0 1px rgba(255,255,255,0.45), 0 10px 20px -10px rgba(0,0,0,0.35); }
 .lc--glass .lc-media::after { content: ""; position: absolute; inset: 2px; border-radius: 12px; pointer-events: none;
   background: linear-gradient(125deg, rgba(255,255,255,0.32) 0%, rgba(255,255,255,0.06) 26%, transparent 27%); }
-.lc--glass .lc-pills, .lc--glass .lc-likepos { z-index: 3; }
+.lc--glass .lc-pills, .lc--glass .lc-like { z-index: 3; }
 .lc-glass { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; gap: 2px; padding: 16px 6px 2px; }
 .lc-glass .lc-name { font-size: 18px; font-weight: 800; color: #12133F; }
 .lc-glass .lc-sub { font-size: 13px; color: #4A4F6A; }
@@ -194,15 +173,15 @@ const CSS = `
 .lc-cta:hover { filter: brightness(1.06); transform: translateY(-1px); }
 .lc-cta:focus-visible { outline: 2px solid #3b1782; outline-offset: 2px; }
 .lc--negotiable .lc-cta { background: linear-gradient(135deg, #00DAE0 0%, #008688 100%); box-shadow: rgba(0,168,171,0.3) 0 4px 12px; }
-.lc-inline { margin: 0; font-size: 11.5px; line-height: 1.35; color: #3f3f4a; }
+.lc-inline { margin: 0; font-size: 10.5px; line-height: 1.35; color: #3f3f4a; }
 .lc-countdown { position: absolute; left: 8px; right: 8px; bottom: 8px; display: flex; align-items: center; justify-content: space-between; gap: 6px;
-  padding: 5px 8px; border-radius: 8px; color: #fff; font-size: 11px; background: rgba(16,0,48,0.62); backdrop-filter: blur(6px); }
+  padding: 5px 8px; border-radius: 8px; color: #fff; font-size: 10px; background: rgba(16,0,48,0.62); backdrop-filter: blur(6px); }
 .lc-countdown b { font-size: 12px; font-variant-numeric: tabular-nums; }
 .lc-countdown i { display: block; height: 3px; margin-top: 3px; border-radius: 2px; background: rgba(255,255,255,0.25); overflow: hidden; }
 .lc-countdown i > span { display: block; height: 100%; background: linear-gradient(90deg, #ff9639, #ef852e); }
 .lc-specs3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
-.lc-specs3 span { display: grid; justify-items: center; gap: 2px; padding: 5px 2px; border-radius: 6px; font-size: 10.5px; text-align: center; color: #3f3f4a; background: #F5F3FB; }
-.lc-social { display: flex; flex-wrap: wrap; gap: 2px 10px; font-size: 11.5px; color: #3f3f4a; }
+.lc-specs3 span { display: grid; justify-items: center; gap: 2px; padding: 5px 2px; border-radius: 6px; font-size: 9.5px; text-align: center; color: #3f3f4a; background: #F5F3FB; }
+.lc-social { display: flex; flex-wrap: wrap; gap: 2px 10px; font-size: 10.5px; color: #3f3f4a; }
 .lc-social span { display: inline-flex; align-items: center; gap: 4px; }
 .lc-social b { color: #1b1442; }
 .lc-pricerow--big .lc-price { font-size: 22px; }
@@ -211,11 +190,11 @@ const CSS = `
 .lp .lc-count, .lp .lc-dots { z-index: 2; }
 .lp .lc-body { position: relative; z-index: 1; gap: 9px; padding: 12px 8px 18px 10px; }
 .lp .lc-name { font-size: 17px; }
-.lp .lc-sub { font-size: 12px; }
+.lp .lc-sub { font-size: 11.5px; }
 .lp .lc-chips { flex-wrap: nowrap; gap: 4px; }
-.lp .lc-chip { gap: 3px; padding: 4px 5px; border-radius: 8px; font-size: 10.5px; white-space: nowrap; }
-.lp .lc-stats { gap: 4px; font-size: 11.5px; white-space: nowrap; }
-.lp .lc-pill { gap: 4px; padding: 0 7px 0 6px; font-size: 10px; }
+.lp .lc-chip { gap: 3px; padding: 4px 5px; border-radius: 8px; font-size: 9.5px; white-space: nowrap; }
+.lp .lc-stats { gap: 4px; font-size: 10.5px; white-space: nowrap; }
+.lp .lc-pill { gap: 4px; padding: 0 7px 0 6px; font-size: 9px; }
 .lp .lc-pill svg { flex: none; }
 .lp-arrow { position: absolute; top: 50%; z-index: 2; transform: translateY(-50%); display: grid; place-items: center; width: 24px; height: 24px; padding: 0;
   border: 0; border-radius: 50%; color: #fff; background: rgba(16,0,48,0.42); backdrop-filter: blur(4px); cursor: pointer; }
@@ -234,7 +213,7 @@ const CSS = `
 .lp--curva::before { content: ""; position: absolute; right: -25%; bottom: -8%; width: 80%; height: 28%; border-radius: 50%; pointer-events: none;
   background: radial-gradient(closest-side, rgba(255,150,57,0.55), rgba(255,150,57,0.18) 60%, transparent); filter: blur(10px); }
 .lp-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-.lp-tiles span { display: grid; justify-items: center; gap: 2px; min-width: 0; padding: 6px 3px; border-radius: 8px; font-size: 10.5px; color: #3f3f4a;
+.lp-tiles span { display: grid; justify-items: center; gap: 2px; min-width: 0; padding: 6px 3px; border-radius: 8px; font-size: 9.5px; color: #3f3f4a;
   background: #fff; border: 1px solid #EEEAF6; box-shadow: rgba(32,0,104,0.06) 0 2px 6px; white-space: nowrap; }
 .lp--curva .lp-price { padding: 6px 12px 6px 6px; border-radius: 999px; background: #fff; box-shadow: rgba(32,0,104,0.12) 0 4px 14px; }
 .lp--curva .lp-price .lc-price { font-size: 19px; }
@@ -269,8 +248,8 @@ const CSS = `
 .lg .lc-pill svg { flex: none; }
 .lg .lc-body { padding: 12px 8px 14px 10px; }
 .lg .lc-chips { flex-wrap: nowrap; gap: 4px; }
-.lg .lc-chip { gap: 3px; padding: 4px 5px; font-size: 10.5px; white-space: nowrap; }
-.lg .lc-stats { gap: 4px; font-size: 11.5px; white-space: nowrap; }
+.lg .lc-chip { gap: 3px; padding: 4px 5px; font-size: 9.5px; white-space: nowrap; }
+.lg .lc-stats { gap: 4px; font-size: 10.5px; white-space: nowrap; }
 .lg-in { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
 .lg-shine { position: absolute; top: 0; left: 0; z-index: 1; width: 35%; height: 100%; pointer-events: none;
   background: linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent); animation: lg-sweep 4.5s ease-in-out infinite; }
@@ -287,7 +266,7 @@ const CSS = `
   background: linear-gradient(90deg, #BE3D00 0%, #FF9639 25%, #FFD3A1 50%, #FF9639 75%, #BE3D00 100%); background-size: 200% 100%;
   animation: lg-shimmer 3.5s linear infinite; text-shadow: 0 1px 2px rgba(120,40,0,0.45); }
 .lc--negotiable .lg-plaque { background-image: linear-gradient(90deg, #00777A 0%, #00DAE0 25%, #B9FBFC 50%, #00DAE0 75%, #00777A 100%); text-shadow: 0 1px 2px rgba(0,80,82,0.5); }
-.lg-plaque small { display: block; font-size: 10.5px; font-weight: 600; opacity: 0.92; }
+.lg-plaque small { display: block; font-size: 9.5px; font-weight: 600; opacity: 0.92; }
 .lg-plaque b { display: block; font-size: 18px; font-weight: 800; line-height: 1.1; white-space: nowrap; }
 .lc--negotiable .lg-plaque b { font-size: 14px; }
 
@@ -334,7 +313,7 @@ const CSS = `
 .lg-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; }
 .lg-stats span { display: flex; align-items: baseline; gap: 4px; }
 .lg-stats b { min-width: 30px; font-size: 14px; font-weight: 900; text-align: right; color: #fff; }
-.lg-stats small { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; color: #FFD3A1; }
+.lg-stats small { font-size: 9px; font-weight: 700; letter-spacing: 0.08em; color: #FFD3A1; }
 .lc--negotiable .lg-stats small { color: #7CF3F5; }
 .lg--elite .lc-pricerow { justify-content: center; }
 .lg-neon { position: relative; flex: none; height: 3px; margin: 0 14px 9px; border-radius: 3px; overflow: hidden;
@@ -351,7 +330,75 @@ const CSS = `
 .lg--elite .lc-label { color: rgba(255,255,255,0.7); }
 .lg--elite .lc-offer { color: #5CF0F3; }
 .lg--leyenda .lc-body { position: relative; z-index: 1; }
-@media (prefers-reduced-motion: reduce) { .lc { transition: none; } }
+/* ── Holo curva (default de la galería, réplica de vmc-index-final-review) ── */
+.clike { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 9999px;
+  border: 1.44px solid transparent;
+  background-image: linear-gradient(#ffffff, #ffffff), linear-gradient(135deg, #e8ddff 0%, #ffffff 40%, #cfbaff 75%, #ae8eff 100%);
+  background-origin: padding-box, border-box; background-clip: padding-box, border-box;
+  cursor: pointer; padding: 2px; position: relative; overflow: hidden; box-shadow: rgba(132, 96, 229, 0.14) 0px 2px 8px;
+  transition: transform 0.15s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.2s; flex-shrink: 0; outline: none; }
+.clike::before { content: ""; position: absolute; inset: 0; border-radius: 9999px; background: linear-gradient(rgba(255, 255, 255, 0.55) 0%, transparent 50%); pointer-events: none; z-index: 1; }
+.clike svg { position: relative; z-index: 2; }
+.clike:hover { transform: scale(1.1) translateY(-1px); box-shadow: rgba(32, 0, 104, 0.2) 0px 6px 14px; }
+.clike:active { transform: scale(0.92); }
+.clike--active { background-image: linear-gradient(135deg, #8460e5 0%, #3b1782 100%), linear-gradient(135deg, #fbc47d 0%, #fbc47d 100%);
+  box-shadow: rgba(132, 96, 229, 0.35) 0px 2px 8px, inset 0px 1px 0px rgba(255, 255, 255, 0.22); }
+.clike--pop svg { animation: clike-pop 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) 1; }
+@keyframes clike-pop { 0% { transform: scale(1); } 35% { transform: scale(1.4); } 65% { transform: scale(0.85); } 85% { transform: scale(1.1); } 100% { transform: scale(1); } }
+.clike:focus-visible { outline: 2px solid oklch(0.62 0.20 285); outline-offset: 2px; }
+.lc-likepos { position: absolute; top: 8px; right: 8px; z-index: 2; display: grid; place-items: center; }
+/* La destacada hereda la curva de «Curva» como detalle de la foto. */
+.lc--featured-curve .lc-media { overflow: hidden; border-bottom-right-radius: 100% 44px; }
+.lc--featured-curve .lc-media > img { object-position: center; }
+/* Curva compacta: cards secundarias de la galería. */
+.lc--compact-curve { min-height: 170px; border-radius: 9px; box-shadow: rgba(31, 14, 77, 0.12) 0 5px 13px; }
+.lc-compact-curve__media { position: relative; flex: none; height: 76px; overflow: hidden; background: #ECEAF3; border-bottom-right-radius: 100% 28px; }
+.lc-compact-curve__media > img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.lc-compact-curve__media::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(135deg, rgba(255,255,255,0.18), transparent 45%); }
+.lc-compact-curve__body { position: relative; display: flex; flex: 1; flex-direction: column; gap: 3px; padding: 7px 8px 10px; }
+.lc-compact-curve__name { margin: 0; overflow: hidden; color: #14112B; font-size: 13.5px; font-weight: 800; line-height: 1.15; text-overflow: ellipsis; white-space: nowrap; }
+.lc-compact-curve__meta { display: flex; align-items: center; gap: 4px; color: #615D73; font-size: 10.5px; line-height: 1.15; }
+.lc-compact-curve__meta i { width: 3px; height: 3px; border-radius: 50%; background: #A7A1B7; }
+.lc-compact-curve__footer { display: flex; align-items: center; justify-content: flex-start; gap: 4px; margin-top: auto; padding-top: 5px; border-top: 1px solid #F0EDF7; color: #4C1EBC; font-size: 11px; font-weight: 800; white-space: nowrap; }
+.lc-compact-curve__footer > span { overflow: hidden; text-overflow: ellipsis; }
+.lc-compact-curve__base-price { display: inline-flex; align-items: center; gap: 4px; min-width: 0; }
+.lc--negotiable .lc-compact-curve__footer { color: #007E83; }
+.lc--compact-curve .lc-likepos .clike { width: 26px !important; height: 26px !important; }
+/* Lote estilo eBay */
+.lc-eb { position: relative; display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 14px; align-items: start; padding: 14px 0; border-bottom: 1px solid #EFEDF5;
+  font-family: var(--vmc-font-display, 'Plus Jakarta Sans', -apple-system, sans-serif); color: #14112B; cursor: pointer; }
+.lc-eb__thumb { display: block; width: 112px; height: 112px; overflow: hidden; border-radius: 14px; background: #F3EFFD; }
+.lc-eb__thumb img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; }
+.lc-eb:hover .lc-eb__thumb img { transform: scale(1.05); }
+.lc-eb__main { display: grid; gap: 3px; min-width: 0; }
+.lc-eb__pill { justify-self: start; display: inline-flex; }
+.lc-eb__title { margin: 3px 0 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13.5px; line-height: 1.2; font-weight: 800; color: #14112B; } /* como el nombre de las cards chicas */
+.lc-eb__who { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 600; color: #8A879C; }
+.lc-eb__price { display: inline-flex; align-items: center; gap: 6px; margin-top: 2px; font-size: 16px; line-height: 1.15; font-weight: 800; letter-spacing: -0.01em; color: #4C1EBC; }
+.lc-eb__offer { margin-top: 2px; font-size: 14px; line-height: 1.15; font-weight: 800; color: #00777A; }
+.lc-eb__rest { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11.5px; font-weight: 600; color: #8A879C; }
+.lc-eb__foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; white-space: nowrap; font-size: 11.5px; font-weight: 600; color: #8A879C; }
+.lc-eb__foot > span:first-child { overflow: hidden; text-overflow: ellipsis; }
+/* Favorito de las filas de listado: siempre arriba a la derecha, lejos del pill de estado. */
+.lc-eb__like { position: absolute; top: 14px; right: 0; z-index: 2; display: grid; place-items: center; }
+/* Listado compacto (Listado gallery): 4 filas junto a la destacada */
+.lc-eb--sm { grid-template-columns: 84px minmax(0, 1fr); gap: 12px; padding: 10px 0; }
+.lc-eb--sm .lc-eb__thumb { width: 84px; height: 84px; border-radius: 12px; }
+.lc-eb--sm .lc-eb__main { gap: 2px; }
+.lc-eb--sm .lc-eb__pill .lc-pill { height: 19px; font-size: 10px; }
+.lc-eb--sm .lc-eb__title { font-size: 13px; }
+.lc-eb--sm .lc-eb__who { display: none; }
+.lc-eb--sm .lc-eb__price { font-size: 15px; }
+.lc-eb--sm .lc-eb__price svg { width: 16px; height: 17px; }
+@media (max-width: 480px) {
+  .lc-eb--sm { grid-template-columns: 76px minmax(0, 1fr); gap: 10px; }
+  .lc-eb--sm .lc-eb__thumb { width: 76px; height: 76px; }
+  .lc-eb__title, .lc-eb__rest { overflow: visible; text-overflow: clip; white-space: normal; }
+  .lc-eb__like { top: 10px; }
+}
+.lc-eb--sm .lc-eb__offer { font-size: 13.5px; }
+.lc-eb--sm .lc-eb__rest, .lc-eb--sm .lc-eb__foot { font-size: 11px; }
+@media (prefers-reduced-motion: reduce) { .lc { transition: none; }  }
 `;
 
 // ─── Íconos (trazo 1.8, color heredado) ───────────────────────────────────────
@@ -403,29 +450,30 @@ function SubasCoin({ size = 28 }: { size?: number }): JSX.Element {
   );
 }
 
-function Pills({ lot, featured, showLiveBadge }: { lot: LotData; featured?: boolean; showLiveBadge?: boolean }): JSX.Element {
+function Pills({ lot, featured }: { lot: LotData; featured?: boolean }): JSX.Element {
   return (
     <span className="lc-pills">
       {featured ? <span className="lc-pill lc-pill--featured">Destacado</span> : null}
-      {showLiveBadge && lot.variant === "live" && lot.live ? <span className="lc-pill lc-pill--live"><i />En vivo</span> : null}
+      {lot.variant === "live"
+        ? (lot.live ? <span className="lc-pill lc-pill--live"><i />En vivo</span> : null)
+        : <span className="lc-pill lc-pill--negotiable">{I.tag}Negociable</span>}
     </span>
   );
 }
-// El like es el «Mini like button» de Concorde (concorde/components/LikeButton.tsx); aquí solo se posiciona sobre la foto.
-const Like = ({ name }: { name: string }) => <span className="lc-likepos"><LikeButton name={name} /></span>;
+const Like = ({ name }: { name: string }) => <button type="button" className="lc-like" aria-label={`Guardar ${name}`} onClick={(e) => e.stopPropagation()}>{I.heart}</button>;
 const Dots = () => <span className="lc-dots" aria-hidden><i /><i /><i /><i /></span>;
 const sizeStyle = (width?: number | string, height?: number | string) => ({ width: width ?? "100%", height: height ?? "auto" });
 
 /** «Ficha»: foto + datos. Se adapta a en vivo / negociable. `mediaFill` estira la foto para llenar el alto. */
-export function FichaCard({ lot, featured, showLiveBadge, width, height, mediaFill }: {
-  lot: LotData; featured?: boolean; showLiveBadge?: boolean; width?: number | string; height?: number | string; mediaFill?: boolean;
+export function FichaCard({ lot, featured, width, height, mediaFill }: {
+  lot: LotData; featured?: boolean; width?: number | string; height?: number | string; mediaFill?: boolean;
 }): JSX.Element {
   const live = lot.variant === "live";
   return (
-    <article className={`lc lc--${lot.variant}${featured ? " lc--featured-curve" : ""}`} style={sizeStyle(width, height)} aria-label={`${lot.name} ${lot.year}`}>
+    <article className={`lc lc--${lot.variant}`} style={sizeStyle(width, height)} aria-label={`${lot.name} ${lot.year}`}>
       <div className="lc-media" style={mediaFill ? { flex: 1, minHeight: 132 } : undefined}>
         <img src={lot.imageSrc} alt="" />
-        <Pills lot={lot} featured={featured} showLiveBadge={showLiveBadge} />
+        <Pills lot={lot} featured={featured} />
         <Like name={lot.name} />
         <span className="lc-count">{I.camera}1/{lot.photos}</span>
         <Dots />
@@ -438,7 +486,7 @@ export function FichaCard({ lot, featured, showLiveBadge, width, height, mediaFi
           <div className="lc-bar" aria-hidden><i style={{ width: `${Math.round((lot.progress ?? 0.4) * 100)}%` }} /></div>
           <span className="lc-time">{I.clock}Empieza en {lot.remaining ?? "02:10:00"}</span>
           <span className="lc-spacer" />
-          <div className="lc-pricerow"><SubasCoin /><div><p className="lc-label">Precio base</p><p className="lc-price">{lot.price ?? "Por definir"}</p></div></div>
+          <div className="lc-pricerow"><SubasCoin /><div><p className="lc-label">{lot.price ? "Precio actual" : "Precio base"}</p><p className="lc-price">{lot.price ?? "Por definir"}</p></div></div>
         </> : <>
           <div className="lc-tiles">
             <span className="lc-tile">{I.gauge}{lot.km}</span><span className="lc-tile">{I.gear}{lot.transmission}</span>
@@ -463,8 +511,8 @@ export type FichaLayout = "cta" | "precio" | "cuenta" | "compacta" | "social";
  *  · compacta  menos texto: 3 specs con ícono, sin barra; precio + botón.
  *  · social    prueba social: ofertas y visitas junto a la cuenta regresiva.
  */
-export function FichaPlus({ lot, layout, featured, showLiveBadge, width, height, mediaFill }: {
-  lot: LotData; layout: FichaLayout; featured?: boolean; showLiveBadge?: boolean; width?: number | string; height?: number | string; mediaFill?: boolean;
+export function FichaPlus({ lot, layout, featured, width, height, mediaFill }: {
+  lot: LotData; layout: FichaLayout; featured?: boolean; width?: number | string; height?: number | string; mediaFill?: boolean;
 }): JSX.Element {
   const live = lot.variant === "live";
   const head = <div><p className="lc-name">{lot.name}</p><p className="lc-sub">{layout === "compacta" ? lot.year : `${lot.year} · ${lot.kind}`}</p></div>;
@@ -476,7 +524,7 @@ export function FichaPlus({ lot, layout, featured, showLiveBadge, width, height,
     <span className="lc-time">{I.clock}Empieza en {lot.remaining ?? "02:10:00"}</span>
   </> : null;
   const price = (big?: boolean) => live
-    ? <div className={`lc-pricerow${big ? " lc-pricerow--big" : ""}`}><SubasCoin size={big ? 30 : 28} /><div><p className="lc-label">Precio base</p><p className="lc-price">{lot.price ?? "Por definir"}</p></div></div>
+    ? <div className={`lc-pricerow${big ? " lc-pricerow--big" : ""}`}><SubasCoin size={big ? 30 : 28} /><div><p className="lc-label">{lot.price ? "Precio actual" : "Precio base"}</p><p className="lc-price">{lot.price ?? "Por definir"}</p></div></div>
     : <span className="lc-offer">{I.hands}Haz tu oferta</span>;
   const offers = lot.offers ?? 3 + (lot.name.length % 13);
   const visits = lot.visits ?? 120 + lot.name.length * 17;
@@ -496,10 +544,10 @@ export function FichaPlus({ lot, layout, featured, showLiveBadge, width, height,
     <div className="lc-social"><span>{I.seats}<b>{offers}</b>{live ? "ofertas" : "propuestas"}</span><span>{I.eye}<b>{visits}</b>visitas</span></div>
     {timer}<span className="lc-spacer" />{price()}</>;
   return (
-    <article className={`lc lc--${lot.variant}${featured ? " lc--featured-curve" : ""}`} style={sizeStyle(width, height)} aria-label={`${lot.name} ${lot.year}`}>
+    <article className={`lc lc--${lot.variant}`} style={sizeStyle(width, height)} aria-label={`${lot.name} ${lot.year}`}>
       <div className="lc-media" style={mediaFill ? { flex: 1, minHeight: 132 } : undefined}>
         <img src={lot.imageSrc} alt="" />
-        <Pills lot={lot} featured={featured} showLiveBadge={showLiveBadge} />
+        <Pills lot={lot} featured={featured} />
         <Like name={lot.name} />
         {layout === "cuenta" && live ? (
           <span className="lc-countdown"><span>Empieza en<i><span style={{ width: `${Math.round((lot.progress ?? 0.4) * 100)}%` }} /></i></span><b>{lot.remaining ?? "02:10:00"}</b></span>
@@ -522,26 +570,27 @@ const PI = {
 /**
  * FichaPro — los 4 diseños de la referencia de producto, sobre la estructura de la Ficha:
  * foto (contador, puntos, pills con ícono, corazón) · nombre · año y tipo · transmisión y combustible ·
- * km y asientos · barra + «Empieza en» · SubasCoin + precio base. Negociable: sin barra ni precio,
+ * km y asientos · barra + «Empieza en» · SubasCoin + precio actual. Negociable: sin barra ni precio,
  * «Haz tu oferta».
  *  · clasica   blanca, flechas sobre la foto.
  *  · nocturna  cuerpo azul noche, foto con tono atardecer y ola naranja/magenta abajo.
  *  · curva     foto con borde curvo, datos en 4 cajitas y precio en cápsula con brillo naranja.
  *  · fundido   la foto se funde en azul noche y el texto va encima.
  */
-export function FichaPro({ lot, theme, featured, showLiveBadge, width, height, mediaFill }: {
-  lot: LotData; theme: ProTheme; featured?: boolean; showLiveBadge?: boolean; width?: number | string; height?: number | string; mediaFill?: boolean;
+export function FichaPro({ lot, theme, featured, width, height, mediaFill }: {
+  lot: LotData; theme: ProTheme; featured?: boolean; width?: number | string; height?: number | string; mediaFill?: boolean;
 }): JSX.Element {
   const live = lot.variant === "live";
   const waveId = `lp-wave${useId().replace(/:/g, "")}`;
   return (
-    <article className={`lc lp lp--${theme} lc--${lot.variant}${featured ? " lc--featured-curve" : ""}`} style={sizeStyle(width, height)} aria-label={`${lot.name} ${lot.year}`}>
+    <article className={`lc lp lp--${theme} lc--${lot.variant}`} style={sizeStyle(width, height)} aria-label={`${lot.name} ${lot.year}`}>
       {theme === "fundido" ? <><img className="lp-bg" src={lot.imageSrc} alt="" /><span className="lp-shade" aria-hidden /></> : null}
       <div className="lc-media" style={mediaFill ? { flex: 1, minHeight: 150 } : undefined}>
         {theme === "fundido" ? null : <img src={lot.imageSrc} alt="" />}
         <span className="lc-pills">
           {featured ? <span className="lc-pill lc-pill--featured">{PI.star}Destacado</span> : null}
-          {showLiveBadge && live && lot.live ? <span className="lc-pill lc-pill--live">{PI.live}En vivo</span> : null}
+          {live ? (lot.live ? <span className="lc-pill lc-pill--live">{PI.live}En vivo</span> : null)
+            : <span className="lc-pill lc-pill--negotiable">{I.tag}Negociable</span>}
         </span>
         <Like name={lot.name} />
         {theme === "clasica" ? <>
@@ -568,7 +617,7 @@ export function FichaPro({ lot, theme, featured, showLiveBadge, width, height, m
         </> : null}
         <span className="lc-spacer" />
         {live
-          ? <div className="lc-pricerow lp-price"><SubasCoin size={30} /><div><p className="lc-label">Precio base</p><p className="lc-price">{lot.price ?? "Por definir"}</p></div></div>
+          ? <div className="lc-pricerow lp-price"><SubasCoin size={30} /><div><p className="lc-label">{lot.price ? "Precio actual" : "Precio base"}</p><p className="lc-price">{lot.price ?? "Por definir"}</p></div></div>
           : <span className="lc-offer">{I.hands}Haz tu oferta</span>}
       </div>
       {theme === "nocturna" ? (
@@ -609,20 +658,23 @@ function eliteStats(lot: LotData): [string, string][] {
  *  · elite    carta oscura redondeada con estrellas, el año como «puntaje», stats en siglas
  *             (45K KM · AUT TRA · GAS COM · 5 ASI) y la franja convertida en neón con un pulso de luz.
  */
-export function FichaLegend({ lot, tier, featured, showLiveBadge, width, height, mediaFill }: {
-  lot: LotData; tier: LegendTier; featured?: boolean; showLiveBadge?: boolean; width?: number | string; height?: number | string; mediaFill?: boolean;
+export function FichaLegend({ lot, tier, featured, width, height, mediaFill, curve }: {
+  lot: LotData; tier: LegendTier; featured?: boolean; width?: number | string; height?: number | string; mediaFill?: boolean;
+  /** Holo curva: foto con borde curvo, like de Concorde y «Precio base» (default de la galería). */
+  curve?: boolean;
 }): JSX.Element {
   const live = lot.variant === "live";
   const progress = `${Math.round((lot.progress ?? 0.4) * 100)}%`;
   const pills = (
     <span className="lc-pills">
       {featured ? <span className="lc-pill lc-pill--featured">{PI.star}Destacado</span> : null}
-      {showLiveBadge && live && lot.live ? <span className="lc-pill lc-pill--live">{PI.live}En vivo</span> : null}
+      {live ? (lot.live ? <span className="lc-pill lc-pill--live">{PI.live}En vivo</span> : null)
+        : <span className="lc-pill lc-pill--negotiable">{I.tag}Negociable</span>}
     </span>
   );
   const time = live ? <span className="lc-time">{I.clock}Empieza en {lot.remaining ?? "02:10:00"}</span> : null;
   const price = live
-    ? <div className="lc-pricerow"><SubasCoin size={28} /><div><p className="lc-label">Precio base</p><p className="lc-price">{lot.price ?? "Por definir"}</p></div></div>
+    ? <div className="lc-pricerow"><SubasCoin size={28} /><div><p className="lc-label">{curve || !lot.price ? "Precio base" : "Precio actual"}</p><p className="lc-price">{lot.price ?? "Por definir"}</p></div></div>
     : <span className="lc-offer">{I.hands}Haz tu oferta</span>;
   const head = <div><p className="lc-name">{lot.name}</p><p className="lc-sub">{lot.year} · {lot.kind}</p></div>;
   const chips = <div className="lc-chips"><span className="lc-chip">{I.gear}{lot.transmission}</span><span className="lc-chip">{I.fuel}{lot.fuel}</span></div>;
@@ -641,7 +693,7 @@ export function FichaLegend({ lot, tier, featured, showLiveBadge, width, height,
 
   if (tier === "elite") {
     return (
-      <article className={`lc lg lg--elite lc--${lot.variant}${featured ? " lc--featured-curve" : ""}`} style={sizeStyle(width, height)} aria-label={`${lot.name} ${lot.year}`}>
+      <article className={`lc lg lg--elite lc--${lot.variant}`} style={sizeStyle(width, height)} aria-label={`${lot.name} ${lot.year}`}>
         <div className="lg-in">
           <span className="lg-stars" aria-hidden />
           <div className="lc-media" style={mediaStyle}>
@@ -667,7 +719,7 @@ export function FichaLegend({ lot, tier, featured, showLiveBadge, width, height,
     <div className="lc-media" style={mediaStyle}>
       <img src={lot.imageSrc} alt="" />
       {pills}
-      <Like name={lot.name} />
+      {curve ? <span className="lc-likepos"><Clike name={lot.name} /></span> : <Like name={lot.name} />}
       <span className="lc-count">{I.camera}1/{lot.photos}</span>
       <Dots />
       {tier === "leyenda" ? <span className="lg-shine" aria-hidden /> : null}
@@ -675,7 +727,7 @@ export function FichaLegend({ lot, tier, featured, showLiveBadge, width, height,
   );
   if (tier === "holo") {
     return (
-      <article className={`lc lg lg--holo lc--${lot.variant}${featured ? " lc--featured-curve" : ""}`} style={sizeStyle(width, height)} aria-label={`${lot.name} ${lot.year}`}
+      <article className={`lc lg lg--holo lc--${lot.variant}${curve ? " lc--featured-curve" : ""}`} style={sizeStyle(width, height)} aria-label={`${lot.name} ${lot.year}`}
         onPointerMove={onMove} onPointerLeave={onLeave}>
         {media}
         <div className="lc-body" style={bodyStyle}>{head}{chips}{stats}{time}<span className="lc-spacer" />{price}</div>
@@ -686,7 +738,7 @@ export function FichaLegend({ lot, tier, featured, showLiveBadge, width, height,
     );
   }
   return (
-    <article className={`lc lg lg--leyenda lc--${lot.variant}${featured ? " lc--featured-curve" : ""}`} style={sizeStyle(width, height)} aria-label={`${lot.name} ${lot.year}`}>
+    <article className={`lc lg lg--leyenda lc--${lot.variant}`} style={sizeStyle(width, height)} aria-label={`${lot.name} ${lot.year}`}>
       <div className="lg-in">
         {media}
         <div className="lc-body" style={bodyStyle}>
@@ -695,7 +747,7 @@ export function FichaLegend({ lot, tier, featured, showLiveBadge, width, height,
           {time}
         </div>
         <div className="lg-plaque">
-          {live ? <><SubasCoin size={26} /><span><small>Precio base</small><b>{lot.price ?? "Por definir"}</b></span></>
+          {live ? <><SubasCoin size={26} /><span><small>{lot.price ? "Precio actual" : "Precio base"}</small><b>{lot.price ?? "Por definir"}</b></span></>
             : <>{I.hands}<b>Haz tu oferta</b></>}
         </div>
       </div>
@@ -703,15 +755,77 @@ export function FichaLegend({ lot, tier, featured, showLiveBadge, width, height,
   );
 }
 
+/** Like de Concorde (LikeButton): corazón con borde degradado lila; activo, relleno morado con pop. */
+function Clike({ name, size = 30 }: { name: string; size?: number }): JSX.Element {
+  const [on, setOn] = useState(false);
+  const [pop, setPop] = useState(0);
+  return (
+    <button type="button" className={`clike${on ? " clike--active" : ""}${pop ? " clike--pop" : ""}`} style={{ width: size, height: size }}
+      aria-label={`Agregar a favoritos: ${name}`} aria-pressed={on}
+      onClick={(e) => { e.stopPropagation(); setOn((v) => !v); setPop((n) => n + 1); }} onAnimationEnd={() => setPop(0)}>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill={on ? "#ffffff" : "#ffffff"} stroke={on ? "#ffffff" : "#5a35c2"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+      </svg>
+    </button>
+  );
+}
+
+/**
+ * Lote estilo listado de eBay: foto cuadrada a la izquierda y, a la derecha, pill de estado con borde,
+ * nombre en mayúsculas, empresa verificada, precio grande (o «Haz tu oferta»), datos en gris y, abajo,
+ * ciudad · tiempo con me gusta y compartir.
+ */
+export function EbayLotRow({ lot, store, size = "md" }: { lot: LotData; store: string; size?: "md" | "sm" }): JSX.Element {
+  const live = lot.variant === "live";
+  return (
+    <article className={`lc-eb lc--${lot.variant}${size === "sm" ? " lc-eb--sm" : ""}`} aria-label={`${lot.name} ${lot.year}`}>
+      <span className="lc-eb__thumb"><img src={lot.imageSrc} alt="" /></span>
+      <span className="lc-eb__like"><Clike name={lot.name} size={size === "sm" ? 26 : 30} /></span>
+      <div className="lc-eb__main">
+        {/* Pills de las cards (mismo componente visual que la destacada): solo En vivo o Negociable. */}
+        <span className="lc-eb__pill">{live
+          ? <span className="lc-pill lc-pill--live">{PI.live}En vivo</span>
+          : <span className="lc-pill lc-pill--negotiable">{I.tag}Negociable</span>}</span>
+        <p className="lc-eb__title">{lot.name} {lot.year}</p>
+        <span className="lc-eb__who">{store}<svg width="12" height="12" viewBox="0 0 24 24" aria-label="Verificado"><path d="M12 1.8l2.6 1.9 3.2-.2 1 3 2.6 1.9-1 3.1 1 3-2.6 1.9-1 3.1-3.2-.2L12 22.2l-2.6-1.9-3.2.2-1-3.1L2.6 15.5l1-3-1-3.1 2.6-1.9 1-3 3.2.2z" fill="#6B48DD" /><path d="M8 12.2l2.6 2.6L16.2 9" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg></span>
+        {lot.price ? <b className="lc-eb__price"><SubasCoin size={17} />{lot.price}</b> : <b className="lc-eb__offer">Haz tu oferta</b>}
+        <span className="lc-eb__rest">{lot.km} · {lot.transmission} · {lot.fuel}</span>
+        <span className="lc-eb__foot">
+          <span>{lot.city}{live && lot.remaining ? ` · Empieza en ${lot.remaining}` : ""}</span>
+        </span>
+      </div>
+    </article>
+  );
+}
+
+/** Curva compacta (134 × 170): foto con curva asimétrica, nombre, año · tipo y pie con precio o «Negociable». */
+export function CompactCurveCard({ lot }: { lot: LotData }): JSX.Element {
+  return (
+    <article className={`lc lc--compact-curve lc--${lot.variant}`} aria-label={`${lot.name} ${lot.year}`}>
+      <div className="lc-compact-curve__media">
+        <img src={lot.imageSrc} alt="" />
+        <span className="lc-likepos"><Clike name={lot.name} /></span>
+      </div>
+      <div className="lc-compact-curve__body">
+        <p className="lc-compact-curve__name">{lot.name}</p>
+        <span className="lc-compact-curve__meta"><span>{lot.year}</span><i /><span>{lot.kind}</span></span>
+        <div className="lc-compact-curve__footer">
+          {lot.price ? <span className="lc-compact-curve__base-price"><SubasCoin size={16} /><span>{lot.price}</span></span> : <span>Negociable</span>}
+        </div>
+      </div>
+    </article>
+  );
+}
+
 /** «Inmersiva»: foto a toda la card y datos sobre degradado oscuro. `sm` para las cards chicas de la galería. */
-export function ImmersiveCard({ lot, featured, showLiveBadge, size = "md", width, height }: {
-  lot: LotData; featured?: boolean; showLiveBadge?: boolean; size?: "md" | "sm"; width?: number | string; height?: number | string;
+export function ImmersiveCard({ lot, featured, size = "md", width, height }: {
+  lot: LotData; featured?: boolean; size?: "md" | "sm"; width?: number | string; height?: number | string;
 }): JSX.Element {
   return (
-    <article className={`lc lc--imm lc--${lot.variant}${featured ? " lc--featured-curve" : ""}${size === "sm" ? " lc--sm" : ""}`} style={sizeStyle(width, height)} aria-label={`${lot.name} ${lot.year}`}>
+    <article className={`lc lc--imm lc--${lot.variant}${size === "sm" ? " lc--sm" : ""}`} style={sizeStyle(width, height)} aria-label={`${lot.name} ${lot.year}`}>
       <img src={lot.imageSrc} alt="" />
       <span className="lc-imm__shade" aria-hidden />
-      <Pills lot={lot} featured={featured} showLiveBadge={showLiveBadge} />
+      <Pills lot={lot} featured={featured} />
       <Like name={lot.name} />
       <div className="lc-imm__info">
         <Dots />
@@ -723,38 +837,18 @@ export function ImmersiveCard({ lot, featured, showLiveBadge, size = "md", width
   );
 }
 
-/** Card secundaria de galería: superficie clara, curva en la foto y resumen de lectura rápida. */
-export function CompactCurveCard({ lot }: { lot: LotData }): JSX.Element {
-  const isLive = lot.variant === "live";
-  return (
-    <article className={`lc lc--compact-curve lc--${lot.variant}`} aria-label={`${lot.name} ${lot.year}`}>
-      <div className="lc-compact-curve__media">
-        <img src={lot.imageSrc} alt="" />
-        <Like name={lot.name} />
-      </div>
-      <div className="lc-compact-curve__body">
-        <p className="lc-compact-curve__name">{lot.name}</p>
-        <span className="lc-compact-curve__meta"><span>{lot.year}</span><i /><span>{lot.kind}</span></span>
-        <div className="lc-compact-curve__footer">
-          {isLive ? <span className="lc-compact-curve__base-price"><SubasCoin size={16} /><span>{lot.price ?? "Precio base"}</span></span> : <span>Negociable</span>}
-        </div>
-      </div>
-    </article>
-  );
-}
-
 /** «Resumen»: card centrada y compacta. Negociable: «Propuestas» en vez de ofertas y «Haz tu oferta» en vez del precio. */
-export function SummaryCard({ lot, featured, showLiveBadge, width, height, mediaFill }: {
-  lot: LotData; featured?: boolean; showLiveBadge?: boolean; width?: number | string; height?: number | string; mediaFill?: boolean;
+export function SummaryCard({ lot, featured, width, height, mediaFill }: {
+  lot: LotData; featured?: boolean; width?: number | string; height?: number | string; mediaFill?: boolean;
 }): JSX.Element {
   const live = lot.variant === "live";
   const offers = lot.offers ?? 3 + (lot.name.length % 13);
   const visits = lot.visits ?? 120 + lot.name.length * 17;
   return (
-    <article className={`lc lc--${lot.variant}${featured ? " lc--featured-curve" : ""}`} style={sizeStyle(width, height)} aria-label={`${lot.name} ${lot.year}`}>
+    <article className={`lc lc--${lot.variant}`} style={sizeStyle(width, height)} aria-label={`${lot.name} ${lot.year}`}>
       <div className="lc-media" style={mediaFill ? { flex: 1, minHeight: 132 } : undefined}>
         <img src={lot.imageSrc} alt="" />
-        <Pills lot={lot} featured={featured} showLiveBadge={showLiveBadge} />
+        <Pills lot={lot} featured={featured} />
         <Like name={lot.name} />
       </div>
       <div className="lc-sum" style={mediaFill ? { flex: "none" } : undefined}>
@@ -768,7 +862,7 @@ export function SummaryCard({ lot, featured, showLiveBadge, width, height, media
         </div>
         <div className="lc-sum__price">
           {live ? <>
-            <small>PRECIO BASE</small>
+            <small>{lot.live ? "PRECIO ACTUAL" : "PRECIO BASE"}</small>
             <span><SubasCoin size={24} /><b className="lc-price">{lot.price ?? "Por definir"}</b></span>
           </> : <span className="lc-offer">{I.hands}Haz tu oferta</span>}
         </div>
@@ -783,17 +877,17 @@ function PriceOrOffer({ lot, coin = 26 }: { lot: LotData; coin?: number }): JSX.
 }
 
 /** «Relieve»: el cuerpo blanco se monta sobre la foto con sombras internas suaves. */
-export function ReliefCard({ lot, featured, showLiveBadge, width, height, mediaFill, compact }: {
-  lot: LotData; featured?: boolean; showLiveBadge?: boolean; width?: number | string; height?: number | string; mediaFill?: boolean; compact?: boolean;
+export function ReliefCard({ lot, featured, width, height, mediaFill, compact }: {
+  lot: LotData; featured?: boolean; width?: number | string; height?: number | string; mediaFill?: boolean; compact?: boolean;
 }): JSX.Element {
   const wave = lot.variant === "live"
     ? { a: "#FFF0F5", b: "#FFD9E6", c: "#FFC2D6", d: "#FFB8CF" }
     : { a: "#EFFFFF", b: "#C8F7F9", c: "#A6F0F3", d: "#7FE9EE" };
   return (
-    <article className={`lc lc--relief lc--${lot.variant}${featured ? " lc--featured-curve" : ""}${compact ? " lc--compact" : ""}`} style={sizeStyle(width, height)} aria-label={`${lot.name} ${lot.year}`}>
+    <article className={`lc lc--relief lc--${lot.variant}${compact ? " lc--compact" : ""}`} style={sizeStyle(width, height)} aria-label={`${lot.name} ${lot.year}`}>
       <div className="lc-media" style={mediaFill ? { flex: 1, minHeight: 150 } : undefined}>
         <img src={lot.imageSrc} alt="" />
-        <Pills lot={lot} featured={featured} showLiveBadge={showLiveBadge} />
+        <Pills lot={lot} featured={featured} />
         <Like name={lot.name} />
         <span style={{ position: "absolute", left: 0, right: 0, bottom: 22 }}><Dots /></span>
       </div>
@@ -815,15 +909,15 @@ export function ReliefCard({ lot, featured, showLiveBadge, width, height, mediaF
 }
 
 /** «Cristal»: marco morado/lila, foto con borde y reflejo de vidrio, precio en cápsula de vidrio. */
-export function GlassCard({ lot, featured, showLiveBadge, width, height, mediaFill }: {
-  lot: LotData; featured?: boolean; showLiveBadge?: boolean; width?: number | string; height?: number | string; mediaFill?: boolean;
+export function GlassCard({ lot, featured, width, height, mediaFill }: {
+  lot: LotData; featured?: boolean; width?: number | string; height?: number | string; mediaFill?: boolean;
 }): JSX.Element {
   return (
-    <article className={`lc lc--glass lc--${lot.variant}${featured ? " lc--featured-curve" : ""}`} style={sizeStyle(width, height)} aria-label={`${lot.name} ${lot.year}`}>
+    <article className={`lc lc--glass lc--${lot.variant}`} style={sizeStyle(width, height)} aria-label={`${lot.name} ${lot.year}`}>
       <img className="lc-glass__blur" src={lot.imageSrc} alt="" aria-hidden />
       <div className="lc-media" style={mediaFill ? { flex: 1, minHeight: 150 } : undefined}>
         <img src={lot.imageSrc} alt="" />
-        <Pills lot={lot} featured={featured} showLiveBadge={showLiveBadge} />
+        <Pills lot={lot} featured={featured} />
         <Like name={lot.name} />
         <Dots />
       </div>

@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * VmcAhora — feed «VMC ahora» (columna lateral junto a «Lotes») con eventos que van pasando: cada 4,5 s entra
+ * VmcAhora — feed «VMC ahora» (Secondary Banner, 236 × 388) con eventos que van pasando: cada 4,5 s entra
  * uno nuevo arriba y los tiempos se recorren («Ahora», «hace 1 min»…). Se pausa con el puntero encima.
  * Contenido de ejemplo. Tres vistas:
  *  · normal    el diseño aprobado: insignia + título + detalle + miniatura.
@@ -12,12 +12,14 @@
  */
 import { useEffect, useState } from "react";
 import type { CSSProperties, JSX } from "react";
-import { BadgeStatus } from "@vmc/concorde-adapter";
-import SectionHeader from "./SectionHeader";
 
-export type FeedView = "normal" | "timeline" | "pulso";
+export type FeedView = "normal" | "ebay" | "timeline" | "pulso";
 type Kind = "live" | "bid" | "sold" | "new" | "deal" | "next";
-type FeedEvent = { id: string; kind: Kind; who: string; title: string; detail: string; imageSrc: string; likes: number; replies: number };
+type FeedEvent = {
+  id: string; kind: Kind; who: string; title: string; detail: string; imageSrc: string; likes: number; replies: number;
+  /** Para la vista Timeline (fila tipo eBay): el lote, su precio (si hay) y la ciudad. */
+  lot: string; price?: string; city: string;
+};
 
 const LOGO: Record<string, string | undefined> = {
   "SubasCars": "/assets/brand/logo-voyager.svg", "Pacífico": "/demo/empresas/pacifico.png", "Autoplan": "/demo/empresas/autoplan.png",
@@ -25,17 +27,24 @@ const LOGO: Record<string, string | undefined> = {
 };
 
 const EVENTS: FeedEvent[] = [
-  { id: "e1", kind: "live", who: "Empresa Industrial", title: "Subasta de vehículos en curso", detail: "32 participantes · Lote 12", imageSrc: "/demo/inventory-suv-v1.png", likes: 48, replies: 6 },
-  { id: "e2", kind: "bid", who: "SubasCars", title: "Nueva puja en Toyota Yaris 2022", detail: "US$ 2,799 · +US$ 100", imageSrc: "/demo/inventory-suv-v1.png", likes: 31, replies: 4 },
-  { id: "e3", kind: "sold", who: "SubasCars", title: "Hyundai Grand i10 adjudicado", detail: "Cerró en US$ 2,450", imageSrc: "/demo/inventory-mosaic-v1.png", likes: 57, replies: 9 },
-  { id: "e4", kind: "new", who: "Pacífico", title: "Excavadora Caterpillar 320 publicada", detail: "Lote 88 · Lima", imageSrc: "/demo/inventory-excavator-v1.png", likes: 22, replies: 3 },
-  { id: "e5", kind: "deal", who: "Autoplan", title: "Propuesta aceptada en Toyota Agya", detail: "Negociable · Lima", imageSrc: "/demo/inventory-suv-v1.png", likes: 19, replies: 2 },
-  { id: "e6", kind: "next", who: "Trupal S.A.", title: "Equipos industriales empieza 10:00", detail: "14 lotes · Callao", imageSrc: "/demo/inventory-forklift-v1.png", likes: 15, replies: 1 },
-  { id: "e7", kind: "bid", who: "Pacífico", title: "12 pujas en el último minuto", detail: "Caterpillar 320 · US$ 45,000", imageSrc: "/demo/inventory-excavator-v1.png", likes: 64, replies: 11 },
-  { id: "e8", kind: "new", who: "Mapfre", title: "Kia Sportage 2020 publicada", detail: "52,300 km · Lima", imageSrc: "/demo/inventory-suv-v1.png", likes: 12, replies: 0 },
+  { id: "e1", kind: "live", who: "Empresa Industrial", title: "Subasta de vehículos en curso", detail: "32 participantes · Lote 12", imageSrc: "/demo/vehicles/autoplan-yaris.png", likes: 48, replies: 6,
+    lot: "Toyota Yaris 2022", price: "US$ 2,799", city: "Lima" },
+  { id: "e2", kind: "bid", who: "SubasCars", title: "Nueva puja en Kia Rio 2020", detail: "US$ 6,300 · +US$ 100", imageSrc: "/demo/vehicles/mapfre-rio.png", likes: 31, replies: 4,
+    lot: "Kia Rio 2020", price: "US$ 6,300", city: "Lima" },
+  { id: "e3", kind: "sold", who: "SubasCars", title: "Hyundai Grand i10 adjudicado", detail: "Cerró en US$ 2,450", imageSrc: "/demo/vehicles/autoplan-grand-i10.png", likes: 57, replies: 9,
+    lot: "Hyundai Grand i10 2021", price: "US$ 2,450", city: "Lima" },
+  { id: "e4", kind: "new", who: "Pacífico", title: "Excavadora Caterpillar 320 publicada", detail: "Lote 88 · Lima", imageSrc: "/demo/inventory-excavator-v1.png", likes: 22, replies: 3,
+    lot: "Caterpillar 320 2019", price: "US$ 45,000", city: "Lima" },
+  { id: "e5", kind: "deal", who: "Autoplan", title: "Propuesta aceptada en Toyota Agya", detail: "Negociable · Lima", imageSrc: "/demo/vehicles/autoplan-agya.png", likes: 19, replies: 2,
+    lot: "Toyota Agya 2023", city: "Lima" },
+  { id: "e6", kind: "next", who: "Trupal S.A.", title: "Equipos industriales empieza 10:00", detail: "14 lotes · Callao", imageSrc: "/demo/inventory-forklift-v1.png", likes: 15, replies: 1,
+    lot: "Montacargas Toyota 2018", city: "Callao" },
+  { id: "e7", kind: "bid", who: "Pacífico", title: "12 pujas en el último minuto", detail: "Hyundai Tucson · US$ 11,400", imageSrc: "/demo/vehicles/mapfre-tucson.png", likes: 64, replies: 11,
+    lot: "Hyundai Tucson 2021", price: "US$ 11,400", city: "Lima" },
+  { id: "e8", kind: "new", who: "Mapfre", title: "Toyota Hilux 2019 publicada", detail: "Negociable · Arequipa", imageSrc: "/demo/vehicles/mapfre-pickup.png", likes: 12, replies: 0,
+    lot: "Toyota Hilux 2019", city: "Arequipa" },
 ];
 const AGO = ["Ahora", "hace 1 min", "hace 3 min", "hace 6 min", "hace 9 min"];
-const AGO_SHORT = ["Ahora", "1 min", "3 min", "6 min", "9 min"]; // en la insignia de la vista Normal
 const KIND: Record<Kind, { label: string; badge: "live" | "proxima"; color: string; verb: string }> = {
   live: { label: "En vivo", badge: "live", color: "#F2701D", verb: "está en vivo" },
   bid: { label: "Puja", badge: "live", color: "#F2701D", verb: "recibió una puja" },
@@ -47,14 +56,14 @@ const KIND: Record<Kind, { label: string; badge: "live" | "proxima"; color: stri
 const INTERVAL_MS = 4500;
 
 /** Ventana de `size` eventos, el más nuevo primero; avanza cada INTERVAL_MS salvo en pausa. */
-function useLiveFeed(size: number, paused: boolean, events: FeedEvent[]): { items: FeedEvent[]; tick: number } {
+function useLiveFeed(size: number, paused: boolean): { items: FeedEvent[]; tick: number } {
   const [tick, setTick] = useState(0);
   useEffect(() => {
     if (paused) return;
     const t = setInterval(() => setTick((n) => n + 1), INTERVAL_MS);
     return () => clearInterval(t);
   }, [paused]);
-  const items = Array.from({ length: size }, (_, i) => events[(((tick - i) % events.length) + events.length) % events.length]);
+  const items = Array.from({ length: size }, (_, i) => EVENTS[(((tick - i) % EVENTS.length) + EVENTS.length) % EVENTS.length]);
   return { items, tick };
 }
 
@@ -74,17 +83,11 @@ function Avatar({ who, size = 32, ring }: { who: string; size?: number; ring?: s
 const Verified = () => (
   <svg className="va-verified" width="12" height="12" viewBox="0 0 24 24" aria-label="Verificado"><path d="M12 1.8l2.6 1.9 3.2-.2 1 3 2.6 1.9-1 3.1 1 3-2.6 1.9-1 3.1-3.2-.2L12 22.2l-2.6-1.9-3.2.2-1-3.1L2.6 15.5l1-3-1-3.1 2.6-1.9 1-3 3.2.2z" fill="url(#va-vg)" /><defs><linearGradient id="va-vg" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#8460E5" /><stop offset="1" stopColor="#3B1782" /></linearGradient></defs><path d="M8 12.2l2.6 2.6L16.2 9" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
 );
-// Acciones estilo Threads: me gusta · comentar · republicar · enviar (trazo 1.8, 18 px).
-const Act = {
+const Ico = {
   heart: <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden><path d="M12 20.5s-8-4.9-8-11a4.6 4.6 0 0 1 8-3 4.6 4.6 0 0 1 8 3c0 6.1-8 11-8 11z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" /></svg>,
   reply: <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden><path d="M21 11.5a8.5 8.5 0 0 1-12.2 7.6L3.5 20.5l1.4-4.9A8.5 8.5 0 1 1 21 11.5z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" /></svg>,
   repost: <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden><path d="M4 11V9a3 3 0 0 1 3-3h11M15 3l3 3-3 3M20 13v2a3 3 0 0 1-3 3H6M9 21l-3-3 3-3" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>,
-  send: <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden><path d="M21 3L10.5 13.5M21 3l-6.5 18-4-7.5L3 9.5z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" /></svg>,
-};
-const Ico = {
-  heart: <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" /></svg>,
-  reply: <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden><path d="M4 5h16v11H9l-5 4z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" /></svg>,
-  share: <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden><path d="M12 3v12M7 8l5-5 5 5M5 14v6h14v-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>,
+  share: <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden><path d="M21 3L10.5 13.5M21 3l-6.5 18-4-7.5L3 9.5z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" /></svg>,
   arrowUp: <svg width="11" height="11" viewBox="0 0 24 24" aria-hidden><path d="M12 19V5M6 11l6-6 6 6" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" /></svg>,
 };
 
@@ -94,7 +97,7 @@ const CSS = `
 @keyframes va-pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.8); } }
 @keyframes va-pill { 0% { opacity: 0; transform: translate(-50%, -6px); } 15%, 75% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; transform: translate(-50%, -6px); } }
 @keyframes va-ring { to { transform: rotate(360deg); } }
-.va { position: relative; box-sizing: border-box; width: 100%; flex: 1; display: flex; flex-direction: column; overflow: hidden; border-radius: 16px;
+.va { position: relative; box-sizing: border-box; width: 100%; height: 100%; flex: 1; display: flex; flex-direction: column; overflow: hidden; border-radius: 16px;
   font-family: var(--vmc-font-display, 'Plus Jakarta Sans', -apple-system, sans-serif); }
 .va-enter { animation: va-in 0.45s cubic-bezier(0.3,0,0,1); }
 .va-av { box-sizing: border-box; display: inline-grid; flex: none; border-radius: 50%; }
@@ -102,6 +105,12 @@ const CSS = `
 .va-av__in img { max-width: 72%; max-height: 72%; object-fit: contain; }
 .va-av__in b { font-size: 12px; font-weight: 800; color: #3B1782; }
 .va-verified { flex: none; }
+/* Cabecera de la referencia: 68 de alto, padding 0 24, título 20 + bajada 14, «En vivo» a la derecha. */
+.va-head { box-sizing: border-box; flex: none; display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 68px; padding: 0 24px; border-bottom: 1px solid #E8DDFF; }
+.va-head h3 { margin: 0; font-size: 20px; line-height: 24px; font-weight: 600; color: #3B1782; white-space: nowrap; }
+.va-head p { margin: 0; font-size: 14px; line-height: 18px; color: #191C1C; white-space: nowrap; }
+.va-live { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #E2531A; }
+.va-live i { width: 6px; height: 6px; border-radius: 50%; background: #FF7A1A; animation: va-pulse 1.4s ease-in-out infinite; }
 /* Scroll integrado al sistema visual: discreto, redondeado y consistente entre vistas. */
 .va-scroll { scrollbar-width: thin; scrollbar-color: #8460E5 transparent; scrollbar-gutter: stable; }
 .va-scroll::-webkit-scrollbar { width: 8px; }
@@ -121,7 +130,6 @@ const CSS = `
 
 /* Timeline (X / Twitter) */
 .va--timeline { background: #fff; box-shadow: rgba(0,0,0,0.07) 0 0 16px 4px; }
-.va-tl__head { display: flex; align-items: center; justify-content: space-between; padding: 12px 12px 6px; border-bottom: 1px solid #EFEDF5; }
 .va-live { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #E2531A; }
 .va-live i { width: 6px; height: 6px; border-radius: 50%; background: #FF7A1A; animation: va-pulse 1.4s ease-in-out infinite; }
 .va-newpill { position: absolute; top: 68px; left: 50%; z-index: 3; display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 999px;
@@ -147,7 +155,43 @@ const CSS = `
 .va-acts span { display: inline-flex; align-items: center; gap: 6px; padding: 5px 6px; border-radius: 999px; }
 .va-acts span:hover { background: #F3EFFD; color: #3B1782; }
 
-/* Pulso (oscuro, en directo) */
+/* Timeline · fila tipo listado de eBay (escala de las cards chicas) */
+.va-item { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 12px; align-items: center; padding: 12px 18px 12px 20px; }
+.va-item + .va-item { border-top: 1px solid #EFEDF5; }
+.va-item.va-enter { animation: va-in 0.45s cubic-bezier(0.3,0,0,1), va-flash 2.4s ease; }
+.va-item__thumb { display: block; width: 72px; height: 72px; overflow: hidden; border-radius: 12px; background: #F3EFFD; }
+.va-item__thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.va-item__main { display: grid; gap: 3px; min-width: 0; }
+.va-item__pill { justify-self: start; display: inline-flex; align-items: center; height: 18px; padding: 0 8px; border-radius: 999px; border: 1.5px solid var(--k);
+  font-size: 9.5px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--k); background: color-mix(in srgb, var(--k) 10%, #fff); }
+.va-item__title { margin: 1px 0 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; line-height: 1.2; font-weight: 800; color: #14112B; }
+.va-item__value { font-size: 14px; line-height: 1.2; font-weight: 800; letter-spacing: -0.01em; color: #4C1EBC; }
+.va-item__meta { display: flex; align-items: center; gap: 3px; min-width: 0; font-size: 10.5px; color: #6B6880; white-space: nowrap; }
+.va-item__meta > span:last-child { overflow: hidden; text-overflow: ellipsis; }
+.va-item__who { flex: none; max-width: 84px; overflow: hidden; text-overflow: ellipsis; }
+.va-item__meta .va-verified { width: 10px; height: 10px; }
+
+/* eBay: listado completo (sin compactar) con me gusta y compartir */
+.va-eb { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 14px; align-items: start; padding: 16px 18px 16px 20px; }
+.va-eb + .va-eb { border-top: 1px solid #EFEDF5; }
+.va-eb.va-enter { animation: va-in 0.45s cubic-bezier(0.3,0,0,1), va-flash 2.4s ease; }
+.va-eb__thumb { display: block; width: 92px; height: 92px; overflow: hidden; border-radius: 14px; background: #F3EFFD; }
+.va-eb__thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.va-eb__main { display: grid; gap: 3px; min-width: 0; }
+.va-eb__pill { justify-self: start; display: inline-flex; align-items: center; height: 22px; padding: 0 10px; border-radius: 999px; border: 1.5px solid var(--k);
+  font-size: 11.5px; font-weight: 800; letter-spacing: 0.03em; text-transform: uppercase; color: var(--k); }
+.va-eb__title { margin: 4px 0 0; font-size: 15px; line-height: 1.22; font-weight: 800; color: #14112B; text-transform: uppercase; }
+.va-eb__who { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 600; color: #8A879C; }
+.va-eb__value { margin-top: 4px; font-size: 20px; line-height: 1.15; font-weight: 800; letter-spacing: -0.01em; color: #14112B; }
+.va-eb__rest { margin-top: 4px; font-size: 13px; font-weight: 600; color: #8A879C; }
+.va-eb__foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; white-space: nowrap; font-size: 13px; font-weight: 600; color: #8A879C; }
+.va-eb__acts { display: inline-flex; gap: 6px; }
+.va-eb__acts button { display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 50%; color: #3B1782; background: #F3EFFD; cursor: pointer; transition: background 0.2s, color 0.2s; }
+.va-eb__acts button:hover { background: #E6DEFF; }
+.va-eb__acts button[aria-pressed="true"] { color: #fff; background: linear-gradient(135deg, #8460E5, #3B1782); }
+.va-eb__acts svg { width: 16px; height: 16px; }
+
+/* Pulso (claro, en directo) */
 .va--pulso { color: #14112B;
   background: radial-gradient(110% 55% at 100% 0%, rgba(166,139,255,0.30) 0%, transparent 62%), radial-gradient(90% 40% at 0% 100%, rgba(255,150,57,0.12) 0%, transparent 70%), #fff;
   box-shadow: 0 14px 30px -14px rgba(59,23,130,0.35); }
@@ -181,17 +225,58 @@ const CSS = `
 .va-pu__foot a:hover { color: #E2531A; }
 `;
 
+function LikeBtn({ n }: { n: number }): JSX.Element {
+  const [on, setOn] = useState(false);
+  return <button type="button" aria-pressed={on} aria-label={`Me gusta · ${n + (on ? 1 : 0)}`} onClick={() => setOn((v) => !v)}>{Ico.heart}</button>;
+}
+
+function Head(): JSX.Element {
+  return (
+    <header className="va-head">
+      <div style={{ display: "grid", gap: 2, minWidth: 0 }}><h3>VMC ahora</h3><p>Actividad en tiempo real</p></div>
+      <span className="va-live"><i />En vivo</span>
+    </header>
+  );
+}
+
 export default function VmcAhora({ view }: { view: FeedView }): JSX.Element {
   const [paused, setPaused] = useState(false);
-  const { items, tick } = useLiveFeed(view === "normal" ? 4 : view === "timeline" ? 5 : 5, paused, EVENTS);
+  const { items, tick } = useLiveFeed(view === "pulso" ? 4 : 5, paused);
   const pause = { onMouseEnter: () => setPaused(true), onMouseLeave: () => setPaused(false) };
   // El evento de arriba entra animado (su key cambia en cada avance; los demás conservan la suya).
   const enter = (i: number) => (i === 0 ? " va-enter" : "");
 
+  if (view === "ebay") {
+    return (
+      <aside className="va va--timeline" aria-label="VMC ahora" {...pause}>
+        <Head />
+        {tick > 0 ? <span key={tick} className="va-newpill" aria-hidden>{Ico.arrowUp}Nuevo</span> : null}
+        <ol className="va-posts va-scroll" aria-live="polite">
+          {items.map((e, i) => (
+            <li key={e.id} className={`va-eb${enter(i)}`}>
+              <span className="va-eb__thumb"><img src={e.imageSrc} alt="" /></span>
+              <div className="va-eb__main">
+                <span className="va-eb__pill" style={{ "--k": KIND[e.kind].color } as CSSProperties}>{KIND[e.kind].label}</span>
+                <p className="va-eb__title">{e.lot}</p>
+                <span className="va-eb__who">{e.who}<Verified /></span>
+                <b className="va-eb__value">{e.price ?? "Negociable"}</b>
+                <span className="va-eb__rest">{e.detail}</span>
+                <span className="va-eb__foot"><span>{e.city} · {AGO[i]}</span>
+                  <span className="va-eb__acts"><LikeBtn n={e.likes} /><button type="button" aria-label="Compartir">{Ico.share}</button></span>
+                </span>
+              </div>
+            </li>
+          ))}
+        </ol>
+        <style>{CSS}</style>
+      </aside>
+    );
+  }
+
   if (view === "timeline") {
     return (
       <aside className="va va--timeline" aria-label="VMC ahora" {...pause}>
-        <SectionHeader title="VMC ahora" subtitle="Actividad en tiempo real" action={<span className="va-live"><i />En vivo</span>} />
+        <Head />
         {tick > 0 ? <span key={tick} className="va-newpill" aria-hidden>{Ico.arrowUp}Nuevo</span> : null}
         <ol className="va-posts va-scroll" aria-live="polite">
           {items.map((e, i) => (
@@ -201,7 +286,7 @@ export default function VmcAhora({ view }: { view: FeedView }): JSX.Element {
                 <div className="va-post__head"><b>{e.who}</b><Verified /><span>{AGO[i]}</span></div>
                 <p className="va-post__text">{e.title}. <em>{e.detail}</em></p>
                 {i === 0 ? <span className="va-post__media"><img src={e.imageSrc} alt="" /><b>{KIND[e.kind].label}</b></span> : null}
-                <div className="va-acts"><span>{Act.heart}{e.likes}</span><span>{Act.reply}{e.replies}</span><span>{Act.repost}</span><span>{Act.send}</span></div>
+                <div className="va-acts"><span>{Ico.heart}{e.likes}</span><span>{Ico.reply}{e.replies}</span><span>{Ico.repost}</span><span>{Ico.share}</span></div>
               </div>
             </li>
           ))}
@@ -229,7 +314,7 @@ export default function VmcAhora({ view }: { view: FeedView }): JSX.Element {
             </span>
           ))}
         </div>
-        <ol className="va-tline va-scroll" aria-live="polite">
+        <ol className="va-tline" aria-live="polite">
           {items.map((e, i) => (
             <li key={e.id} className={`va-ev${enter(i)}`} style={{ "--c": KIND[e.kind].color } as CSSProperties}>
               <div className="va-ev__meta"><span style={{ color: KIND[e.kind].color }}>{KIND[e.kind].label}</span><span className="va-ev__ago">{AGO[i]}</span></div>
@@ -238,6 +323,7 @@ export default function VmcAhora({ view }: { view: FeedView }): JSX.Element {
             </li>
           ))}
         </ol>
+        <div className="va-pu__foot"><a href="#">Ver toda la actividad<svg width="12" height="12" viewBox="0 0 20 20" aria-hidden><path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg></a></div>
         <style>{CSS}</style>
       </aside>
     );
@@ -245,15 +331,19 @@ export default function VmcAhora({ view }: { view: FeedView }): JSX.Element {
 
   return (
     <aside className="va va--normal" aria-label="VMC ahora" {...pause}>
-      <SectionHeader title="VMC ahora" subtitle="Actividad en tiempo real" />
-      <ol className="va-list va-scroll" aria-live="polite">
+      <Head />
+      {tick > 0 ? <span key={tick} className="va-newpill" aria-hidden>{Ico.arrowUp}Nuevo</span> : null}
+      <ol className="va-posts va-scroll" aria-live="polite">
+        {/* Fila tipo listado de eBay, 4 líneas a la altura de la foto: la pill cuenta el evento, el título es el
+            lote, un solo dato fuerte (el precio, si hay) y una línea gris con empresa · ciudad · tiempo. */}
         {items.map((e, i) => (
-          <li key={e.id} className={`va-row${enter(i)}`}>
-            <img src={e.imageSrc} alt="" />
-            <div className="va-row__txt">
-              <span><BadgeStatus variant={KIND[e.kind].badge} label={`${KIND[e.kind].label} · ${AGO_SHORT[i]}`} /></span>
-              <strong>{e.title}</strong>
-              <span className="va-row__detail">{e.detail}</span>
+          <li key={e.id} className={`va-item${enter(i)}`}>
+            <span className="va-item__thumb"><img src={e.imageSrc} alt="" /></span>
+            <div className="va-item__main">
+              <span className="va-item__pill" style={{ "--k": KIND[e.kind].color } as CSSProperties}>{KIND[e.kind].label}</span>
+              <p className="va-item__title">{e.lot}</p>
+              {e.price ? <b className="va-item__value">{e.price}</b> : null}
+              <span className="va-item__meta"><span className="va-item__who">{e.who}</span><Verified /><span>· {e.city} · {AGO[i]}</span></span>
             </div>
           </li>
         ))}
