@@ -1625,7 +1625,7 @@ const AD_STRIP_CSS = `
 .hib-adstrip { position: relative; display: block; width: 100%; overflow: hidden; border-radius: 16px; box-shadow: ${SHADOW}; }
 .hib-adstrip iframe { position: absolute; top: 0; left: 0; display: block; border: 0; transform-origin: 0 0; }
 `;
-// Publicidad de Subastop sobre Mapfre (skill banners-subastop, 04-flotas: distinta de la del sidebar): franja 1532 × 200 en escritorio y 776 × 232
+// Publicidad de Subastop sobre Mapfre (skill banners-subastop, 03-tecnologia: distinta de la del sidebar, 01-general): franja 1532 × 200 en escritorio y 776 × 232
 // en móvil. El iframe se dibuja a su tamaño de diseño y se escala al ancho disponible, como una imagen.
 function AdStrip(): JSX.Element {
   const ref = useRef<HTMLElement>(null);
@@ -1641,7 +1641,7 @@ function AdStrip(): JSX.Element {
   const s = w / f.w;
   return (
     <aside ref={ref} className="hib-adstrip" aria-label="Publicidad" style={{ aspectRatio: `${f.w} / ${f.h}` }}>
-      {w ? <iframe key={f.id} src={`/banners/venta-empresa.html?v=04-flotas&f=${f.id}`} title="Venta para empresas: ¿Vehículos parados? Ponlos a la venta."
+      {w ? <iframe key={f.id} src={`/banners/venta-empresa.html?v=03-tecnologia&f=${f.id}`} title="Venta para empresas: ¿Renovaste tecnología? Vende la anterior."
         width={f.w} height={f.h} loading="lazy" style={{ transform: `scale(${s})` }} /> : null}
     </aside>
   );
