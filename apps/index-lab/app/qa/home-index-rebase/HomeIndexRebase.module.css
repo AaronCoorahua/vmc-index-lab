@@ -66,8 +66,8 @@
 /* Variante «Pestañas arriba», como X: header y pestañas fijos arriba; al bajar el header se esconde y quedan solo las
    pestañas, al subir vuelve. Pestañas de X: 53 de alto, texto 15, activa en negrita con línea redondeada de 4 px del ancho
    del texto (morado VMC en lugar del azul de X), fondo blanco translúcido con blur y filete #EFF3F4. */
-.mobileShell[data-xbar] :global(header) { position: sticky; top: 0; z-index: 9; transition: transform 0.25s ease; }
-.mobileShell[data-xhide] :global(header) { transform: translateY(-100%); }
+.mobileShell[data-xbar] > :global(.sbm-root) > :global(header) { position: sticky; top: 0; z-index: 9; transition: transform 0.25s ease; }
+.mobileShell[data-xhide] > :global(.sbm-root) > :global(header) { transform: translateY(-100%); }
 .toptabs { position: sticky; top: 0; z-index: 8; display: grid; grid-template-columns: 1fr 1fr; height: 53px; background: rgba(255,255,255,0.85);
   border-bottom: 1px solid #EFF3F4; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); transition: top 0.25s ease; }
 .mobileShell[data-xbar] .toptabs { top: 64px; }
