@@ -1,6 +1,6 @@
 # VMC Index Lab — handoff reproducible
 
-Fecha de empaquetado: 2026-10-15 (UTC)
+Fecha de empaquetado: 2026-10-15 
 
 ## Propósito
 
