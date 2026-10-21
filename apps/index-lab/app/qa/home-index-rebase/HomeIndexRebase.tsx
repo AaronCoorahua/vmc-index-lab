@@ -29,6 +29,8 @@ const isMobileFeedView = (v: unknown): v is MobileFeedView => ["card", "more", "
 // Publicidad de Subastop (skill banners-subastop): la pieza 200 × 264 va en el hueco del banner del sidebar, como en Mi Garaje.
 // La plantilla vive en public/banners; el enlace (con UTM) está dentro del iframe.
 const SIDE_AD_SRC = "/banners/venta-empresa.html?v=01-general&f=side400";
+// En el menú del celular (poca altura) va la pieza de 264, con el mismo copy de 01-general.
+const SIDE_AD_SRC_MOBILE = "/banners/venta-empresa.html?v=01-general&f=side264";
 const SIDE_AD_TITLE = "Venta para empresas: ¿Tu empresa necesita liquidez?";
 
 // En móvil, Opción A / B también eligen la versión de VMC ahora: A = card con «Ver más», B = pestañas arriba (estilo X).
@@ -150,7 +152,7 @@ export default function HomeIndexRebase() {
       </div>
 
       {adSlots.map((el, i) => createPortal(
-        <div className={styles.sideAd} aria-label="Publicidad"><iframe src={SIDE_AD_SRC} title={SIDE_AD_TITLE} loading="lazy" /></div>, el, `side-ad-${i}`))}
+        <div className={styles.sideAd} aria-label="Publicidad"><iframe src={el.closest("[class*=mobileShell]") ? SIDE_AD_SRC_MOBILE : SIDE_AD_SRC} title={SIDE_AD_TITLE} loading="lazy" /></div>, el, `side-ad-${i}`))}
       {/* Móvil y tablet: drawer de Concorde con hamburguesa + logo en el header y el mismo bloque en una columna. */}
       <div className={styles.mobileShell} data-feedmode={feedMode || undefined} data-xbar={xbar || undefined} data-xhide={(xbar && barHidden) || undefined}>
         <SidebarMobile open={menuOpen} onOpenChange={setMenuOpen}>

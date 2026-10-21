@@ -35,8 +35,8 @@
 .desktopShell :global([data-slot="sidebar-banner"]), .mobileShell :global([data-slot="sidebar-banner"]) { position: relative; overflow: hidden; }
 .desktopShell :global([data-slot="sidebar-banner"] > span), .mobileShell :global([data-slot="sidebar-banner"] > span) { display: none; }
 /* Riel de 200 × 400: el hueco crece de 264 a 400 (el sidebar tiene sitio bajo el menú). */
-.desktopShell :global(.sb-banner), .mobileShell :global(.sb-banner) { max-height: 420px; }
-.desktopShell :global([data-slot="sidebar-banner"]), .mobileShell :global([data-slot="sidebar-banner"]) { height: 400px !important; }
+.desktopShell :global(.sb-banner) { max-height: 420px; }
+.desktopShell :global([data-slot="sidebar-banner"]) { height: 400px !important; }
 .sideAd { position: absolute; inset: 0; border-radius: inherit; overflow: hidden; }
 .sideAd iframe { display: block; width: 100%; height: 100%; border: 0; }
 
