@@ -47,6 +47,9 @@ const EVENTS: FeedEvent[] = [
 const AGO = ["Ahora", "hace 1 min", "hace 3 min", "hace 6 min", "hace 9 min"];
 // Tiempo de la posición i (con «Ver más» se muestran más de 5).
 const ago = (i: number) => AGO[i] ?? `hace ${(i - 2) * 4} min`;
+// Estilo X: tiempo corto y @usuario a partir del nombre de la empresa.
+const agoShort = (i: number) => (i === 0 ? "ahora" : ago(i).replace("hace ", ""));
+const handle = (who: string) => "@" + who.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Za-z0-9]/g, "").toLowerCase();
 const KIND: Record<Kind, { label: string; badge: "live" | "proxima"; color: string; verb: string }> = {
   live: { label: "En vivo", badge: "live", color: "#F2701D", verb: "está en vivo" },
   bid: { label: "Puja", badge: "live", color: "#F2701D", verb: "recibió una puja" },
@@ -226,6 +229,25 @@ const CSS = `
 .va-pu__foot a { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: #3B1782; text-decoration: none; }
 .va-pu__foot a:hover { color: #E2531A; }
 
+/* Estilo X (feed a pantalla completa en móvil): sin cabecera ni card, publicaciones separadas de lado a lado. */
+.va--x { border-radius: 0; box-shadow: none; }
+.va--x .va-posts { padding: 0; }
+.va-x { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 12px; padding: 12px 16px 10px; border-bottom: 1px solid #EFEDF5; }
+.va-x.va-enter { animation: va-in 0.45s cubic-bezier(0.3,0,0,1), va-flash 2.4s ease; }
+.va-x__head { display: flex; align-items: center; gap: 4px; min-width: 0; font-size: 15px; line-height: 20px; }
+.va-x__head b { flex: none; font-weight: 700; color: #14112B; }
+.va-x__head span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #6B6878; font-weight: 400; }
+.va-x__text { margin: 2px 0 0; font-size: 15px; line-height: 20px; color: #14112B; }
+.va-x__text em { font-style: normal; color: #4A2CE0; }
+.va-x .va-post__media { margin-top: 10px; border: 1px solid #ECE8F6; border-radius: 16px; }
+.va-x__acts { display: flex; justify-content: space-between; max-width: 320px; margin: 8px 0 0 -8px; font-size: 13px; color: #6B6878; }
+.va-x__acts span { display: inline-flex; align-items: center; gap: 6px; padding: 6px 8px; border-radius: 999px; }
+.va-x__acts span:hover { background: #F3EFFD; color: #3B1782; }
+/* Aviso de novedades estilo X: píldora con mini avatares que aparece arriba. */
+.va--x .va-newpill { top: 10px; gap: 6px; padding: 4px 12px 4px 6px; font-size: 13px; background: #3B1782; }
+.va-newpill .va-av { margin-left: -6px; box-shadow: 0 0 0 2px #3B1782; }
+.va-newpill .va-av:first-of-type { margin-left: 0; }
+
 /* «Ver más» (móvil, sin scroll): la card crece con su contenido y un botón va sumando publicaciones. */
 .va--auto { height: auto; flex: none; }
 .va--auto .va-posts { flex: none; overflow: visible; }
@@ -281,8 +303,11 @@ function Head({ live }: { live: boolean }): JSX.Element {
 }
 
 /** `live={false}`: sin la etiqueta «En vivo» de la cabecera, cuando la pestaña que abre el feed ya lo dice (móvil). */
-/** `more`: sin scroll interno; muestra 2 publicaciones y «Ver más» suma de a 3 (móvil). */
-export default function VmcAhora({ view, live = true, more = false }: { view: FeedView; live?: boolean; more?: boolean }): JSX.Element {
+/** `more`: sin scroll interno; muestra 2 publicaciones y «Ver más» suma de a 3 (móvil).
+ *  `x`: feed a pantalla completa estilo X (móvil); con `head={false}` sin cabecera, cuando las pestañas ya la reemplazan. */
+export default function VmcAhora({ view, live = true, more = false, x = false, head = true }: {
+  view: FeedView; live?: boolean; more?: boolean; x?: boolean; head?: boolean;
+}): JSX.Element {
   const [paused, setPaused] = useState(false);
   const [shown, setShown] = useState(2);
   const [revealFrom, setRevealFrom] = useState(Infinity);
@@ -317,6 +342,33 @@ export default function VmcAhora({ view, live = true, more = false }: { view: Fe
                 <span className="va-eb__foot"><span>{e.city} · {ago(i)}</span>
                   <span className="va-eb__acts"><LikeBtn n={e.likes} /><button type="button" aria-label="Compartir">{Ico.share}</button></span>
                 </span>
+              </div>
+            </li>
+          ))}
+        </ol>
+        <style>{CSS}</style>
+      </aside>
+    );
+  }
+
+  if (view === "timeline" && x) {
+    return (
+      <aside className="va va--timeline va--x" aria-label="VMC ahora" {...pause}>
+        {head ? <Head live={live} /> : null}
+        {tick > 0 ? (
+          <span key={tick} className="va-newpill" aria-hidden>
+            {Ico.arrowUp}{items.slice(0, 3).map((e) => <Avatar key={e.id} who={e.who} size={20} />)}Ver nuevas
+          </span>
+        ) : null}
+        <ol className="va-posts va-scroll" aria-live="polite">
+          {items.map((e, i) => (
+            <li key={e.id} className={`va-x${enter(i)}`}>
+              <Avatar who={e.who} size={40} />
+              <div style={{ minWidth: 0 }}>
+                <div className="va-x__head"><b>{e.who}</b><Verified /><span>{handle(e.who)} · {agoShort(i)}</span></div>
+                <p className="va-x__text">{e.title}. <em>{e.detail}</em></p>
+                {i === 0 ? <span className="va-post__media"><img src={e.imageSrc} alt="" /><b>{KIND[e.kind].label}</b></span> : null}
+                <div className="va-x__acts"><span>{Ico.reply}{e.replies}</span><span>{Ico.repost}</span><span>{Ico.heart}{e.likes}</span><span>{Ico.share}</span></div>
               </div>
             </li>
           ))}

@@ -2,6 +2,7 @@
 
 import { Header, Sidebar, SidebarMenuButton, SidebarMobile } from "@vmc/concorde-adapter";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import type { JSX } from "react";
 
 import DevicePreview from "./DevicePreview";
@@ -25,6 +26,11 @@ const FeedIcon = ({ on }: { on: boolean }) => (
 type MobileFeedView = "card" | "more" | "tabs" | "slot" | "ticker";
 const isMobileFeedView = (v: unknown): v is MobileFeedView => ["card", "more", "tabs", "slot", "ticker"].includes(v as string);
 
+// Publicidad de Subastop (skill banners-subastop): la pieza 200 × 264 va en el hueco del banner del sidebar, como en Mi Garaje.
+// La plantilla vive en public/banners; el enlace (con UTM) está dentro del iframe.
+const SIDE_AD_SRC = "/banners/venta-empresa.html?v=05-inventario&f=side264";
+const SIDE_AD_TITLE = "Venta para empresas: ¿Repuestos que no se mueven? Véndelos.";
+
 function BrandLogo() {
   return <img className={styles.brandLogo} src="/assets/brand/logo-voyager.svg" alt="VMC Subastas" />;
 }
@@ -36,6 +42,9 @@ export default function HomeIndexRebase() {
   // Modo Feed (control de la vista mobile): barra inferior Inicio / Feed; VMC ahora sale del inicio a su pestaña.
   const [feedMode, setFeedMode] = useState(false);
   const [tab, setTab] = useState<"home" | "feed">("home");
+  // Huecos del banner del sidebar (escritorio y menú del celular), donde se monta la publicidad.
+  const [adSlots, setAdSlots] = useState<Element[]>([]);
+  useEffect(() => { setAdSlots([...document.querySelectorAll('[data-slot="sidebar-banner"]')]); }, [menuOpen, collapsed]);
   // Variante de VMC ahora en el móvil sin modo Feed (control «VMC ahora · móvil» de la vista celular).
   const [mview, setMview] = useState<MobileFeedView>("more");
   const [liveOpen, setLiveOpen] = useState(false); // pestaña «En vivo» abierta, o feed abierto desde la franja
@@ -59,8 +68,9 @@ export default function HomeIndexRebase() {
   const goTab = (t: "home" | "feed") => { setTab(t); window.scrollTo(0, 0); };
   const openLive = (on: boolean) => { setLiveOpen(on); window.scrollTo(0, 0); };
   // `live`: false cuando la pestaña «En vivo» ya lo dice, para no repetir la etiqueta en la cabecera del feed.
-  const feed = (sub: boolean, live = true) => (
-    <main className={styles.feedView} data-sub={sub || undefined} aria-label="Feed de VMC ahora"><VmcAhora view="timeline" live={live} /></main>
+  // Feed a pantalla completa estilo X. En «Pestañas arriba» sin cabecera: las pestañas ya dicen dónde estás.
+  const feed = (sub: boolean, live = true, head = true) => (
+    <main className={styles.feedView} data-sub={sub || undefined} aria-label="Feed de VMC ahora"><VmcAhora view="timeline" live={live} x head={head} /></main>
   );
   // Contenido del móvil según el modo: Feed (barra inferior) manda; si no, la variante elegida en los controles.
   let mobileBody: JSX.Element;
@@ -72,7 +82,7 @@ export default function HomeIndexRebase() {
           <button type="button" aria-current={!liveOpen ? "page" : undefined} onClick={() => openLive(false)}>Inicio</button>
           <button type="button" aria-current={liveOpen ? "page" : undefined} onClick={() => openLive(true)}><i aria-hidden />En vivo</button>
         </nav>
-        {liveOpen ? feed(true, false) : <HomeIndexBlock hideFeed />}
+        {liveOpen ? feed(true, false, false) : <HomeIndexBlock hideFeed />}
       </>
     );
   } else if (mview === "ticker") {
@@ -111,6 +121,8 @@ export default function HomeIndexRebase() {
         <DevicePreview />
       </div>
 
+      {adSlots.map((el, i) => createPortal(
+        <div className={styles.sideAd} aria-label="Publicidad"><iframe src={SIDE_AD_SRC} title={SIDE_AD_TITLE} loading="lazy" /></div>, el, `side-ad-${i}`))}
       {/* Móvil y tablet: drawer de Concorde con hamburguesa + logo en el header y el mismo bloque en una columna. */}
       <div className={styles.mobileShell} data-feedmode={feedMode || undefined}>
         <SidebarMobile open={menuOpen} onOpenChange={setMenuOpen}>

@@ -225,7 +225,9 @@ const HERO_CSS = `
 /* Montaña de vidrio (ref. tarjeta promo): pestaña con hombros curvos que sube desde el borde inferior, en vidrio, con los
    puntos adentro (el activo se alarga). La forma es un clip-path; el borde claro de arriba es un SVG con la misma curva. */
 .hp-mtn { position: absolute; left: 50%; bottom: 0; z-index: 5; width: 132px; height: 26px; transform: translateX(-50%); }
-.hp-mtn__glass { position: absolute; inset: 0; clip-path: path("M0 26C22 26 26 2 48 2H84C106 2 110 26 132 26Z");
+/* El recorte va en el contenedor: en Chromium el blur del vidrio no respeta un clip-path puesto en el mismo elemento. */
+.hp-mtn__clip { position: absolute; inset: 0; overflow: hidden; clip-path: path("M0 26C22 26 26 2 48 2H84C106 2 110 26 132 26Z"); }
+.hp-mtn__glass { position: absolute; inset: 0;
   background: linear-gradient(180deg, rgba(255,255,255,0.42) 0%, rgba(255,255,255,0.16) 100%); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
 .hp-mtn__edge { position: absolute; inset: 0; overflow: visible; pointer-events: none; }
 .hp-mtn__edge path { fill: none; stroke: rgba(255,255,255,0.75); stroke-width: 1.2; }
@@ -437,7 +439,7 @@ function PrincipalBanner({ nav = "plain", fx = "letters" }: { nav?: BannerNav; f
         </div>
       ) : nav === "plain" ? (
         <div className="hp-mtn">
-          <span className="hp-mtn__glass" aria-hidden />
+          <span className="hp-mtn__clip" aria-hidden><span className="hp-mtn__glass" /></span>
           <svg className="hp-mtn__edge" viewBox="0 0 132 26" aria-hidden><path d="M0 26C22 26 26 2 48 2H84C106 2 110 26 132 26" /></svg>
           <div className="hp-mtn__dots" role="group" aria-label="Elegir diapositiva">
             {SLIDES.map((sl, i) => (
@@ -1479,19 +1481,30 @@ const SWITCH_CSS = `
 const MOBILE_CSS = `
 @media (max-width: 1023px) {
   .hib-home { overflow-x: clip; padding: 14px !important; gap: 18px !important; }
-  .hib-top-grid { grid-template-columns: minmax(0, 1fr) !important; grid-template-rows: 300px auto 390px auto !important; gap: 14px !important; }
+  /* Móvil: banner y justo después VMC ahora (pedido de Fernando); Tipo de oferta baja, compacto, después de las tiendas. */
+  .hib-top-grid { grid-template-columns: minmax(0, 1fr) !important; grid-template-rows: 300px 390px auto !important; gap: 14px !important; }
   .hib-top-grid > [data-slot="principal-banner"] { grid-column: 1 !important; grid-row: 1 !important; }
-  .hib-top-grid > [data-slot="secondary-banner"] { grid-column: 1 !important; grid-row: 3 !important; height: 390px !important; }
-  .hib-top-grid > [data-slot="offer-type"] { grid-column: 1 !important; grid-row: 2 !important; }
+  .hib-top-grid > [data-slot="secondary-banner"] { grid-column: 1 !important; grid-row: 2 !important; height: 390px !important; }
+  .hib-top-grid > [data-slot="offer-type"] { display: none; }
+  .hib-ot-mobile { display: block !important; }
+  /* Tipo de oferta en móvil: dos tarjetas lado a lado y más bajas (Normal / Con foto / Corta). */
+  .hib-ot-mobile .hib-otg { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 10px !important; }
+  .hib-ot-mobile .hib-otg__card, .hib-ot-mobile .hib-otg--photo .hib-otg__card { min-height: 104px; }
+  .hib-ot-mobile .hib-otg__body, .hib-ot-mobile .hib-otg--photo .hib-otg__body { grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 14px; }
+  .hib-ot-mobile .hib-otg__icon { width: 40px; height: 40px; }
+  .hib-ot-mobile .hib-otg__icon .vd { width: 28px; height: 28px; }
+  .hib-ot-mobile .hib-otg--photo .hib-otg__txt { max-width: none; }
+  .hib-ot-mobile .hib-otg__bgimg { width: 100%; opacity: 0.55; }
+  .hib-ot-mobile .hib-otg__txt > span:last-child { font-size: 11px; line-height: 15px; }
   /* Modo Feed: sin VMC ahora, la fila 3 (390) desaparece. */
-  .hib-top-grid[data-nofeed] { grid-template-rows: 300px auto auto !important; }
+  .hib-top-grid[data-nofeed] { grid-template-rows: 300px auto !important; }
   /* «Ver más»: VMC ahora crece con su contenido (sin el alto fijo de 390 ni scroll interno). */
-  .hib-top-grid[data-feedmore] { grid-template-rows: 300px auto auto auto !important; }
+  .hib-top-grid[data-feedmore] { grid-template-rows: 300px auto auto !important; }
   .hib-top-grid[data-feedmore] > [data-slot="secondary-banner"] { height: auto !important; }
-  .hib-top-grid > [data-slot="ticker"] { grid-column: 1 !important; grid-row: 3 !important; }
+  .hib-top-grid > [data-slot="ticker"] { grid-column: 1 !important; grid-row: 2 !important; }
   /* Banner / Feed: el espacio crece para que el feed se lea (selector 36 + 8 + 356). */
-  .hib-top-grid[data-feedslot] { grid-template-rows: 400px auto auto !important; }
-  .hib-top-grid > .hib-switches { position: static !important; grid-column: 1 !important; grid-row: 4 !important; width: 100% !important; margin-top: 0; }
+  .hib-top-grid[data-feedslot] { grid-template-rows: 400px auto !important; }
+  .hib-top-grid > .hib-switches { position: static !important; grid-column: 1 !important; grid-row: 3 !important; width: 100% !important; margin-top: 0; }
   .hib-home .hib-switches { position: static !important; width: 100% !important; margin-top: 12px; }
   .hib-home .hib-switch__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .hib-section-head { align-items: flex-start !important; flex-wrap: wrap; gap: 10px !important; }
@@ -1521,7 +1534,7 @@ const MOBILE_CSS = `
 }
 @media (max-width: 480px) {
   .hib-home { padding: 12px !important; }
-  .hib-top-grid { grid-template-rows: 300px auto 390px auto !important; }
+  .hib-top-grid { grid-template-rows: 300px 390px auto !important; }
   .hib-top-grid > [data-slot="secondary-banner"] { height: 390px !important; }
   .hib-home .hib-switch__grid { grid-template-columns: minmax(0, 1fr); }
   .hib-listado-gallery > div:first-child { min-height: 330px; }
@@ -1759,6 +1772,8 @@ export default function HomeIndexBlock({ hideFeed = false, feedSlot = false, onO
           <ViewSwitch title="Mapfre · detail card" suffix="" options={CARD_STYLES} value={cardStyle2} onChange={setCardStyle2} />
         </Switches>
       </div>
+      {/* Solo móvil: Tipo de oferta después de las tiendas (arriba quitaba mucho espacio). */}
+      <div className="hib-ot-mobile" style={{ display: "none", width: "100%" }}><OfferTypeCard view={offerView} /></div>
       <div style={{ position: "relative", width: "100%" }}>
         <CategoryRail view={categoriesView} />
         <Switches visible={controls}><ViewSwitch title="Categorías" options={CATEGORIES_VIEWS} value={categoriesView} onChange={setCategoriesView} /></Switches>

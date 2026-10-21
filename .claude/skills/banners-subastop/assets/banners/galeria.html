@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Banners Venta para empresas</title>
+<style>
+body{margin:0;padding:24px;background:#2E0F6E;color:#fff;font:14px/1.4 system-ui,sans-serif}
+h2{margin:32px 0 12px;font-size:16px}
+.row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+iframe{border:0;border-radius:16px;display:block;max-width:100%}
+code{color:#E8DEFF}
+</style></head>
+<body>
+<p>Abre con un servidor local (<code>npx serve .</code> o <code>python3 -m http.server</code>) para que el alto del riel se ajuste.</p>
+<div id="g"></div>
+<script>
+const V = ["01-general","02-maquinaria","03-tecnologia","04-flotas","05-inventario"];
+const S = {side264:[200,264], side400:[200,400], strip776:[776,232], strip1532:[1532,200]};
+document.getElementById("g").innerHTML = V.map(v => `<h2>${v}</h2><div class="row">` +
+  Object.entries(S).map(([f,[w,h]]) => `<iframe src="venta-empresa.html?v=${v}&f=${f}" title="${v} ${f}" width="${w}" height="${h}" loading="lazy"></iframe>`).join("") +
+  `</div>`).join("");
+</script>
+</body></html>

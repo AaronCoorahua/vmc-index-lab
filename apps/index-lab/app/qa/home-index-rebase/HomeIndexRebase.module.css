@@ -31,6 +31,12 @@
 .storeLink { display: flex; align-items: center; min-width: 0; gap: 12px; }
 .storeInitial { display: inline-grid; place-items: center; flex: 0 0 auto; width: 40px; height: 40px; }
 
+/* Publicidad de Subastop en el hueco del banner del sidebar (200 × 264): reemplaza el marcador «Banner» de Concorde. */
+.desktopShell :global([data-slot="sidebar-banner"]), .mobileShell :global([data-slot="sidebar-banner"]) { position: relative; overflow: hidden; }
+.desktopShell :global([data-slot="sidebar-banner"] > span), .mobileShell :global([data-slot="sidebar-banner"] > span) { display: none; }
+.sideAd { position: absolute; inset: 0; border-radius: inherit; overflow: hidden; }
+.sideAd iframe { display: block; width: 100%; height: 100%; border: 0; }
+
 @media (max-width: 1023px) {
   .desktopShell { display: none; }
   .mobileShell { display: block; }
