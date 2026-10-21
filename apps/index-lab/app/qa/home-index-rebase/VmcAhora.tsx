@@ -93,6 +93,9 @@ const Ico = {
   reply: <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden><path d="M21 11.5a8.5 8.5 0 0 1-12.2 7.6L3.5 20.5l1.4-4.9A8.5 8.5 0 1 1 21 11.5z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" /></svg>,
   repost: <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden><path d="M4 11V9a3 3 0 0 1 3-3h11M15 3l3 3-3 3M20 13v2a3 3 0 0 1-3 3H6M9 21l-3-3 3-3" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>,
   share: <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden><path d="M21 3L10.5 13.5M21 3l-6.5 18-4-7.5L3 9.5z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" /></svg>,
+  views: <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden><path d="M5 20V11M10 20V6M15 20v-7M20 20V9" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>,
+  bookmark: <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden><path d="M6.5 3.5h11a1 1 0 0 1 1 1V21l-6.5-4.5L5.5 21V4.5a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" /></svg>,
+  more: <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden><circle cx="5" cy="12" r="1.7" fill="currentColor" /><circle cx="12" cy="12" r="1.7" fill="currentColor" /><circle cx="19" cy="12" r="1.7" fill="currentColor" /></svg>,
   arrowUp: <svg width="11" height="11" viewBox="0 0 24 24" aria-hidden><path d="M12 19V5M6 11l6-6 6 6" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" /></svg>,
 };
 
@@ -229,24 +232,43 @@ const CSS = `
 .va-pu__foot a { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: #3B1782; text-decoration: none; }
 .va-pu__foot a:hover { color: #E2531A; }
 
-/* Estilo X (feed a pantalla completa en móvil): sin cabecera ni card, publicaciones separadas de lado a lado. */
-.va--x { border-radius: 0; box-shadow: none; }
+/* Estilo X (feed a pantalla completa en móvil): la anatomía del post de X. Grises y separadores de X
+   (#0F1419 texto, #536471 secundario, #EFF3F4 filete); el acento es el morado de VMC en vez del azul de X. */
+.va--x { border-radius: 0; box-shadow: none; color: #0F1419; }
 .va--x .va-posts { padding: 0; }
-.va-x { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 12px; padding: 12px 16px 10px; border-bottom: 1px solid #EFEDF5; }
+.va--x.va--page { height: auto; flex: none; overflow: visible; }
+.va--x.va--page .va-posts { flex: none; overflow: visible; }
+.va-x { position: relative; display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 8px; padding: 12px 16px 4px; border-bottom: 1px solid #EFF3F4; cursor: pointer; transition: background 0.2s; }
+.va-x:hover { background: #F7F9F9; }
 .va-x.va-enter { animation: va-in 0.45s cubic-bezier(0.3,0,0,1), va-flash 2.4s ease; }
-.va-x__head { display: flex; align-items: center; gap: 4px; min-width: 0; font-size: 15px; line-height: 20px; }
-.va-x__head b { flex: none; font-weight: 700; color: #14112B; }
-.va-x__head span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #6B6878; font-weight: 400; }
-.va-x__text { margin: 2px 0 0; font-size: 15px; line-height: 20px; color: #14112B; }
+.va-x .va-av { margin-top: 2px; }
+.va-x__head { display: flex; align-items: center; gap: 4px; min-width: 0; padding-right: 26px; font-size: 15px; line-height: 20px; }
+.va-x__head b { flex: none; max-width: 52%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; color: #0F1419; }
+.va-x__head .va-verified { width: 16px; height: 16px; }
+.va-x__head span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #536471; font-weight: 400; }
+.va-x__more { position: absolute; top: 8px; right: 8px; display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 50%;
+  background: none; color: #536471; cursor: pointer; }
+.va-x__more:hover { background: rgba(59,23,130,0.1); color: #3B1782; }
+.va-x__text { margin: 0; font-size: 15px; line-height: 20px; color: #0F1419; overflow-wrap: anywhere; }
 .va-x__text em { font-style: normal; color: #4A2CE0; }
-.va-x .va-post__media { margin-top: 10px; border: 1px solid #ECE8F6; border-radius: 16px; }
-.va-x__acts { display: flex; justify-content: space-between; max-width: 320px; margin: 8px 0 0 -8px; font-size: 13px; color: #6B6878; }
-.va-x__acts span { display: inline-flex; align-items: center; gap: 6px; padding: 6px 8px; border-radius: 999px; }
-.va-x__acts span:hover { background: #F3EFFD; color: #3B1782; }
+.va-x .va-post__media { margin-top: 12px; border: 1px solid #CFD9DE; border-radius: 16px; }
+.va-x__acts { display: flex; align-items: center; justify-content: space-between; margin: 4px 0 0 -8px; max-width: 425px; }
+.va-x__acts > span { display: flex; gap: 2px; }
+.va-x__acts button { display: inline-flex; align-items: center; gap: 2px; height: 34px; padding: 0 8px 0 0; border: 0; background: none; cursor: pointer;
+  font: 400 13px/1 var(--vmc-font-display, 'Plus Jakarta Sans', sans-serif); color: #536471; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.va-x__acts button i { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; transition: background 0.2s, color 0.2s; }
+.va-x__acts button:hover { color: var(--k); }
+.va-x__acts button:hover i { background: color-mix(in srgb, var(--k) 12%, transparent); }
+.va-x__acts button[aria-pressed="true"] { color: var(--k); }
+.va-x__acts button[aria-pressed="true"] i svg path { fill: currentColor; }
+.va-x__acts button[aria-pressed="true"] i { animation: va-pop 0.35s cubic-bezier(0.3,1.6,0.5,1); }
+.va-x__acts button:focus-visible { outline: 2px solid #8460E5; outline-offset: 1px; border-radius: 999px; }
+@keyframes va-pop { 40% { transform: scale(1.25); } }
 /* Aviso de novedades estilo X: píldora con mini avatares que aparece arriba. */
-.va--x .va-newpill { top: 10px; gap: 6px; padding: 4px 12px 4px 6px; font-size: 13px; background: #3B1782; }
+.va--x .va-newpill { position: sticky; top: 10px; display: flex; width: max-content; margin: 0 auto -32px; gap: 6px; padding: 4px 12px 4px 6px; font-size: 13px; background: #3B1782; }
 .va-newpill .va-av { margin-left: -6px; box-shadow: 0 0 0 2px #3B1782; }
 .va-newpill .va-av:first-of-type { margin-left: 0; }
+@media (prefers-reduced-motion: reduce) { .va-x__acts button i { animation: none !important; } }
 
 /* «Ver más» (móvil, sin scroll): la card crece con su contenido y un botón va sumando publicaciones. */
 .va--auto { height: auto; flex: none; }
@@ -280,6 +302,41 @@ const TICKER_CSS = `
 .va-ticker__go { color: #3B1782; }
 @media (prefers-reduced-motion: reduce) { .va-ticker__txt, .va-ticker__live i { animation: none; } }
 `;
+// Post estilo X: avatar, nombre + verificado + @usuario · tiempo, «···», texto, medio y la barra de acciones de X
+// (responder, repostear, me gusta, vistas · guardar, compartir). Repostear, me gusta y guardar se marcan al tocarlos.
+function XPost({ e, i, className }: { e: FeedEvent; i: number; className: string }): JSX.Element {
+  const [liked, setLiked] = useState(false);
+  const [reposted, setReposted] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const fmt = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(1).replace(".0", "").replace(".", ",")} mil` : String(n));
+  const views = e.likes * 37 + e.replies * 90;
+  const act = (k: string, label: string, icon: JSX.Element, count?: string, pressed?: boolean, on?: () => void) => (
+    <button type="button" style={{ "--k": k } as CSSProperties} aria-label={label} aria-pressed={pressed}
+      onClick={(ev) => { ev.stopPropagation(); on?.(); }}><i>{icon}</i>{count}</button>
+  );
+  return (
+    <li className={className}>
+      <Avatar who={e.who} size={40} />
+      <div style={{ minWidth: 0 }}>
+        <div className="va-x__head"><b>{e.who}</b><Verified /><span>{handle(e.who)} · {agoShort(i)}</span></div>
+        <button type="button" className="va-x__more" aria-label="Más opciones">{Ico.more}</button>
+        <p className="va-x__text">{e.title}. <em>{e.detail}</em></p>
+        {i === 0 ? <span className="va-post__media"><img src={e.imageSrc} alt="" /><b>{KIND[e.kind].label}</b></span> : null}
+        <div className="va-x__acts">
+          {act("#4A2CE0", `Responder · ${e.replies}`, Ico.reply, e.replies ? String(e.replies) : "")}
+          {act("#00BA7C", "Repostear", Ico.repost, reposted ? "1" : "", reposted, () => setReposted((v) => !v))}
+          {act("#F91880", `Me gusta · ${e.likes + (liked ? 1 : 0)}`, Ico.heart, String(e.likes + (liked ? 1 : 0)), liked, () => setLiked((v) => !v))}
+          {act("#4A2CE0", `${fmt(views)} vistas`, Ico.views, fmt(views))}
+          <span>
+            {act("#4A2CE0", "Guardar", Ico.bookmark, undefined, saved, () => setSaved((v) => !v))}
+            {act("#4A2CE0", "Compartir", Ico.share)}
+          </span>
+        </div>
+      </div>
+    </li>
+  );
+}
+
 export function VmcAhoraTicker({ onOpen }: { onOpen: () => void }): JSX.Element {
   const { items, tick } = useLiveFeed(1, false);
   const e = items[0];
@@ -304,14 +361,15 @@ function Head({ live }: { live: boolean }): JSX.Element {
 
 /** `live={false}`: sin la etiqueta «En vivo» de la cabecera, cuando la pestaña que abre el feed ya lo dice (móvil). */
 /** `more`: sin scroll interno; muestra 2 publicaciones y «Ver más» suma de a 3 (móvil).
- *  `x`: feed a pantalla completa estilo X (móvil); con `head={false}` sin cabecera, cuando las pestañas ya la reemplazan. */
-export default function VmcAhora({ view, live = true, more = false, x = false, head = true }: {
-  view: FeedView; live?: boolean; more?: boolean; x?: boolean; head?: boolean;
+ *  `x`: feed a pantalla completa estilo X (móvil); con `head={false}` sin cabecera, cuando las pestañas ya la reemplazan,
+ *  y con `page` sin scroll propio (desplaza la página, como X, para que el header se esconda al bajar). */
+export default function VmcAhora({ view, live = true, more = false, x = false, head = true, page = false }: {
+  view: FeedView; live?: boolean; more?: boolean; x?: boolean; head?: boolean; page?: boolean;
 }): JSX.Element {
   const [paused, setPaused] = useState(false);
   const [shown, setShown] = useState(2);
   const [revealFrom, setRevealFrom] = useState(Infinity);
-  const { items: all, tick } = useLiveFeed(view === "pulso" ? 4 : more ? EVENTS.length : 5, paused);
+  const { items: all, tick } = useLiveFeed(view === "pulso" ? 4 : more || x ? EVENTS.length : 5, paused);
   const items = more ? all.slice(0, shown) : all;
   const moreBtn = more ? (
     <button type="button" className="va-more" data-less={shown >= all.length || undefined}
@@ -353,25 +411,15 @@ export default function VmcAhora({ view, live = true, more = false, x = false, h
 
   if (view === "timeline" && x) {
     return (
-      <aside className="va va--timeline va--x" aria-label="VMC ahora" {...pause}>
+      <aside className={`va va--timeline va--x${page ? " va--page" : ""}`} aria-label="VMC ahora" {...pause}>
         {head ? <Head live={live} /> : null}
         {tick > 0 ? (
           <span key={tick} className="va-newpill" aria-hidden>
             {Ico.arrowUp}{items.slice(0, 3).map((e) => <Avatar key={e.id} who={e.who} size={20} />)}Ver nuevas
           </span>
         ) : null}
-        <ol className="va-posts va-scroll" aria-live="polite">
-          {items.map((e, i) => (
-            <li key={e.id} className={`va-x${enter(i)}`}>
-              <Avatar who={e.who} size={40} />
-              <div style={{ minWidth: 0 }}>
-                <div className="va-x__head"><b>{e.who}</b><Verified /><span>{handle(e.who)} · {agoShort(i)}</span></div>
-                <p className="va-x__text">{e.title}. <em>{e.detail}</em></p>
-                {i === 0 ? <span className="va-post__media"><img src={e.imageSrc} alt="" /><b>{KIND[e.kind].label}</b></span> : null}
-                <div className="va-x__acts"><span>{Ico.reply}{e.replies}</span><span>{Ico.repost}</span><span>{Ico.heart}{e.likes}</span><span>{Ico.share}</span></div>
-              </div>
-            </li>
-          ))}
+        <ol className={`va-posts${page ? "" : " va-scroll"}`} aria-live="polite">
+          {items.map((e, i) => <XPost key={e.id} e={e} i={i} className={`va-x${enter(i)}`} />)}
         </ol>
         <style>{CSS}</style>
       </aside>

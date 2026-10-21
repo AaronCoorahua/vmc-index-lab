@@ -17,8 +17,8 @@ type MobileFeedView = "card" | "more" | "tabs" | "slot" | "ticker";
 // Versiones de VMC ahora en el móvil (sin modo Feed), para compararlas en el teléfono.
 const MOBILE_FEED_VIEWS: { id: MobileFeedView; label: string; hint: string }[] = [
   { id: "card", label: "Card en el inicio", hint: "VMC ahora debajo del Tipo de oferta, con su propio scroll" },
-  { id: "more", label: "Card con «Ver más»", hint: "Por defecto: sin scroll, muestra 2 y «Ver más» suma de a 3" },
-  { id: "tabs", label: "Pestañas arriba", hint: "Inicio | En vivo bajo el header, fijas al bajar (recomendada)" },
+  { id: "more", label: "Card con «Ver más»", hint: "Opción A (por defecto): sin scroll, muestra 2 y «Ver más» suma de a 3" },
+  { id: "tabs", label: "Pestañas arriba", hint: "Opción B: Inicio | En vivo como X; el header se esconde al bajar" },
   { id: "slot", label: "Banner / Feed", hint: "Se alternan en el espacio del banner" },
   { id: "ticker", label: "Franja en vivo", hint: "Una línea con lo último; al tocarla abre el feed" },
 ];
@@ -120,6 +120,10 @@ export default function DevicePreview(): JSX.Element {
     const onPreset = (e: Event) => {
       const id = (e as CustomEvent<PresetId>).detail;
       preset.current = id;
+      // A = card con «Ver más», B = pestañas arriba: el panel lo refleja y el teléfono lo aplica al recibir el preset.
+      const v: MobileFeedView = id === "b" ? "tabs" : "more";
+      mviewRef.current = v;
+      setMview(v);
       frame.current?.contentWindow?.postMessage({ type: "hib-preset", id }, window.location.origin);
     };
     // Cada vez que el teléfono (re)carga avisa «listo» y se le reenvía el estado: así nunca queda al revés que los controles.

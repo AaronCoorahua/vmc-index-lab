@@ -31,6 +31,14 @@ const isMobileFeedView = (v: unknown): v is MobileFeedView => ["card", "more", "
 const SIDE_AD_SRC = "/banners/venta-empresa.html?v=05-inventario&f=side264";
 const SIDE_AD_TITLE = "Venta para empresas: ¿Repuestos que no se mueven? Véndelos.";
 
+// En móvil, Opción A / B también eligen la versión de VMC ahora: A = card con «Ver más», B = pestañas arriba (estilo X).
+const PRESET_MVIEW: Record<string, MobileFeedView> = { a: "more", b: "tabs" };
+// Móvil sin barras de scroll visibles (la página y los paneles siguen desplazándose).
+const NO_SCROLLBARS = `@media (max-width: 1023px) {
+  html, body, * { scrollbar-width: none; }
+  html::-webkit-scrollbar, body::-webkit-scrollbar, *::-webkit-scrollbar { display: none; width: 0; height: 0; }
+}`;
+
 function BrandLogo() {
   return <img className={styles.brandLogo} src="/assets/brand/logo-voyager.svg" alt="VMC Subastas" />;
 }
@@ -55,10 +63,12 @@ export default function HomeIndexRebase() {
     if (q.get("feed") === "1") set(true);
     const vista = q.get("vista");
     if (isMobileFeedView(vista)) setMview(vista);
+    else if (PRESET_MVIEW[q.get("opcion") ?? ""]) setMview(PRESET_MVIEW[q.get("opcion") ?? ""]);
     const onMessage = (e: MessageEvent) => {
       if (e.origin !== window.location.origin) return;
       if (e.data?.type === "hib-feed") set(!!e.data.on);
       if (e.data?.type === "hib-mview" && isMobileFeedView(e.data.view)) { setMview(e.data.view); setLiveOpen(false); }
+      if (e.data?.type === "hib-preset" && PRESET_MVIEW[e.data.id]) { setMview(PRESET_MVIEW[e.data.id]); setLiveOpen(false); }
     };
     window.addEventListener("message", onMessage);
     // Dentro del teléfono de la vista mobile: avisa que ya escucha para recibir el estado de los controles.
@@ -66,6 +76,21 @@ export default function HomeIndexRebase() {
     return () => window.removeEventListener("message", onMessage);
   }, []);
   const goTab = (t: "home" | "feed") => { setTab(t); window.scrollTo(0, 0); };
+  const xbar = !feedMode && mview === "tabs";
+  const [barHidden, setBarHidden] = useState(false);
+  useEffect(() => {
+    if (!xbar) { setBarHidden(false); return; }
+    let last = window.scrollY;
+    const onScroll = () => {
+      const y = window.scrollY, d = y - last;
+      if (y < 64) setBarHidden(false);
+      else if (d > 6) setBarHidden(true);
+      else if (d < -6) setBarHidden(false);
+      if (Math.abs(d) > 6) last = y;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [xbar]);
   const openLive = (on: boolean) => { setLiveOpen(on); window.scrollTo(0, 0); };
   // `live`: false cuando la pestaña «En vivo» ya lo dice, para no repetir la etiqueta en la cabecera del feed.
   // Feed a pantalla completa estilo X. En «Pestañas arriba» sin cabecera: las pestañas ya dicen dónde estás.
@@ -78,11 +103,18 @@ export default function HomeIndexRebase() {
   else if (mview === "tabs") {
     mobileBody = (
       <>
+        {/* Pestañas de X («Para ti / Siguiendo»): texto centrado, la activa en negrita con su línea redondeada del ancho del texto. */}
         <nav className={styles.toptabs} aria-label="Inicio o VMC ahora">
-          <button type="button" aria-current={!liveOpen ? "page" : undefined} onClick={() => openLive(false)}>Inicio</button>
-          <button type="button" aria-current={liveOpen ? "page" : undefined} onClick={() => openLive(true)}><i aria-hidden />En vivo</button>
+          <button type="button" aria-current={!liveOpen ? "page" : undefined} onClick={() => openLive(false)}><span>Inicio</span></button>
+          <button type="button" aria-current={liveOpen ? "page" : undefined} onClick={() => openLive(true)}><span><i aria-hidden />En vivo</span></button>
         </nav>
-        {liveOpen ? feed(true, false, false) : <HomeIndexBlock hideFeed />}
+        {liveOpen
+          ? <main className={styles.feedPage} aria-label="Feed de VMC ahora"><VmcAhora view="timeline" live={false} x head={false} page /></main>
+          : <HomeIndexBlock hideFeed />}
+        {/* Botón flotante de X (redactar) → Publicar en VMC. */}
+        <a className={styles.fab} href="https://www.vmcsubastas.com/landing-subascars" aria-label="Publicar">
+          <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" /></svg>
+        </a>
       </>
     );
   } else if (mview === "ticker") {
@@ -124,7 +156,7 @@ export default function HomeIndexRebase() {
       {adSlots.map((el, i) => createPortal(
         <div className={styles.sideAd} aria-label="Publicidad"><iframe src={SIDE_AD_SRC} title={SIDE_AD_TITLE} loading="lazy" /></div>, el, `side-ad-${i}`))}
       {/* Móvil y tablet: drawer de Concorde con hamburguesa + logo en el header y el mismo bloque en una columna. */}
-      <div className={styles.mobileShell} data-feedmode={feedMode || undefined}>
+      <div className={styles.mobileShell} data-feedmode={feedMode || undefined} data-xbar={xbar || undefined} data-xhide={(xbar && barHidden) || undefined}>
         <SidebarMobile open={menuOpen} onOpenChange={setMenuOpen}>
           <Header width="100%" logo={
             <div className={styles.mobileBrand}>
@@ -143,6 +175,7 @@ export default function HomeIndexRebase() {
           </nav>
         ) : null}
       </div>
+      <style>{NO_SCROLLBARS}</style>
     </>
   );
 }
