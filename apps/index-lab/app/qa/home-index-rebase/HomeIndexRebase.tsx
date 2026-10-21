@@ -28,7 +28,7 @@ const isMobileFeedView = (v: unknown): v is MobileFeedView => ["card", "more", "
 
 // Publicidad de Subastop (skill banners-subastop): la pieza 200 × 264 va en el hueco del banner del sidebar, como en Mi Garaje.
 // La plantilla vive en public/banners; el enlace (con UTM) está dentro del iframe.
-const SIDE_AD_SRC = "/banners/venta-empresa.html?v=01-general&f=side264";
+const SIDE_AD_SRC = "/banners/venta-empresa.html?v=01-general&f=side400";
 const SIDE_AD_TITLE = "Venta para empresas: ¿Tu empresa necesita liquidez?";
 
 // En móvil, Opción A / B también eligen la versión de VMC ahora: A = card con «Ver más», B = pestañas arriba (estilo X).
