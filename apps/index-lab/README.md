@@ -23,3 +23,4 @@ npm ci                      # en la raíz del monorepo
 cd apps/index-lab
 npx next dev --port 3001    # http://localhost:3001/qa/home-index-rebase
 ```
+.
