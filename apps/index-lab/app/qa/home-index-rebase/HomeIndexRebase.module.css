@@ -84,13 +84,6 @@
 /* Feed como X: desplaza la página (sin scroll propio), así el header se esconde al bajar. */
 .feedPage { min-height: calc(100dvh - 117px); background: #fff; }
 .feedPage :global(.va) { border-radius: 0; box-shadow: none; }
-/* Botón flotante de X: círculo de 56 abajo a la derecha. */
-.fab { position: fixed; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 20; display: grid; place-items: center; width: 56px; height: 56px;
-  border-radius: 50%; color: #fff; background: linear-gradient(135deg, #8460E5 0%, #3B1782 100%); box-shadow: rgba(59,23,130,0.4) 0 8px 20px, rgba(0,0,0,0.12) 0 2px 6px;
-  transition: transform 0.2s cubic-bezier(0.3,0,0,1), box-shadow 0.2s; }
-.fab:hover { transform: scale(1.05); }
-.fab:active { transform: scale(0.95); }
-.fab:focus-visible { outline: 2px solid #8460E5; outline-offset: 3px; }
 /* Variante «Franja en vivo»: barra para volver del feed al inicio. */
 .backbar { position: sticky; top: 0; z-index: 6; display: flex; align-items: center; height: 44px; padding: 0 8px; background: #fff; border-bottom: 1px solid #ECE8F6; }
 .backbar button { display: inline-flex; align-items: center; gap: 2px; height: 36px; padding: 0 10px 0 4px; border: 0; border-radius: 10px; background: none; cursor: pointer;

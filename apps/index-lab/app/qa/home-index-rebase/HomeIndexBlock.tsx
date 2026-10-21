@@ -1621,6 +1621,32 @@ function BannerFeedSlot({ feedView, nav, fx }: { feedView: FeedView; nav: Banner
   );
 }
 
+const AD_STRIP_CSS = `
+.hib-adstrip { position: relative; display: block; width: 100%; overflow: hidden; border-radius: 16px; box-shadow: ${SHADOW}; }
+.hib-adstrip iframe { position: absolute; top: 0; left: 0; display: block; border: 0; transform-origin: 0 0; }
+`;
+// Publicidad de Subastop bajo Autoplan (skill banners-subastop, 01-general): franja 1532 × 200 en escritorio y 776 × 232
+// en móvil. El iframe se dibuja a su tamaño de diseño y se escala al ancho disponible, como una imagen.
+function AdStrip(): JSX.Element {
+  const ref = useRef<HTMLElement>(null);
+  const [w, setW] = useState(0);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([e]) => setW(e.contentRect.width));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const f = w > 0 && w < 600 ? { id: "strip776", w: 776, h: 232 } : { id: "strip1532", w: 1532, h: 200 };
+  const s = w / f.w;
+  return (
+    <aside ref={ref} className="hib-adstrip" aria-label="Publicidad" style={{ aspectRatio: `${f.w} / ${f.h}` }}>
+      {w ? <iframe key={f.id} src={`/banners/venta-empresa.html?v=01-general&f=${f.id}`} title="Venta para empresas: ¿Tu empresa necesita liquidez?"
+        width={f.w} height={f.h} loading="lazy" style={{ transform: `scale(${s})` }} /> : null}
+    </aside>
+  );
+}
+
 // Todos los selectores de QA en una lista: el panel de la vista mobile los muestra igual que escritorio y los envía al teléfono.
 export type QaKey = "bannerNav" | "bannerFx" | "feedView" | "offerView" | "lotsView" | "cardStyle" | "lotsView2" | "cardStyle2"
   | "categoriesView" | "bannerView" | "companiesView";
@@ -1765,6 +1791,7 @@ export default function HomeIndexBlock({ hideFeed = false, feedSlot = false, onO
           <ViewSwitch title="Autoplan · detail card" suffix="" options={CARD_STYLES} value={cardStyle} onChange={setCardStyle} />
         </Switches>
       </div>
+      <AdStrip />
       <div style={{ position: "relative", width: "100%" }}>
         <LotsSection view={lotsView2} card={cardStyle2} store={STORES[1]} />
         <Switches visible={controls}>
@@ -1788,7 +1815,7 @@ export default function HomeIndexBlock({ hideFeed = false, feedSlot = false, onO
         <Switches visible={controls}><ViewSwitch title="Empresas" options={COMPANIES_VIEWS} value={companiesView} onChange={setCompaniesView} /></Switches>
       </div>
       {/* Un solo texto: un <style> con varios hijos no hidrata igual en servidor y cliente. */}
-      <style>{SWITCH_CSS + MOBILE_CSS}</style>
+      <style>{SWITCH_CSS + MOBILE_CSS + AD_STRIP_CSS}</style>
     </div>
   );
 }

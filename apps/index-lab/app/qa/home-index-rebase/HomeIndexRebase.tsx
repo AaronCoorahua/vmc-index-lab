@@ -28,8 +28,8 @@ const isMobileFeedView = (v: unknown): v is MobileFeedView => ["card", "more", "
 
 // Publicidad de Subastop (skill banners-subastop): la pieza 200 × 264 va en el hueco del banner del sidebar, como en Mi Garaje.
 // La plantilla vive en public/banners; el enlace (con UTM) está dentro del iframe.
-const SIDE_AD_SRC = "/banners/venta-empresa.html?v=05-inventario&f=side264";
-const SIDE_AD_TITLE = "Venta para empresas: ¿Repuestos que no se mueven? Véndelos.";
+const SIDE_AD_SRC = "/banners/venta-empresa.html?v=01-general&f=side264";
+const SIDE_AD_TITLE = "Venta para empresas: ¿Tu empresa necesita liquidez?";
 
 // En móvil, Opción A / B también eligen la versión de VMC ahora: A = card con «Ver más», B = pestañas arriba (estilo X).
 const PRESET_MVIEW: Record<string, MobileFeedView> = { a: "more", b: "tabs" };
@@ -111,10 +111,6 @@ export default function HomeIndexRebase() {
         {liveOpen
           ? <main className={styles.feedPage} aria-label="Feed de VMC ahora"><VmcAhora view="timeline" live={false} x head={false} page /></main>
           : <HomeIndexBlock hideFeed />}
-        {/* Botón flotante de X (redactar) → Publicar en VMC. */}
-        <a className={styles.fab} href="https://www.vmcsubastas.com/landing-subascars" aria-label="Publicar">
-          <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" /></svg>
-        </a>
       </>
     );
   } else if (mview === "ticker") {
