@@ -61,3 +61,5 @@ npm run audit:design-system
 - `config/` y `scripts/`: contrato V2 y verificaciones/capturas locales.
 - `docs/`: decisión activa, Component Map, intención visual y evidencia.
 - `references/` y `evidence/`: imagen de referencia aprobada y última captura.
+
+.
