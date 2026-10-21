@@ -1625,7 +1625,7 @@ const AD_STRIP_CSS = `
 .hib-adstrip { position: relative; display: block; width: 100%; overflow: hidden; border-radius: 16px; box-shadow: ${SHADOW}; }
 .hib-adstrip iframe { position: absolute; top: 0; left: 0; display: block; border: 0; transform-origin: 0 0; }
 `;
-// Publicidad de Subastop bajo Autoplan (skill banners-subastop, 01-general): franja 1532 × 200 en escritorio y 776 × 232
+// Publicidad de Subastop bajo Mapfre (skill banners-subastop, 01-general): franja 1532 × 200 en escritorio y 776 × 232
 // en móvil. El iframe se dibuja a su tamaño de diseño y se escala al ancho disponible, como una imagen.
 function AdStrip(): JSX.Element {
   const ref = useRef<HTMLElement>(null);
@@ -1791,7 +1791,6 @@ export default function HomeIndexBlock({ hideFeed = false, feedSlot = false, onO
           <ViewSwitch title="Autoplan · detail card" suffix="" options={CARD_STYLES} value={cardStyle} onChange={setCardStyle} />
         </Switches>
       </div>
-      <AdStrip />
       <div style={{ position: "relative", width: "100%" }}>
         <LotsSection view={lotsView2} card={cardStyle2} store={STORES[1]} />
         <Switches visible={controls}>
@@ -1799,6 +1798,7 @@ export default function HomeIndexBlock({ hideFeed = false, feedSlot = false, onO
           <ViewSwitch title="Mapfre · detail card" suffix="" options={CARD_STYLES} value={cardStyle2} onChange={setCardStyle2} />
         </Switches>
       </div>
+      <AdStrip />
       {/* Solo móvil: Tipo de oferta después de las tiendas (arriba quitaba mucho espacio). */}
       <div className="hib-ot-mobile" style={{ display: "none", width: "100%" }}><OfferTypeCard view={offerView} /></div>
       <div style={{ position: "relative", width: "100%" }}>
