@@ -129,13 +129,13 @@ El estado vive en un store del módulo `VmcAhora.tsx` (`useSyncExternalStore`). 
 
 ## Colores
 
-Naranja para en vivo, cian para negociable y propuestas, morado para lo demás. El tono se elige con el control "tono de color" (por defecto, el del design system):
+Naranja para en vivo, cian para negociable y propuestas, morado para lo demás. El tono se elige con el control "tono de color" (por defecto, el oscuro):
 
 | Tono | En vivo | Negociable y propuestas |
 |---|---|---|
-| Design system | `#FF9639` | `#00D2D3` |
-| Medio | `#EF852E` | `#00AEB1` |
 | Oscuro (card de Tipo de oferta, `COLORS` en `feedPlan.ts`) | `#C2410C` | `#00777A` |
+| Medio | `#EF852E` | `#00AEB1` |
+| Design system | `#FF9639` | `#00D2D3` |
 
 Lo demás (registros, publicidad, blog) va en morado (`#7B5CE6`, `#3B1782`, `#4A2CE0`).
 
@@ -156,7 +156,7 @@ Están en "Abrir controles" (y en el panel de la vista móvil, que usa la misma 
 | `feedShare` | Compartir | Flecha y caja, Tres puntos, Avión |
 | `feedActs` | Fila de acciones | Palabra completa ("1,234 visualizaciones" cuando solo hay visitas y compartir), Extremos, A la izquierda, A la derecha |
 | `feedScroll` | Scroll | Gris claro, Vidrio, Morado |
-| `feedTone` | Tono de color | Design system, Medio, Oscuro |
+| `feedTone` | Tono de color | Oscuro, Medio, Design system |
 | `feedTags` | Insignias | Sin insignia (quita EN VIVO, NEGOCIABLE, BLOG… de todas las entradas), Con insignia |
 
 El panel "VMC ahora · reloj" muestra cuánto falta para la próxima entrada simulada, el plan del día y el botón "Simular acción real".

@@ -37,7 +37,7 @@ export type ColorTone = "ds" | "medio" | "oscuro";
 export type FeedDesign = {
   ad: AdStyle; badge: AdBadge; views: ViewsStyle; share: ShareIcon; acts: ActsAlign; tags: TagsMode; scroll: ScrollStyle; tone: ColorTone;
 };
-export const DEFAULT_DESIGN: FeedDesign = { ad: "post", badge: "sin", views: "ojo", share: "caja", acts: "palabra", tags: "sin", scroll: "gris", tone: "ds" };
+export const DEFAULT_DESIGN: FeedDesign = { ad: "post", badge: "sin", views: "ojo", share: "caja", acts: "palabra", tags: "sin", scroll: "gris", tone: "oscuro" };
 // Naranja y cian del design system (BadgeStatus en vivo #FF9639 → #EF852E; cian #00D2D3 / #00AEB1 de Concorde).
 const TONES: Record<ColorTone, Record<string, string>> = {
   ds: { [COLORS.vivo]: "#FF9639", [COLORS.negociable]: "#00D2D3" },

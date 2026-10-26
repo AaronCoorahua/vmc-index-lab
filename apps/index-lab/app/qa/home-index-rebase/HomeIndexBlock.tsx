@@ -1620,9 +1620,9 @@ const FEED_SCROLLS: { id: ScrollStyle; label: string; hint: string }[] = [
   { id: "morado", label: "Morado", hint: "El de antes" },
 ];
 const FEED_TONES: { id: ColorTone; label: string; hint: string }[] = [
-  { id: "ds", label: "Design system", hint: "Naranja #FF9639, cian #00D2D3" },
-  { id: "medio", label: "Medio", hint: "Naranja #EF852E, cian #00AEB1" },
   { id: "oscuro", label: "Oscuro", hint: "Naranja #C2410C, cian #00777A" },
+  { id: "medio", label: "Medio", hint: "Naranja #EF852E, cian #00AEB1" },
+  { id: "ds", label: "Design system", hint: "Naranja #FF9639, cian #00D2D3" },
 ];
 
 // Selector flotante de vistas, pegado a la derecha del bloque (fuera de los 798 del homepage). Solo QA.
