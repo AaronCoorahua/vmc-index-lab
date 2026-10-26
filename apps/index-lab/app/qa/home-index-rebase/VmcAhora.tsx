@@ -432,7 +432,7 @@ function Acts({ t, d, x = false }: { t: EntryText; d: FeedDesign; x?: boolean })
 function Ad({ t, d, x }: { t: EntryText; d: FeedDesign; x: boolean }): JSX.Element {
   const img = <img src={t.imageSrc} alt="" style={{ objectPosition: t.imagePos }} />;
   const badge = d.badge === "foto" ? <span className="va-ad__badge">Publicidad</span> : null;
-  const cta = <button type="button" className="va-glass">{t.cta}{Ico.go}</button>;
+  const cta = <button type="button" className="va-glass">{t.cta}</button>;
   if (d.ad === "banner") {
     return <div className="va-ad va-ad--banner">{img}{badge}<div className="va-ad__veil"><b>{t.title}</b><span>{t.detail}</span>{cta}</div></div>;
   }
