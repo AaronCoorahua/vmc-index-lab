@@ -117,12 +117,12 @@ export const BLOG = [
 export function buildInventory(V: number, N: number): Offer[] {
   const vivo = Array.from({ length: V }, (_, i): Offer => ({
     ...POOL[i % POOL.length], id: 51015 + i * 97, mode: "vivo", who: EMPRESAS[i % EMPRESAS.length],
-    isNew: hasNew(V + N, V) && i === 0, base: 8 + ((i * 13) % 30), likes: 12 + ((i * 17) % 50), views: 140 + ((i * 211) % 900),
+    isNew: hasNew(V + N, V) && i === 0, base: 8 + ((i * 13) % 30), likes: 12 + ((i * 17) % 50), views: 180 + ((i * 1733) % 4600),
   }));
   const neg = Array.from({ length: N }, (_, j): Offer => {
     const p = POOL[(j + 5) % POOL.length];
     return { ...p, price: undefined, id: 67942 + j * 113, mode: "negociable", who: "SubasCars",
-      isNew: hasNew(V + N, N) && j === 0, base: (j * 3) % 5, likes: 9 + ((j * 11) % 40), views: 95 + ((j * 173) % 700) };
+      isNew: hasNew(V + N, N) && j === 0, base: (j * 3) % 5, likes: 9 + ((j * 11) % 40), views: 120 + ((j * 1291) % 3900) };
   });
   return [...vivo, ...neg];
 }
@@ -219,13 +219,23 @@ export type EntryText = {
   author: string; title: string; detail: string; pill: string; color: string; imageSrc?: string;
   /** Publicación de una oferta (nueva o rotación), con los datos de la detail card: «vivo» → me gusta · participantes ·
    *  visitas · compartir; «negociable» → me gusta · negociaciones · visitas · compartir. Sin `mode`, solo compartir. */
-  mode?: Mode; likes?: number; count?: number; views?: number;
+  mode?: Mode; likes?: number; count?: number;
+  /** Visualizaciones: en las ofertas, las de la detail card; en el resto, cuántas personas vieron la entrada. */
+  views: number;
+  /** Publicidad: se dibuja como anuncio (foto del banner y botón). `imagePos` encuadra la foto. */
+  ad?: boolean; imagePos?: string;
   /** Botón de la publicidad o del blog. Las propuestas y los registros no son clicables. */
   cta?: string;
 };
 export const COLORS = { vivo: "#F2701D", negociable: "#00A8AB", nueva: "#8460E5", propuesta: "#7B5CE6", registro: "#9A7BF0", promo: "#3B1782", blog: "#4A2CE0" };
 
+// Visualizaciones de ejemplo de una entrada que no es oferta (estables para la misma entrada).
+const viewsOf = (key: string) => 150 + ([...key].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) % 100003, 7) % 2800);
+
 export function describe(e: PlanEntry, inv: Offer[]): EntryText {
+  return { views: viewsOf(e.key), ...describeEntry(e, inv) };
+}
+function describeEntry(e: PlanEntry, inv: Offer[]): Omit<EntryText, "views"> & { views?: number } {
   const o = inv.find((x) => x.id === e.offerId);
   const tag = (m: Mode) => (m === "vivo" ? "En vivo" : "Negociable");
   const offer = o ? { imageSrc: o.imageSrc, mode: o.mode, likes: o.likes, count: e.count, views: o.views } : {};
@@ -244,10 +254,10 @@ export function describe(e: PlanEntry, inv: Offer[]): EntryText {
       return { author: "VMC", title: `Usuario ${e.user} se registró en VMC`, detail: "", pill: "Nuevo usuario", color: COLORS.registro };
     case "ad-valoriza":
       return { author: "VMC", title: "Valoriza tu auto en VMC", detail: "Descubre cuánto vale tu auto en minutos, gratis.", pill: "Publicidad",
-        color: COLORS.promo, imageSrc: "/demo/bronco.jpg", cta: "Valorizar" };
+        color: COLORS.promo, imageSrc: "/banners/vmc/valoriza-auto.jpg", imagePos: "75% 30%", cta: "Valorizar", ad: true };
     case "ad-publica":
       return { author: "VMC", title: "Publica tu auto en VMC y recibe ofertas", detail: "Empresas y compradores verificados.", pill: "Publicidad",
-        color: COLORS.promo, imageSrc: "/demo/sell/seller-phone-man.png", cta: "Publicar" };
+        color: COLORS.promo, imageSrc: "/banners/vmc/hero-publica.jpg", imagePos: "70% 35%", cta: "Publicar", ad: true };
     case "blog":
       return { author: "Blog VMC", title: BLOG[e.blog ?? 0].title, detail: BLOG[e.blog ?? 0].detail, pill: "Blog", color: COLORS.blog, cta: "Leer" };
   }

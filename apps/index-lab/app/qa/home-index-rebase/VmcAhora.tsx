@@ -20,6 +20,13 @@ import {
 } from "./feedPlan";
 
 export type FeedView = "normal" | "timeline";
+/** Diseño (QA): cómo se ve la publicidad, su badge y las visualizaciones. No cambia cuándo aparece cada entrada. */
+export type AdStyle = "banner" | "tarjeta" | "post";
+export type AdBadge = "foto" | "pill" | "texto" | "sin";
+export type ViewsStyle = "ojo" | "completo" | "ojo-palabra" | "texto";
+export type ShareIcon = "nodos" | "caja" | "avion";
+export type FeedDesign = { ad: AdStyle; badge: AdBadge; views: ViewsStyle; share: ShareIcon };
+export const DEFAULT_DESIGN: FeedDesign = { ad: "banner", badge: "foto", views: "ojo", share: "nodos" };
 
 const LOGO: Record<string, string | undefined> = {
   "VMC": "/assets/brand/logo-voyager.svg", "Blog VMC": "/assets/brand/logo-voyager.svg", "Pacífico": "/demo/empresas/pacifico.png",
@@ -32,20 +39,20 @@ type Shown = PlanEntry & { uid: string; at: number; real?: boolean };
 // `skip`: mockups que se descuentan porque ya entró un hecho real del mismo tipo (mockups = objetivo − reales).
 type FeedState = {
   scenario: string; speed: number; inv: Offer[]; plan: PlanEntry[]; items: Shown[]; next: number; now: number; lastAt: number; seq: number;
-  skip: Partial<Record<PlanEntry["kind"], number>>; real: number; skipped: number;
+  skip: Partial<Record<PlanEntry["kind"], number>>; real: number; skipped: number; design: FeedDesign;
 };
 const GAP_MS = GAP_S * 1000;
 const TICK_MS = 500;
 const BACKLOG = 8; // entradas que ya están al abrir la página
 const MAX_ITEMS = 24;
 
-function initState(scenario: string, speed: number): FeedState {
+function initState(scenario: string, speed: number, design = DEFAULT_DESIGN): FeedState {
   const s = SCENARIOS.find((x) => x.id === scenario) ?? SCENARIOS.find((x) => x.id === DEFAULT_SCENARIO)!;
   const plan = planDay(s.V, s.N);
   const k = Math.min(BACKLOG, plan.length);
   const items = plan.slice(0, k).map((e, i): Shown => ({ ...e, uid: `${e.key}#0`, at: -(k - 1 - i) * GAP_MS })).reverse();
   return { scenario: s.id, speed, inv: buildInventory(s.V, s.N), plan, items, next: plan.length ? k % plan.length : 0, now: 0, lastAt: 0, seq: 1,
-    skip: {}, real: 0, skipped: 0 };
+    skip: {}, real: 0, skipped: 0, design };
 }
 const INITIAL = initState(DEFAULT_SCENARIO, 1);
 let state = INITIAL;
@@ -90,7 +97,14 @@ const hover = { onMouseEnter: () => { paused++; }, onMouseLeave: () => { paused 
 /** Control de QA: escenario de inventario y velocidad (×1 = 45 s reales, ×10 = 4,5 s). */
 export function setFeedConfig(scenario: string, speed: number): void {
   if (scenario === state.scenario && speed === state.speed) return;
-  state = scenario === state.scenario ? { ...state, speed } : initState(scenario, speed);
+  state = scenario === state.scenario ? { ...state, speed } : initState(scenario, speed, state.design);
+  emit();
+}
+/** Control de QA: diseño de la publicidad, su badge y las visualizaciones. */
+export function setFeedDesign(design: FeedDesign): void {
+  const d = state.design;
+  if (d.ad === design.ad && d.badge === design.badge && d.views === design.views && d.share === design.share) return;
+  state = { ...state, design };
   emit();
 }
 /** Control de QA: una acción real (propuesta si hay negociables, si no un registro) entra ya y reinicia los 45 s. */
@@ -260,9 +274,9 @@ const CSS = `
 .va-acts__count { overflow: hidden; text-overflow: ellipsis; }
 .va-acts__views { flex: none; }
 /* Timeline (columna angosta): fila más compacta para que «38 participantes» / «4 negociaciones» entren completos. */
-.va-post .va-acts { gap: 0; margin-left: -3px; font-size: 11px; letter-spacing: -0.01em; }
-.va-post .va-acts button, .va-post .va-acts__count { gap: 3px; padding: 0 3px; }
-.va-post .va-acts svg { width: 14px; height: 14px; }
+.va-post .va-acts { gap: 0; margin-left: -3px; font-size: 10.5px; letter-spacing: -0.015em; }
+.va-post .va-acts button, .va-post .va-acts__count { gap: 2px; padding: 0 2px; }
+.va-post .va-acts svg { width: 13px; height: 13px; }
 /* Publicidad y blog: el botón y compartir en la misma fila. */
 .va-ctarow { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .va-ctarow > .va-acts, .va-ctarow > .va-x__acts { margin: 4px 0 0; }
@@ -276,6 +290,31 @@ const CSS = `
 /* Listado: títulos de hasta dos líneas (las propuestas y la publicidad no tienen lote) y avatar cuando no hay foto. */
 .va-item__title { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; white-space: normal; }
 .va-item__thumb--av { display: grid; place-items: center; background: #F8F6FF; }
+/* Publicidad: la foto del banner y su botón, para que se lea como anuncio. */
+.va-ad { position: relative; display: block; margin-top: 8px; overflow: hidden; border-radius: 14px; }
+.va-ad--banner { aspect-ratio: 1 / 1; color: #fff; background: #2A0E6E; }
+.va-x .va-ad--banner { aspect-ratio: 4 / 3; }
+.va-ad--banner > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.va-ad__veil { position: absolute; z-index: 1; left: 0; right: 0; bottom: 0; display: grid; gap: 3px; justify-items: start; padding: 48px 12px 12px;
+  background: linear-gradient(180deg, rgba(42,14,110,0) 0%, rgba(42,14,110,0.78) 48%, #2A0E6E 100%); }
+.va-ad--banner b { font-size: 15px; line-height: 1.2; font-weight: 800; text-wrap: balance; }
+.va-ad__veil span { font-size: 12px; line-height: 1.3; color: rgba(255,255,255,0.88); }
+.va-ad--banner .va-cta { margin: 6px 0 0; border-color: #fff; background: #fff; color: #3B1782; }
+.va-ad--card { border: 1px solid #E6E1F5; background: #fff; }
+.va-ad__media { position: relative; display: block; aspect-ratio: 16 / 9; background: #F3EFFD; }
+.va-ad__media img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.va-ad__body { display: grid; gap: 3px; justify-items: start; padding: 10px 12px 12px; }
+.va-ad--card b { font-size: 14px; line-height: 1.25; font-weight: 800; color: #14112B; }
+.va-ad__body span { font-size: 12px; line-height: 1.3; color: #5B5870; }
+.va-ad--card .va-cta { margin: 6px 0 0; }
+.va-ad__badge { position: absolute; top: 8px; left: 8px; z-index: 3; padding: 3px 8px; border-radius: 999px; font-size: 10px; font-weight: 700;
+  letter-spacing: 0.03em; color: #3B1782; background: rgba(255,255,255,0.92); box-shadow: rgba(16,0,48,0.18) 0 2px 6px; }
+.va-ad__when { font-weight: 600; color: #8A879C; }
+/* Visualizaciones en su propia línea (estilos «ojo-palabra» y «texto»). */
+.va-views { display: flex; align-items: center; gap: 4px; margin: 8px 0 0; font-size: 12px; color: #6B6880; }
+.va-views b { font-weight: 700; color: #14112B; }
+.va-views svg { width: 14px; height: 14px; }
+.va-acts--views { justify-content: space-between; }
 .va-item__thumb--av .va-av__in img { width: auto; height: auto; max-width: 72%; max-height: 72%; object-fit: contain; }
 `;
 
@@ -315,7 +354,10 @@ const Ico = {
   heart: <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden><path d="M12 20.5s-8-4.9-8-11a4.6 4.6 0 0 1 8-3 4.6 4.6 0 0 1 8 3c0 6.1-8 11-8 11z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" /></svg>,
   people: <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden><path d="M15.5 19v-1.4a3.6 3.6 0 0 0-3.6-3.6H7.1a3.6 3.6 0 0 0-3.6 3.6V19M9.5 11a3.4 3.4 0 1 0 0-6.8 3.4 3.4 0 0 0 0 6.8zM20.5 19v-1.3a3.3 3.3 0 0 0-2.5-3.2M15.3 4.4a3.4 3.4 0 0 1 0 6.4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>,
   eye: <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" /><circle cx="12" cy="12" r="2.6" fill="none" stroke="currentColor" strokeWidth="1.8" /></svg>,
-  share: <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden><path d="M21 3L10.5 13.5M21 3l-6.5 18-4-7.5L3 9.5z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" /></svg>,
+  // Compartir: tres puntos unidos (el de siempre), flecha saliendo de una caja (iPhone) o el avión de papel.
+  nodos: <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden><circle cx="18" cy="5.5" r="2.6" fill="none" stroke="currentColor" strokeWidth="1.8" /><circle cx="6" cy="12" r="2.6" fill="none" stroke="currentColor" strokeWidth="1.8" /><circle cx="18" cy="18.5" r="2.6" fill="none" stroke="currentColor" strokeWidth="1.8" /><path d="M8.3 10.8l7.4-4M8.3 13.2l7.4 4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>,
+  caja: <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden><path d="M12 3.5v11M8 7.5l4-4 4 4M7 10.5H6a1.5 1.5 0 0 0-1.5 1.5v7A1.5 1.5 0 0 0 6 20.5h12a1.5 1.5 0 0 0 1.5-1.5v-7a1.5 1.5 0 0 0-1.5-1.5h-1" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>,
+  avion: <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden><path d="M21 3L10.5 13.5M21 3l-6.5 18-4-7.5L3 9.5z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" /></svg>,
   more: <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden><circle cx="5" cy="12" r="1.7" fill="currentColor" /><circle cx="12" cy="12" r="1.7" fill="currentColor" /><circle cx="19" cy="12" r="1.7" fill="currentColor" /></svg>,
   arrowUp: <svg width="11" height="11" viewBox="0 0 24 24" aria-hidden><path d="M12 19V5M6 11l6-6 6 6" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" /></svg>,
   go: <svg width="12" height="12" viewBox="0 0 20 20" aria-hidden><path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>,
@@ -328,40 +370,86 @@ function countLabel(t: EntryText): string {
   return n ? `${n} negociaci${n === 1 ? "ón" : "ones"}` : "Sin negociaciones aún";
 }
 
+// Visualizaciones: «1,2 mil» (abreviado) o «1,234» (completo).
 const fmtViews = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(1).replace(".0", "").replace(".", ",")} mil` : String(n));
+const fmtFull = (n: number) => n.toLocaleString("es-PE");
+/** Visualizaciones en su propia línea («ojo-palabra» y «texto»), como las de un post de X. */
+const viewsLine = (t: EntryText, d: FeedDesign) => d.views === "ojo-palabra"
+  ? <p className="va-views">{Ico.eye}{fmtViews(t.views)} visitas</p>
+  : d.views === "texto" ? <p className="va-views"><b>{fmtViews(t.views)}</b> visualizaciones</p> : null;
 
-/** Acciones. Publicación de una oferta: lo de la detail card (me gusta · participantes o negociaciones · visitas) y compartir.
- *  Las demás entradas (propuestas, registros, publicidad, blog): solo compartir. */
-function Acts({ t, x = false }: { t: EntryText; x?: boolean }): JSX.Element {
+/** Acciones. Publicación de una oferta: lo de la detail card (me gusta · participantes o negociaciones · visualizaciones) y
+ *  compartir. Las demás entradas (propuestas, registros, publicidad, blog): visualizaciones y compartir. Con «ojo» y
+ *  «completo» las visualizaciones van en la fila; con «ojo-palabra» y «texto», en una línea aparte (`viewsLine`). */
+function Acts({ t, d, x = false }: { t: EntryText; d: FeedDesign; x?: boolean }): JSX.Element {
   const [liked, setLiked] = useState(false);
   const likes = (t.likes ?? 0) + (liked ? 1 : 0);
   const stop = (fn?: () => void) => (ev: { stopPropagation: () => void }) => { ev.stopPropagation(); fn?.(); };
   const wrap = (icon: JSX.Element) => (x ? <i>{icon}</i> : icon);
-  const share = <button type="button" style={{ "--k": "#4A2CE0" } as CSSProperties} aria-label="Compartir" onClick={stop()}>{wrap(Ico.share)}</button>;
-  if (!t.mode) return <div className={x ? "va-x__acts va-acts--share" : "va-acts va-acts--share"}>{share}</div>;
+  const share = <button type="button" style={{ "--k": "#4A2CE0" } as CSSProperties} aria-label="Compartir" onClick={stop()}>{wrap(Ico[d.share])}</button>;
+  const inRow = d.views === "ojo" || d.views === "completo";
+  const views = inRow ? (
+    <span className="va-acts__count va-acts__views" style={{ "--k": "#6B6880" } as CSSProperties} aria-label={`${t.views} visualizaciones`}>
+      {wrap(Ico.eye)}{d.views === "completo" ? fmtFull(t.views) : fmtViews(t.views)}</span>
+  ) : null;
+  if (!t.mode) return <div className={`${x ? "va-x__acts" : "va-acts"} va-acts--share${views ? " va-acts--views" : ""}`}>{views}{share}</div>;
   return (
     <div className={x ? "va-x__acts" : "va-acts"}>
       <button type="button" style={{ "--k": "#F91880" } as CSSProperties} aria-pressed={liked} aria-label={`Me gusta · ${likes}`}
         onClick={stop(() => setLiked((v) => !v))}>{wrap(Ico.heart)}{likes}</button>
       <span className="va-acts__count" style={{ "--k": t.color } as CSSProperties} title={countLabel(t)}>{wrap(Ico.people)}{countLabel(t)}</span>
-      <span className="va-acts__count va-acts__views" style={{ "--k": "#6B6880" } as CSSProperties} aria-label={`${t.views ?? 0} visitas`}>{wrap(Ico.eye)}{fmtViews(t.views ?? 0)}</span>
+      {views}
       {share}
     </div>
   );
 }
 
+/** Publicidad con la foto de su banner (los de /banners/vmc). `banner`: foto a lo ancho con el texto encima, sobre un velo
+ *  violeta; `tarjeta`: foto arriba y texto abajo, en una tarjeta con borde; `post`: como un post, con la foto debajo. */
+function Ad({ t, d, x }: { t: EntryText; d: FeedDesign; x: boolean }): JSX.Element {
+  const img = <img src={t.imageSrc} alt="" style={{ objectPosition: t.imagePos }} />;
+  const badge = d.badge === "foto" ? <span className="va-ad__badge">Publicidad</span> : null;
+  const cta = <button type="button" className="va-cta">{t.cta}{Ico.go}</button>;
+  if (d.ad === "banner") {
+    return <div className="va-ad va-ad--banner">{img}{badge}<div className="va-ad__veil"><b>{t.title}</b><span>{t.detail}</span>{cta}</div></div>;
+  }
+  if (d.ad === "tarjeta") {
+    return <div className="va-ad va-ad--card"><span className="va-ad__media">{img}{badge}</span><div className="va-ad__body"><b>{t.title}</b><span>{t.detail}</span>{cta}</div></div>;
+  }
+  return (
+    <>
+      <p className={x ? "va-x__text" : "va-post__text"}>{t.title}. <em>{t.detail}</em></p>
+      <span className="va-post__media">{img}{badge}</span>
+      {cta}
+    </>
+  );
+}
+
 /** Texto de la entrada: insignia del tipo, título, detalle y, en las propuestas, la foto pequeña de la oferta (sin enlace). */
-function Body({ t, kind, big, x = false }: { t: EntryText; kind: PlanEntry["kind"]; big: boolean; x?: boolean }): JSX.Element {
+function Body({ t, kind, big, d, x = false }: { t: EntryText; kind: PlanEntry["kind"]; big: boolean; d: FeedDesign; x?: boolean }): JSX.Element {
   const text = <p className={x ? "va-x__text" : "va-post__text"}>{t.title}.{t.detail ? <> <em>{t.detail}</em></> : null}</p>;
+  if (t.ad) {
+    return (
+      <>
+        {d.badge === "pill" ? <span className="va-tag" style={{ "--k": t.color } as CSSProperties}>{t.pill}</span> : null}
+        <Ad t={t} d={d} x={x} />
+        {viewsLine(t, d)}
+        <Acts t={t} d={d} x={x} />
+      </>
+    );
+  }
   return (
     <>
       <span className="va-tag" style={{ "--k": t.color } as CSSProperties}>{t.pill}</span>
       {kind === "propuesta" ? <div className="va-prop">{text}{t.imageSrc ? <img src={t.imageSrc} alt="" /> : null}</div> : text}
       {big && kind !== "propuesta" && t.imageSrc ? <span className="va-post__media"><img src={t.imageSrc} alt="" /></span> : null}
-      {t.cta ? <div className="va-ctarow"><button type="button" className="va-cta">{t.cta}{Ico.go}</button><Acts t={t} x={x} /></div> : <Acts t={t} x={x} />}
+      {viewsLine(t, d)}
+      {t.cta ? <div className="va-ctarow"><button type="button" className="va-cta">{t.cta}{Ico.go}</button><Acts t={t} d={d} x={x} /></div> : <Acts t={t} d={d} x={x} />}
     </>
   );
 }
+/** Badge «texto»: en la publicidad, «Publicidad» va donde va la hora, como el «Anuncio» de X. */
+const when = (t: EntryText, d: FeedDesign, label: string) => (t.ad && d.badge === "texto" ? <span className="va-ad__when">Publicidad</span> : label);
 
 export function VmcAhoraTicker({ onOpen }: { onOpen: () => void }): JSX.Element {
   const s = useFeed();
@@ -426,9 +514,9 @@ export default function VmcAhora({ view, live = true, more = false, x = false, h
               <li key={e.uid} className={`va-x${enter(i)}`}>
                 <Avatar who={t.author} size={40} />
                 <div style={{ minWidth: 0 }}>
-                  <div className="va-x__head"><b>{t.author}</b><Verified /><span>{handle(t.author)} · {agoShort(s.now - e.at)}</span></div>
+                  <div className="va-x__head"><b>{t.author}</b><Verified /><span>{handle(t.author)} · {when(t, s.design, agoShort(s.now - e.at))}</span></div>
                   <button type="button" className="va-x__more" aria-label="Más opciones">{Ico.more}</button>
-                  <Body t={t} kind={e.kind} big={i === 0} x />
+                  <Body t={t} kind={e.kind} big={i === 0} d={s.design} x />
                 </div>
               </li>
             );
@@ -451,8 +539,8 @@ export default function VmcAhora({ view, live = true, more = false, x = false, h
               <li key={e.uid} className={`va-post${enter(i)}`}>
                 <div className="va-post__rail"><Avatar who={t.author} size={32} /><span className="va-post__line" /></div>
                 <div className="va-post__main">
-                  <div className="va-post__head"><b>{t.author}</b><Verified /><span>{ago(s.now - e.at)}</span></div>
-                  <Body t={t} kind={e.kind} big={i === 0} />
+                  <div className="va-post__head"><b>{t.author}</b><Verified /><span>{when(t, s.design, ago(s.now - e.at))}</span></div>
+                  <Body t={t} kind={e.kind} big={i === 0} d={s.design} />
                 </div>
               </li>
             );
@@ -484,7 +572,7 @@ export default function VmcAhora({ view, live = true, more = false, x = false, h
                 <p className="va-item__title">{t.mode && o ? o.lot : t.title}</p>
                 {t.mode && o?.price ? <b className="va-item__value">{o.price}</b> : null}
                 <span className="va-item__meta"><span className="va-item__who">{t.author}</span><Verified />
-                  <span>· {ago(s.now - e.at)}{t.mode ? ` · ${countLabel(t)}` : ""}</span></span>
+                  <span>· {ago(s.now - e.at)}{t.mode ? ` · ${countLabel(t)}` : ""} · {s.design.views === "completo" ? fmtFull(t.views) : fmtViews(t.views)} {s.design.views === "texto" ? "visualizaciones" : "visitas"}</span></span>
               </div>
             </li>
           );
