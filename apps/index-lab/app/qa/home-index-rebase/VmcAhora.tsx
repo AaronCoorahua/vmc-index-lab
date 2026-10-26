@@ -25,8 +25,13 @@ export type AdStyle = "banner" | "tarjeta" | "post";
 export type AdBadge = "foto" | "pill" | "texto" | "sin";
 export type ViewsStyle = "ojo" | "completo" | "ojo-palabra" | "texto";
 export type ShareIcon = "nodos" | "caja" | "avion";
-export type FeedDesign = { ad: AdStyle; badge: AdBadge; views: ViewsStyle; share: ShareIcon };
-export const DEFAULT_DESIGN: FeedDesign = { ad: "tarjeta", badge: "sin", views: "ojo", share: "nodos" };
+/** Fila de visitas y compartir: en los extremos, todo a la izquierda, todo a la derecha, o con la palabra completa
+ *  («1,234 visualizaciones») para llenar el ancho. */
+export type ActsAlign = "palabra" | "extremos" | "izquierda" | "derecha";
+/** Insignia del tipo de entrada (EN VIVO, NEGOCIABLE, BLOG…): con o sin. */
+export type TagsMode = "con" | "sin";
+export type FeedDesign = { ad: AdStyle; badge: AdBadge; views: ViewsStyle; share: ShareIcon; acts: ActsAlign; tags: TagsMode };
+export const DEFAULT_DESIGN: FeedDesign = { ad: "tarjeta", badge: "sin", views: "ojo", share: "nodos", acts: "palabra", tags: "con" };
 
 const LOGO: Record<string, string | undefined> = {
   "VMC": "/assets/brand/logo-voyager.svg", "Blog VMC": "/assets/brand/logo-voyager.svg", "Pacífico": "/demo/empresas/pacifico.png",
@@ -111,7 +116,7 @@ export function setFeedConfig(scenario: string, speed: number): void {
 /** Control de QA: diseño de la publicidad, su badge y las visualizaciones. */
 export function setFeedDesign(design: FeedDesign): void {
   const d = state.design;
-  if (d.ad === design.ad && d.badge === design.badge && d.views === design.views && d.share === design.share) return;
+  if ((Object.keys(design) as (keyof FeedDesign)[]).every((k) => d[k] === design[k])) return;
   state = { ...state, design };
   emit();
 }
@@ -337,6 +342,10 @@ const CSS = `
 .va-views b { font-weight: 700; color: #14112B; }
 .va-views svg { width: 14px; height: 14px; }
 .va-acts--views { justify-content: space-between; }
+/* Alineación de la fila (control «fila de acciones»): todo a la izquierda o todo a la derecha, sin hueco en el medio. */
+.va-acts.va-acts--izquierda, .va-x__acts.va-acts--izquierda { justify-content: flex-start; gap: 10px; }
+.va-acts--izquierda button:last-child { margin-left: 0; }
+.va-acts.va-acts--derecha, .va-x__acts.va-acts--derecha { justify-content: flex-end; gap: 10px; }
 .va-item__thumb--av .va-av__in img { width: auto; height: auto; max-width: 72%; max-height: 72%; object-fit: contain; }
 `;
 
@@ -395,10 +404,11 @@ function countLabel(t: EntryText): string {
 // Visualizaciones: «1,2 mil» (abreviado) o «1,234» (completo).
 const fmtViews = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(1).replace(".0", "").replace(".", ",")} mil` : String(n));
 const fmtFull = (n: number) => n.toLocaleString("es-PE");
+const viewsWord = (n: number) => (n === 1 ? "visualización" : "visualizaciones");
 /** Visualizaciones en su propia línea («ojo-palabra» y «texto»), como las de un post de X. */
 const viewsLine = (t: EntryText, d: FeedDesign) => !t.views ? null : d.views === "ojo-palabra"
-  ? <p className="va-views">{Ico.eye}{fmtViews(t.views)} visitas</p>
-  : d.views === "texto" ? <p className="va-views"><b>{fmtViews(t.views)}</b> visualizaciones</p> : null;
+  ? <p className="va-views">{Ico.eye}{fmtViews(t.views)} {t.views === 1 ? "visita" : "visitas"}</p>
+  : d.views === "texto" ? <p className="va-views"><b>{fmtViews(t.views)}</b> {viewsWord(t.views)}</p> : null;
 
 /** Acciones. Publicación de una oferta: lo de la detail card (me gusta · participantes o negociaciones · visualizaciones) y
  *  compartir. Las demás entradas (propuestas, registros, publicidad, blog): visualizaciones y compartir. Con «ojo» y
@@ -410,13 +420,16 @@ function Acts({ t, d, x = false }: { t: EntryText; d: FeedDesign; x?: boolean })
   const wrap = (icon: JSX.Element) => (x ? <i>{icon}</i> : icon);
   const share = <button type="button" style={{ "--k": "#4A2CE0" } as CSSProperties} aria-label="Compartir" onClick={stop()}>{wrap(Ico[d.share])}</button>;
   const inRow = d.views === "ojo" || d.views === "completo";
+  // Sin me gusta ni contador (propuestas, registros, publicidad, blog), con «palabra» las visitas van completas para llenar la fila.
+  const word = !t.mode && d.acts === "palabra";
   const views = inRow ? (
     <span className="va-acts__count va-acts__views" style={{ "--k": "#6B6880" } as CSSProperties} aria-label={`${t.views} visualizaciones`}>
-      {wrap(Ico.eye)}{!t.views ? null : d.views === "completo" ? fmtFull(t.views) : fmtViews(t.views)}</span>
+      {wrap(Ico.eye)}{!t.views ? null : word ? `${fmtFull(t.views)} ${viewsWord(t.views)}` : d.views === "completo" ? fmtFull(t.views) : fmtViews(t.views)}</span>
   ) : null;
-  if (!t.mode) return <div className={`${x ? "va-x__acts" : "va-acts"} va-acts--share${views ? " va-acts--views" : ""}`}>{views}{share}</div>;
+  const align = ` va-acts--${d.acts}`;
+  if (!t.mode) return <div className={`${x ? "va-x__acts" : "va-acts"} va-acts--share${views ? " va-acts--views" : ""}${align}`}>{views}{share}</div>;
   return (
-    <div className={x ? "va-x__acts" : "va-acts"}>
+    <div className={`${x ? "va-x__acts" : "va-acts"}${align}`}>
       <button type="button" style={{ "--k": "#F91880" } as CSSProperties} aria-pressed={liked} aria-label={`Me gusta · ${likes}`}
         onClick={stop(() => setLiked((v) => !v))}>{wrap(Ico.heart)}{likes || null}</button>
       <span className="va-acts__count" style={{ "--k": t.color } as CSSProperties} title={countLabel(t)}>{wrap(Ico.people)}{countLabel(t)}</span>
@@ -454,7 +467,7 @@ function Body({ t, kind, big, d, x = false }: { t: EntryText; kind: PlanEntry["k
   if (t.ad) {
     return (
       <>
-        {d.badge === "pill" ? <span className="va-tag" style={{ "--k": t.color } as CSSProperties}>{t.pill}</span> : null}
+        {d.badge === "pill" && d.tags === "con" ? <span className="va-tag" style={{ "--k": t.color } as CSSProperties}>{t.pill}</span> : null}
         <Ad t={t} d={d} x={x} />
         {viewsLine(t, d)}
         <Acts t={t} d={d} x={x} />
@@ -463,7 +476,7 @@ function Body({ t, kind, big, d, x = false }: { t: EntryText; kind: PlanEntry["k
   }
   return (
     <>
-      <span className="va-tag" style={{ "--k": t.color } as CSSProperties}>{t.pill}</span>
+      {d.tags === "con" ? <span className="va-tag" style={{ "--k": t.color } as CSSProperties}>{t.pill}</span> : null}
       {kind === "propuesta" ? <div className="va-prop">{text}{t.imageSrc ? <img src={t.imageSrc} alt="" /> : null}</div> : text}
       {big && kind !== "propuesta" && t.imageSrc ? <span className="va-post__media"><img src={t.imageSrc} alt="" /></span> : null}
       {viewsLine(t, d)}
@@ -591,11 +604,11 @@ export default function VmcAhora({ view, live = true, more = false, x = false, h
                 ? <span className="va-item__thumb"><img src={t.imageSrc} alt="" /></span>
                 : <span className="va-item__thumb va-item__thumb--av"><Avatar who={t.author} size={40} /></span>}
               <div className="va-item__main">
-                <span className="va-item__pill" style={{ "--k": t.color } as CSSProperties}>{t.pill}</span>
+                {s.design.tags === "con" ? <span className="va-item__pill" style={{ "--k": t.color } as CSSProperties}>{t.pill}</span> : null}
                 <p className="va-item__title">{t.mode && o ? o.lot : t.title}</p>
                 {t.mode && o?.price ? <b className="va-item__value">{o.price}</b> : null}
                 <span className="va-item__meta"><span className="va-item__who">{t.author}</span><Verified />
-                  <span>· {ago(s.now - e.at)}{t.mode ? ` · ${countLabel(t)}` : ""}{t.views ? ` · ${s.design.views === "completo" ? fmtFull(t.views) : fmtViews(t.views)} ${s.design.views === "texto" ? "visualizaciones" : "visitas"}` : ""}</span></span>
+                  <span>· {ago(s.now - e.at)}{t.mode ? ` · ${countLabel(t)}` : ""}{t.views ? ` · ${s.design.views === "completo" ? fmtFull(t.views) : fmtViews(t.views)} ${s.design.views === "texto" ? viewsWord(t.views) : t.views === 1 ? "visita" : "visitas"}` : ""}</span></span>
               </div>
             </li>
           );

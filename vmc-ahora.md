@@ -152,6 +152,8 @@ Están en "Abrir controles" (y en el panel de la vista móvil, que usa la misma 
 | `feedAdBadge` | Badge de publicidad | Sin badge, Sobre la foto, Insignia, En la hora |
 | `feedViews` | Visualizaciones | Ojo (1,2 mil), Ojo y número (1,234), Ojo y palabra, Texto |
 | `feedShare` | Compartir | Tres puntos, Flecha y caja, Avión |
+| `feedActs` | Fila de acciones | Palabra completa ("1,234 visualizaciones" cuando solo hay visitas y compartir), Extremos, A la izquierda, A la derecha |
+| `feedTags` | Insignias | Con insignia, Sin insignia (quita EN VIVO, NEGOCIABLE, BLOG… de todas las entradas) |
 
 El panel "VMC ahora · reloj" muestra cuánto falta para la próxima entrada simulada, el plan del día y el botón "Simular acción real".
 
