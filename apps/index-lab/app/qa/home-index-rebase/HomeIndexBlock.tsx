@@ -1583,9 +1583,9 @@ const FEED_SPEEDS = [
 ];
 // Diseño de VMC ahora (no cuándo aparece cada entrada): cómo se ve la publicidad, su badge y las visualizaciones.
 const FEED_ADS: { id: AdStyle; label: string; hint: string }[] = [
+  { id: "post", label: "Post", hint: "Texto y foto debajo" },
   { id: "tarjeta", label: "Tarjeta", hint: "Foto arriba, texto abajo" },
   { id: "banner", label: "Banner", hint: "Foto a lo ancho, texto encima" },
-  { id: "post", label: "Post", hint: "Texto y foto debajo" },
 ];
 const FEED_AD_BADGES: { id: AdBadge; label: string; hint: string }[] = [
   { id: "sin", label: "Sin badge", hint: "Solo la foto y el botón" },
@@ -1600,8 +1600,8 @@ const FEED_VIEWS_STYLES: { id: ViewsStyle; label: string; hint: string }[] = [
   { id: "texto", label: "Texto", hint: "1,2 mil visualizaciones" },
 ];
 const FEED_SHARE_ICONS: { id: ShareIcon; label: string; hint: string }[] = [
-  { id: "nodos", label: "Tres puntos", hint: "El ícono de compartir" },
   { id: "caja", label: "Flecha y caja", hint: "Como en el iPhone" },
+  { id: "nodos", label: "Tres puntos", hint: "El ícono de compartir" },
   { id: "avion", label: "Avión", hint: "El de antes" },
 ];
 const FEED_ACTS: { id: ActsAlign; label: string; hint: string }[] = [
@@ -1611,8 +1611,8 @@ const FEED_ACTS: { id: ActsAlign; label: string; hint: string }[] = [
   { id: "derecha", label: "A la derecha", hint: "Todo junto a la derecha" },
 ];
 const FEED_TAGS: { id: TagsMode; label: string; hint: string }[] = [
-  { id: "con", label: "Con insignia", hint: "En vivo, Negociable, Blog…" },
   { id: "sin", label: "Sin insignia", hint: "Solo autor, texto y foto" },
+  { id: "con", label: "Con insignia", hint: "En vivo, Negociable, Blog…" },
 ];
 
 // Selector flotante de vistas, pegado a la derecha del bloque (fuera de los 798 del homepage). Solo QA.

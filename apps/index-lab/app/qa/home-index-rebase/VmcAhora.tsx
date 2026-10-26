@@ -31,7 +31,7 @@ export type ActsAlign = "palabra" | "extremos" | "izquierda" | "derecha";
 /** Insignia del tipo de entrada (EN VIVO, NEGOCIABLE, BLOG…): con o sin. */
 export type TagsMode = "con" | "sin";
 export type FeedDesign = { ad: AdStyle; badge: AdBadge; views: ViewsStyle; share: ShareIcon; acts: ActsAlign; tags: TagsMode };
-export const DEFAULT_DESIGN: FeedDesign = { ad: "tarjeta", badge: "sin", views: "ojo", share: "nodos", acts: "palabra", tags: "con" };
+export const DEFAULT_DESIGN: FeedDesign = { ad: "post", badge: "sin", views: "ojo", share: "caja", acts: "palabra", tags: "sin" };
 
 const LOGO: Record<string, string | undefined> = {
   "VMC": "/assets/brand/logo-voyager.svg", "Blog VMC": "/assets/brand/logo-voyager.svg", "Pacífico": "/demo/empresas/pacifico.png",
