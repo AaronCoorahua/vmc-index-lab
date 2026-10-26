@@ -33,7 +33,7 @@ import {
 } from "./LotCards";
 import VmcAhora, {
   DEFAULT_DESIGN, setFeedConfig, setFeedDesign, VmcAhoraQa, VmcAhoraTicker, type ActsAlign, type AdBadge, type AdStyle, type FeedView,
-  type ShareIcon, type TagsMode, type ViewsStyle,
+  type ScrollStyle, type ShareIcon, type TagsMode, type ViewsStyle,
 } from "./VmcAhora";
 import { DEFAULT_SCENARIO, SCENARIOS } from "./feedPlan";
 // Íconos de vidrio esmerilado: skill .claude/skills/vidrio-esmerilado (Vidrio.tsx + vidrio.css copiados sin cambios).
@@ -1614,6 +1614,11 @@ const FEED_TAGS: { id: TagsMode; label: string; hint: string }[] = [
   { id: "sin", label: "Sin insignia", hint: "Solo autor, texto y foto" },
   { id: "con", label: "Con insignia", hint: "En vivo, Negociable, Blog…" },
 ];
+const FEED_SCROLLS: { id: ScrollStyle; label: string; hint: string }[] = [
+  { id: "gris", label: "Gris claro", hint: "Fino, sin sombra" },
+  { id: "vidrio", label: "Vidrio", hint: "Blanco translúcido" },
+  { id: "morado", label: "Morado", hint: "El de antes" },
+];
 
 // Selector flotante de vistas, pegado a la derecha del bloque (fuera de los 798 del homepage). Solo QA.
 const SWITCH_CSS = `
@@ -1827,7 +1832,7 @@ function AdStrip(): JSX.Element {
 }
 
 // Todos los selectores de QA en una lista: el panel de la vista mobile los muestra igual que escritorio y los envía al teléfono.
-export type QaKey = "bannerNav" | "bannerFx" | "feedView" | "feedScenario" | "feedSpeed" | "feedAd" | "feedAdBadge" | "feedViews" | "feedShare" | "feedActs" | "feedTags" | "offerView" | "lotsView" | "cardStyle" | "lotsView2" | "cardStyle2"
+export type QaKey = "bannerNav" | "bannerFx" | "feedView" | "feedScenario" | "feedSpeed" | "feedAd" | "feedAdBadge" | "feedViews" | "feedShare" | "feedActs" | "feedTags" | "feedScroll" | "offerView" | "lotsView" | "cardStyle" | "lotsView2" | "cardStyle2"
   | "categoriesView" | "bannerView" | "bannerCamp" | "companiesView";
 type QaOption = { id: string; label: string; hint: string };
 export const QA_CONTROLS: { key: QaKey; title: string; options: QaOption[] }[] = [
@@ -1842,6 +1847,7 @@ export const QA_CONTROLS: { key: QaKey; title: string; options: QaOption[] }[] =
   { key: "feedShare", title: "VMC ahora · compartir", options: FEED_SHARE_ICONS },
   { key: "feedActs", title: "VMC ahora · fila de acciones", options: FEED_ACTS },
   { key: "feedTags", title: "VMC ahora · insignias", options: FEED_TAGS },
+  { key: "feedScroll", title: "VMC ahora · scroll", options: FEED_SCROLLS },
   { key: "offerView", title: "Tipo de oferta · vista", options: OFFER_TYPE_VIEWS },
   { key: "lotsView", title: "Autoplan · lotes", options: LOTS_VIEWS },
   { key: "cardStyle", title: "Autoplan · detail card", options: CARD_STYLES },
@@ -1881,8 +1887,9 @@ export default function HomeIndexBlock({ hideFeed = false, feedSlot = false, onO
   const [feedShare, setFeedShare] = useState<ShareIcon>(() => initQa("feedShare", DEFAULT_DESIGN.share));
   const [feedActs, setFeedActs] = useState<ActsAlign>(() => initQa("feedActs", DEFAULT_DESIGN.acts));
   const [feedTags, setFeedTags] = useState<TagsMode>(() => initQa("feedTags", DEFAULT_DESIGN.tags));
-  useEffect(() => setFeedDesign({ ad: feedAd, badge: feedAdBadge, views: feedViews, share: feedShare, acts: feedActs, tags: feedTags }),
-    [feedAd, feedAdBadge, feedViews, feedShare, feedActs, feedTags]);
+  const [feedScroll, setFeedScroll] = useState<ScrollStyle>(() => initQa("feedScroll", DEFAULT_DESIGN.scroll));
+  useEffect(() => setFeedDesign({ ad: feedAd, badge: feedAdBadge, views: feedViews, share: feedShare, acts: feedActs, tags: feedTags, scroll: feedScroll }),
+    [feedAd, feedAdBadge, feedViews, feedShare, feedActs, feedTags, feedScroll]);
   const [heroH, setHeroH] = useState(OPTION_A.heroH); // alto del banner + VMC ahora (control QA)
   const [categoriesView, setCategoriesView] = useState<CategoriesView>(() => initQa("categoriesView", OPTION_A.categoriesView));
   const [bannerView, setBannerView] = useState<BannerView>(() => initQa("bannerView", "fondo"));
@@ -1890,13 +1897,14 @@ export default function HomeIndexBlock({ hideFeed = false, feedSlot = false, onO
   const [controls, setControls] = useState(false);
   const [bannerNav, setBannerNav] = useState<BannerNav>(() => initQa("bannerNav", "plain"));
   const [bannerFx, setBannerFx] = useState<BannerFx>(() => initQa("bannerFx", "letters"));
-  const qa: Record<QaKey, string> = { bannerNav, bannerFx, feedView, feedScenario, feedSpeed, feedAd, feedAdBadge, feedViews, feedShare, feedActs, feedTags, offerView, lotsView, cardStyle, lotsView2, cardStyle2, categoriesView, bannerView, bannerCamp, companiesView };
+  const qa: Record<QaKey, string> = { bannerNav, bannerFx, feedView, feedScenario, feedSpeed, feedAd, feedAdBadge, feedViews, feedShare, feedActs, feedTags, feedScroll, offerView, lotsView, cardStyle, lotsView2, cardStyle2, categoriesView, bannerView, bannerCamp, companiesView };
   const setQa = useCallback((key: QaKey, v: string) => {
     const set: Record<QaKey, (v: string) => void> = {
       bannerNav: (x) => setBannerNav(x as BannerNav), bannerFx: (x) => setBannerFx(x as BannerFx),
       feedView: (x) => setFeedView(x as FeedView), feedScenario: setFeedScenario, feedSpeed: setFeedSpeed,
       feedAd: (x) => setFeedAd(x as AdStyle), feedAdBadge: (x) => setFeedAdBadge(x as AdBadge), feedViews: (x) => setFeedViews(x as ViewsStyle),
-      feedShare: (x) => setFeedShare(x as ShareIcon), feedActs: (x) => setFeedActs(x as ActsAlign), feedTags: (x) => setFeedTags(x as TagsMode), offerView: (x) => setOfferView(x as OfferTypeView), lotsView: (x) => setLotsView(x as LotsView),
+      feedShare: (x) => setFeedShare(x as ShareIcon), feedActs: (x) => setFeedActs(x as ActsAlign), feedTags: (x) => setFeedTags(x as TagsMode),
+      feedScroll: (x) => setFeedScroll(x as ScrollStyle), offerView: (x) => setOfferView(x as OfferTypeView), lotsView: (x) => setLotsView(x as LotsView),
       cardStyle: (x) => setCardStyle(x as CardStyle), lotsView2: (x) => setLotsView2(x as LotsView), cardStyle2: (x) => setCardStyle2(x as CardStyle),
       categoriesView: (x) => setCategoriesView(x as CategoriesView), bannerView: (x) => setBannerView(x as BannerView), bannerCamp: (x) => setBannerCamp(x as CampaignId), companiesView: (x) => setCompaniesView(x as CompaniesView),
     };
@@ -1989,6 +1997,7 @@ export default function HomeIndexBlock({ hideFeed = false, feedSlot = false, onO
           <ViewSwitch title="VMC ahora · compartir" suffix="" options={FEED_SHARE_ICONS} value={feedShare} onChange={setFeedShare} />
           <ViewSwitch title="VMC ahora · fila de acciones" suffix="" options={FEED_ACTS} value={feedActs} onChange={setFeedActs} />
           <ViewSwitch title="VMC ahora · insignias" suffix="" options={FEED_TAGS} value={feedTags} onChange={setFeedTags} />
+          <ViewSwitch title="VMC ahora · scroll" suffix="" options={FEED_SCROLLS} value={feedScroll} onChange={setFeedScroll} />
           <VmcAhoraQa />
           <HeightSlider value={heroH} onChange={setHeroH} />
           {/* El selector de Tipo de oferta va siempre aquí: es más alto que su sección y se montaba sobre el de Autoplan. */}

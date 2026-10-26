@@ -30,8 +30,10 @@ export type ShareIcon = "nodos" | "caja" | "avion";
 export type ActsAlign = "palabra" | "extremos" | "izquierda" | "derecha";
 /** Insignia del tipo de entrada (EN VIVO, NEGOCIABLE, BLOG…): con o sin. */
 export type TagsMode = "con" | "sin";
-export type FeedDesign = { ad: AdStyle; badge: AdBadge; views: ViewsStyle; share: ShareIcon; acts: ActsAlign; tags: TagsMode };
-export const DEFAULT_DESIGN: FeedDesign = { ad: "post", badge: "sin", views: "ojo", share: "caja", acts: "palabra", tags: "sin" };
+/** Barra de scroll del feed: gris claro, vidrio (blanco translúcido) o el morado de antes. */
+export type ScrollStyle = "gris" | "vidrio" | "morado";
+export type FeedDesign = { ad: AdStyle; badge: AdBadge; views: ViewsStyle; share: ShareIcon; acts: ActsAlign; tags: TagsMode; scroll: ScrollStyle };
+export const DEFAULT_DESIGN: FeedDesign = { ad: "post", badge: "sin", views: "ojo", share: "caja", acts: "palabra", tags: "sin", scroll: "gris" };
 
 const LOGO: Record<string, string | undefined> = {
   "VMC": "/assets/brand/logo-voyager.svg", "Blog VMC": "/assets/brand/logo-voyager.svg", "Pacífico": "/demo/empresas/pacifico.png",
@@ -156,11 +158,26 @@ const CSS = `
 .va-live { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #E2531A; }
 .va-live i { width: 6px; height: 6px; border-radius: 50%; background: #FF7A1A; animation: va-pulse 1.4s ease-in-out infinite; }
 /* Scroll integrado al sistema visual: discreto, redondeado y consistente entre vistas. */
-.va-scroll { scrollbar-width: thin; scrollbar-color: #8460E5 transparent; scrollbar-gutter: stable; }
+.va-scroll { scrollbar-gutter: stable; }
+/* scrollbar-color solo donde no hay ::-webkit-scrollbar (Firefox): en Edge y Chrome, si está definido, anula los estilos de abajo. */
+@supports not selector(::-webkit-scrollbar) {
+  .va-scroll { scrollbar-width: thin; scrollbar-color: #8460E5 transparent; }
+  .va-scroll--gris { scrollbar-color: #D9D6E2 transparent; }
+  .va-scroll--vidrio { scrollbar-color: rgba(214,210,228,0.8) transparent; }
+}
 .va-scroll::-webkit-scrollbar { width: 8px; }
 .va-scroll::-webkit-scrollbar-track { margin: 8px 0; background: transparent; }
 .va-scroll::-webkit-scrollbar-thumb { border: 2px solid transparent; border-radius: 999px; background: linear-gradient(180deg, #CDBBFF, #7B5CE6) padding-box; box-shadow: 0 2px 7px rgba(59,23,130,0.18); }
 .va-scroll::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #B295FF, #5A36C9) padding-box; }
+/* Gris claro: fino y sin sombra, apenas se nota hasta pasar el puntero. */
+.va-scroll--gris::-webkit-scrollbar { width: 7px; }
+.va-scroll--gris::-webkit-scrollbar-thumb { background: #DEDBE6 padding-box; box-shadow: none; }
+.va-scroll--gris::-webkit-scrollbar-thumb:hover { background: #C4C0D0 padding-box; }
+/* Vidrio: blanco translúcido con un filete fino, como los botones de vidrio. */
+.va-scroll--vidrio::-webkit-scrollbar { width: 9px; }
+.va-scroll--vidrio::-webkit-scrollbar-thumb { background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(236,233,245,0.9)) padding-box;
+  box-shadow: inset 0 0 0 1px rgba(59,23,130,0.12), 0 1px 4px rgba(16,0,48,0.12); }
+.va-scroll--vidrio::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #fff, rgba(226,222,240,0.95)) padding-box; }
 
 /* Normal */
 .va--normal { padding: 0 0 8px; background: #fff; box-shadow: rgba(0,0,0,0.07) 0 0 16px 4px; }
@@ -543,7 +560,7 @@ export default function VmcAhora({ view, live = true, more = false, x = false, h
             {Ico.arrowUp}{items.slice(0, 3).map((e) => <Avatar key={e.uid} who={describe(e, s.inv).author} size={20} />)}Ver nuevas
           </span>
         ) : null}
-        <ol className={`va-posts${page ? "" : " va-scroll"}`} aria-live="polite">
+        <ol className={`va-posts${page ? "" : ` va-scroll va-scroll--${s.design.scroll}`}`} aria-live="polite">
           {items.map((e, i) => {
             const t = describe(e, s.inv, (s.now - e.at) / 60_000);
             return (
@@ -568,7 +585,7 @@ export default function VmcAhora({ view, live = true, more = false, x = false, h
       <aside className={`va va--timeline${more ? " va--auto" : ""}`} aria-label="VMC ahora" {...hover}>
         <Head live={live} />
         {fresh ? <span key={top.uid} className="va-newpill" aria-hidden>{Ico.arrowUp}Nuevo</span> : null}
-        <ol className={`va-posts${more ? "" : " va-scroll"}`} aria-live="polite">
+        <ol className={`va-posts${more ? "" : ` va-scroll va-scroll--${s.design.scroll}`}`} aria-live="polite">
           {items.map((e, i) => {
             const t = describe(e, s.inv, (s.now - e.at) / 60_000);
             return (
@@ -592,7 +609,7 @@ export default function VmcAhora({ view, live = true, more = false, x = false, h
     <aside className={`va va--normal${more ? " va--auto" : ""}`} aria-label="VMC ahora" {...hover}>
       <Head live={live} />
       {fresh ? <span key={top.uid} className="va-newpill" aria-hidden>{Ico.arrowUp}Nuevo</span> : null}
-      <ol className={`va-posts${more ? "" : " va-scroll"}`} aria-live="polite">
+      <ol className={`va-posts${more ? "" : ` va-scroll va-scroll--${s.design.scroll}`}`} aria-live="polite">
         {/* Fila tipo listado de eBay: la insignia cuenta el tipo de entrada, el título, un dato fuerte (el precio, si hay)
             y una línea gris con autor · tiempo · participantes o negociaciones. */}
         {items.map((e, i) => {

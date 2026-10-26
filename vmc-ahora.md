@@ -153,6 +153,7 @@ Están en "Abrir controles" (y en el panel de la vista móvil, que usa la misma 
 | `feedViews` | Visualizaciones | Ojo (1,2 mil), Ojo y número (1,234), Ojo y palabra, Texto |
 | `feedShare` | Compartir | Flecha y caja, Tres puntos, Avión |
 | `feedActs` | Fila de acciones | Palabra completa ("1,234 visualizaciones" cuando solo hay visitas y compartir), Extremos, A la izquierda, A la derecha |
+| `feedScroll` | Scroll | Gris claro, Vidrio, Morado |
 | `feedTags` | Insignias | Sin insignia (quita EN VIVO, NEGOCIABLE, BLOG… de todas las entradas), Con insignia |
 
 El panel "VMC ahora · reloj" muestra cuánto falta para la próxima entrada simulada, el plan del día y el botón "Simular acción real".
