@@ -63,7 +63,7 @@ const SLIDES: HeroSlide[] = [
   { label: "Entérate primero de las subastas por WhatsApp", pill: "whatsapp",
     title: <>Entérate <em>primero</em><br />de las subastas</>, lead: <>Únete al canal de VMC y recibe los lotes nuevos antes que nadie.</>,
     cta: "Unirme al canal", bg: "linear-gradient(100deg, #2A1670 0%, #3D2299 34%, #0E7A5A 78%, #25D366 100%)",
-    photo: { src: "/banners/vmc/hero-whatsapp.jpg", side: "r", width: "100%", position: "70% 30%" }, copy: "left" },
+    photo: { src: "/banners/vmc/hero-whatsapp.jpg", side: "r", width: "100%", position: "70% 30%", alto: true }, copy: "left" },
   { label: "Publica tu auto en VMC y recibe ofertas", pill: "seller",
     title: <>Publica tu auto<br />y <em>recibe ofertas</em></>, lead: <>Recibe propuestas y elige la que más te convenga.</>,
     cta: "Publicar mi auto", bg: "linear-gradient(100deg, #2A1670 0%, #3D2299 34%, #6B48DD 76%, #8460E5 100%)",
