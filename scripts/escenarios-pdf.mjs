@@ -38,7 +38,8 @@ const KIND = {
   rotacion: ["Rotación", "#00A8AB"], propuesta: ["Propuesta", "#7B5CE6"], nueva: ["Nueva", "#8460E5"], "nueva-subascars": ["Nueva", "#8460E5"],
   registro: ["Registro", "#9A7BF0"], "ad-valoriza": ["Publicidad", "#3B1782"], "ad-publica": ["Publicidad", "#3B1782"], blog: ["Blog", "#4A2CE0"],
 };
-const tag = (k) => `<span class="tag" style="--k:${KIND[k][1]}">${KIND[k][0]}</span>`;
+// Colores de la card de Tipo de oferta: en vivo naranja, negociable cian (y las propuestas); el resto, morado.
+const tag = (k, mode) => `<span class="tag" style="--k:${mode === "vivo" ? "#C2410C" : mode === "negociable" || k === "propuesta" ? "#00777A" : "#7B5CE6"}">${KIND[k][0]}</span>`;
 const sim = (label = "Simulada") => `<span class="tag" style="--k:#C2410C">${label}</span>`;
 
 const slide = (title, body, sub = "") => `
@@ -67,6 +68,7 @@ const confirmed = slide("Reglas confirmadas", table("<th class=\"l\">Tema</th><t
   ["Tipos de entrada", "Nueva oferta de empresa, nueva negociable de SubasCars, nuevo usuario, publicidad \"Valoriza tu auto en VMC\", publicidad \"Publica tu auto en VMC y recibe ofertas\", propuesta enviada, blog y rotación del inventario."],
   ["Separación", `${GAP_S} segundos entre entradas simuladas. Una acción real entra en el momento y desde ella se cuentan los ${GAP_S} segundos.`],
   ["Aviso de propuesta", "Lo firma VMC, lleva una foto pequeña y no tiene enlace. Dice que la propuesta se envió, no que se aceptó."],
+  ["Privacidad", "Los avisos de propuestas y registros no muestran quién fue: \"Se ha enviado una propuesta a la OFERTA 67942\"."],
   ["Sin negociables", "No hay avisos de propuesta. En ese espacio va publicidad o blog."],
   ["Rotación", "La oferta sale como disponible, no como recién publicada."],
   ["De 6 a 11 ofertas", "Cada oferta rota una vez al día."],
@@ -81,6 +83,7 @@ const formulas = slide("Fórmulas", table("<th class=\"l\">Entrada</th><th class
   ["Nueva oferta", "Publicación", "Sale cuando se publica. Ese día no rota.", G.nuevas],
   ["Publicidad y blog", "Actividad del día", "La mitad de la actividad del día, entre 6 y 15. Un tercio es blog. Sin negociables, 2 de blog más.", `${G.ads} y ${G.blog}`],
   ["Actividad del día", "", "Rotación + propuestas + nuevas ofertas + registros.", G.rot + G.prop + G.nuevas + G.reg],
+  ["Al abrir la página", "Cada visita", "La primera entrada es una publicidad. En cada visita se alterna entre las dos.", 1],
 ].map(([a, b, c, d]) => `<tr><td class="l"><b>${a}</b></td><td class="l">${b}</td><td class="l">${c}</td><td class="num">${d}</td></tr>`).join(""), "rules"));
 
 const Ts = [0, 1, 2, 3, 4, 5, 6, 8, 11, 12, 30, 60];
@@ -156,7 +159,7 @@ const CLASHES = [
   ["Salto entre 5 y 6 ofertas", "Con 5 ofertas rotan 15 al día y con 6, solo 6.", "Dejarlo así, o 2 vueltas de 1 a 5 ofertas (con 5 serían 10).", "Julio"],
   ["45 segundos y reglas por día", `La demo muestra el día entero en ${every((G.total * GAP_S) / 60)}. En producción sale una entrada cada ${every(DAY_MIN / G.total)}.`, "Los 45 segundos son solo de la demo. En producción se sigue la hora real.", "Julio"],
   ["Propuestas en producción", "El tope de 5 al día es para propuestas simuladas, y en producción tienen que ser reales.", "Simularlas hasta que Francis conecte las reales.", "Julio y Francis"],
-  ["Muchas propuestas reales", "Ningún tope las oculta, así que se llenaría de avisos iguales.", "Juntarlas en un aviso: \"3 usuarios enviaron su propuesta a la OFERTA 67942\".", "Julio"],
+  ["Muchas propuestas reales", "Ningún tope las oculta, así que se llenaría de avisos iguales.", "Juntarlas en un aviso: \"Se enviaron 3 propuestas a la OFERTA 67942\".", "Julio"],
   ["Oferta nueva que también rota", "Saldría como nueva y después como disponible.", "No rota el día en que se publica.", "Aplicado"],
   ["Ninguna oferta en vivo", "La cabecera dice \"En vivo\" aunque no haya subastas en vivo.", "Mostrar \"En vivo\" solo si hay ofertas en vivo o actividad real reciente.", "Julio"],
   ["Contadores en cero", "\"0 participantes\" hace ver vacía la oferta.", "Cambiar el 0 por \"Sé el primero en participar\" o \"Sin negociaciones aún\".", "Aplicado"],
@@ -187,6 +190,7 @@ const QUESTIONS = [
   "¿Registros simulados según el total de ofertas, hasta 6 al día?",
   "En la propuesta simulada, ¿foto genérica o sin foto?",
   "¿Mismas palabras en el contador de la ficha y en VMC ahora?",
+  "¿Publicidad siempre primera al abrir la página, alternando las dos en cada visita?",
 ];
 const questions = slide("Preguntas para Julio", `<ol class="steps two">${QUESTIONS.map((q) => `<li>${esc(q)}</li>`).join("")}</ol>`);
 
@@ -196,15 +200,15 @@ const short = (e, inv) => {
   const o = inv.find((x) => x.id === e.offerId);
   switch (e.kind) {
     case "rotacion": case "nueva": case "nueva-subascars": return `${o.lot}, ${o.mode === "vivo" ? "en vivo" : "negociable"}`;
-    case "propuesta": return `Usuario ${e.user} a la OFERTA ${o?.id ?? e.code}`;
-    case "registro": return `Usuario ${e.user}`;
+    case "propuesta": return `Propuesta enviada a la OFERTA ${o?.id ?? e.code}`;
+    case "registro": return "Nuevo usuario en VMC";
     case "ad-valoriza": return "Valoriza tu auto en VMC";
     case "ad-publica": return "Publica tu auto y recibe ofertas";
     default: return describe(e, inv).title;
   }
 };
 const dayTable = (list, inv, from) => table("<th>#</th><th>Hora</th><th class=\"l\">Tipo</th><th class=\"l\">Entrada</th><th>Origen</th>",
-  list.map((e, i) => `<tr><td class="muted">${from + i + 1}</td><td>${fmtMin(e.min)}</td><td class="l">${tag(e.kind)}</td>
+  list.map((e, i) => `<tr><td class="muted">${from + i + 1}</td><td>${fmtMin(e.min)}</td><td class="l">${tag(e.kind, inv.find((x) => x.id === e.offerId)?.mode)}</td>
     <td class="l ellip">${esc(short(e, inv))}</td><td>${e.mock ? sim(e.kind === "registro" ? "Simulado" : "Simulada") : `<span class="muted">Real</span>`}</td></tr>`).join(""), "day");
 const daySlides = (V, N) => {
   const r = find(V, N);

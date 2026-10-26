@@ -51,6 +51,14 @@ function initState(scenario: string, speed: number, design = DEFAULT_DESIGN): Fe
   const plan = planDay(s.V, s.N);
   const k = Math.min(BACKLOG, plan.length);
   const items = plan.slice(0, k).map((e, i): Shown => ({ ...e, uid: `${e.key}#0`, at: -(k - 1 - i) * GAP_MS })).reverse();
+  // Al abrir la página, la primera entrada es siempre una publicidad: la que ya estaba entre las últimas o, si no hay, la
+  // próxima del plan. Entra como «Ahora» (sin aviso de nuevo) y no cuenta para los 45 s.
+  const isAd = (e: PlanEntry) => e.kind === "ad-valoriza" || e.kind === "ad-publica";
+  const inBacklog = items.findIndex(isAd);
+  const nextAd = plan.find((e, i) => i >= k && isAd(e)) ?? plan.find(isAd);
+  if (inBacklog > 0) items.unshift(...items.splice(inBacklog, 1));
+  else if (inBacklog < 0 && nextAd) items.unshift({ ...nextAd, uid: `${nextAd.key}#open` } as Shown);
+  items.forEach((e, i) => { e.at = -i * GAP_MS; });
   return { scenario: s.id, speed, inv: buildInventory(s.V, s.N), plan, items, next: plan.length ? k % plan.length : 0, now: 0, lastAt: 0, seq: 1,
     skip: {}, real: 0, skipped: 0, design };
 }
@@ -111,10 +119,9 @@ export function setFeedDesign(design: FeedDesign): void {
 export function simulateRealAction(): void {
   const negs = state.inv.filter((o) => o.mode === "negociable");
   const o = negs[state.seq % Math.max(1, negs.length)];
-  const user = `${String.fromCharCode(65 + (state.seq % 26))}${String.fromCharCode(65 + ((state.seq * 7) % 26))}R${100 + ((state.seq * 37) % 900)}`;
   const e: PlanEntry = o
-    ? { key: `real-p${o.id}`, min: 0, kind: "propuesta", offerId: o.id, user }
-    : { key: "real-u", min: 0, kind: "registro", user };
+    ? { key: `real-p${o.id}`, min: 0, kind: "propuesta", offerId: o.id }
+    : { key: "real-u", min: 0, kind: "registro" };
   state = { ...push(state, e, true), skip: { ...state.skip, [e.kind]: (state.skip[e.kind] ?? 0) + 1 }, real: state.real + 1 };
   emit();
 }
@@ -179,7 +186,7 @@ const CSS = `
 .va-post__head b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; color: #14112B; }
 .va-post__head span { flex: none; color: #8A879C; font-size: 12px; font-weight: 400; }
 .va-post__text { margin: 2px 0 0; font-size: 13px; line-height: 18px; color: #24203D; }
-.va-post__text em { font-style: normal; font-weight: 700; color: #4A2CE0; }
+.va-post__text em { font-style: normal; font-weight: 700; color: var(--k, #4A2CE0); }
 .va-post__media { position: relative; display: block; margin-top: 10px; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 14px; background: #F3EFFD; }
 .va-post__media img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .va-post__media b { position: absolute; left: 10px; bottom: 10px; padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; color: #fff; background: rgba(16,0,48,0.62); }
@@ -218,7 +225,7 @@ const CSS = `
   background: none; color: #536471; cursor: pointer; }
 .va-x__more:hover { background: rgba(59,23,130,0.1); color: #3B1782; }
 .va-x__text { margin: 0; font-size: 15px; line-height: 20px; color: #0F1419; overflow-wrap: anywhere; }
-.va-x__text em { font-style: normal; color: #4A2CE0; }
+.va-x__text em { font-style: normal; color: var(--k, #4A2CE0); }
 .va-x .va-post__media { margin-top: 12px; border: 1px solid #CFD9DE; border-radius: 16px; }
 .va-x__acts { display: flex; align-items: center; justify-content: space-between; margin: 4px 0 0 -8px; max-width: 425px; }
 .va-x__acts > span { display: flex; gap: 2px; }
@@ -427,7 +434,8 @@ function Ad({ t, d, x }: { t: EntryText; d: FeedDesign; x: boolean }): JSX.Eleme
 
 /** Texto de la entrada: insignia del tipo, título, detalle y, en las propuestas, la foto pequeña de la oferta (sin enlace). */
 function Body({ t, kind, big, d, x = false }: { t: EntryText; kind: PlanEntry["kind"]; big: boolean; d: FeedDesign; x?: boolean }): JSX.Element {
-  const text = <p className={x ? "va-x__text" : "va-post__text"}>{t.title}.{t.detail ? <> <em>{t.detail}</em></> : null}</p>;
+  // El detalle va del color del tipo: en vivo naranja, negociable cian, el resto morado.
+  const text = <p className={x ? "va-x__text" : "va-post__text"} style={{ "--k": t.color } as CSSProperties}>{t.title}.{t.detail ? <> <em>{t.detail}</em></> : null}</p>;
   if (t.ad) {
     return (
       <>

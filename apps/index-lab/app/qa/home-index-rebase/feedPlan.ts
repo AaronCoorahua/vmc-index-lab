@@ -22,7 +22,7 @@ export type Kind = "nueva" | "nueva-subascars" | "registro" | "ad-valoriza" | "a
 export type PlanEntry = {
   key: string; min: number; kind: Kind; offerId?: number;
   /** Participantes o negociaciones de la oferta en ese momento (las propuestas del día van sumando). */
-  count?: number; user?: string; blog?: number;
+  count?: number; blog?: number;
   /** Mockup: hoy no hay un hecho real detrás (propuestas y registros, hasta conectarlos). */
   mock?: boolean;
   /** Propuesta mockup: código de oferta aleatorio (no tiene que existir) y foto genérica. */
@@ -104,7 +104,6 @@ const POOL: { lot: string; price: string; city: string; imageSrc: string }[] = [
   { lot: "Montacargas Toyota 2018", price: "US$ 8,600", city: "Callao", imageSrc: "/demo/inventory-forklift-v1.png" },
 ];
 const EMPRESAS = ["Autoplan", "Mapfre", "Pacífico", "Trupal S.A."];
-const USERS = ["ZAE490", "QFR218", "MLT305", "BXK772", "PDS146", "TRV583", "HNU921", "KGA037", "WEL654", "CJO289", "YRM410", "SOB868"];
 export const BLOG = [
   { title: "Cómo funciona una subasta en VMC, paso a paso", detail: "Guía · 4 min de lectura" },
   { title: "¿Qué es una oferta negociable y cómo se envía una propuesta?", detail: "Guía · 3 min de lectura" },
@@ -173,10 +172,9 @@ export function planDay(V: number, N: number): PlanEntry[] {
     let code = 62000 + ((i * 7919 + N * 104729 + V * 31) % 18000);
     while (ids.has(code)) code++;
     ids.add(code);
-    out.push({ key: `p${code}`, min, kind: "propuesta", code, imageSrc: POOL[(i * 7 + N * 3) % 10].imageSrc,
-      user: USERS[(i * 5 + 3) % USERS.length], mock: true });
+    out.push({ key: `p${code}`, min, kind: "propuesta", code, imageSrc: POOL[(i * 7 + N * 3) % 10].imageSrc, mock: true });
   });
-  spread(c.reg, 0.3).forEach((min, i) => out.push({ key: `u${i}`, min, kind: "registro", user: USERS[(i * 7 + 1) % USERS.length], mock: true }));
+  spread(c.reg, 0.3).forEach((min, i) => out.push({ key: `u${i}`, min, kind: "registro", mock: true }));
   spread(c.ads, 0.18).forEach((min, i) => out.push({ key: `a${i}`, min, kind: i % 2 ? "ad-publica" : "ad-valoriza" }));
   spread(c.blog, 0.75).forEach((min, i) => out.push({ key: `b${i}`, min, kind: "blog", blog: i % BLOG.length }));
   out.sort((x, y) => x.min - y.min);
@@ -227,7 +225,9 @@ export type EntryText = {
   /** Botón de la publicidad o del blog. Las propuestas y los registros no son clicables. */
   cta?: string;
 };
-export const COLORS = { vivo: "#F2701D", negociable: "#00A8AB", nueva: "#8460E5", propuesta: "#7B5CE6", registro: "#9A7BF0", promo: "#3B1782", blog: "#4A2CE0" };
+/** Colores de la card de Tipo de oferta: en vivo naranja, negociable cian (también las propuestas, que solo existen en las
+ *  negociables). Todo lo demás, morado. */
+export const COLORS = { vivo: "#C2410C", negociable: "#00777A", morado: "#7B5CE6", promo: "#3B1782", blog: "#4A2CE0" };
 
 // Visualizaciones de ejemplo de una entrada que no es oferta (estables para la misma entrada).
 const viewsOf = (key: string) => 150 + ([...key].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) % 100003, 7) % 2800);
@@ -243,15 +243,16 @@ function describeEntry(e: PlanEntry, inv: Offer[]): Omit<EntryText, "views"> & {
     case "nueva":
     case "nueva-subascars":
       return { author: o!.who, title: `Publicó una nueva oferta ${o!.mode === "vivo" ? "en vivo" : "negociable"}: ${o!.lot}`,
-        detail: `OFERTA ${o!.id} · ${o!.city}${o!.price ? ` · Base ${o!.price}` : " · Recibe propuestas"}`, pill: `Nueva · ${tag(o!.mode)}`, color: COLORS.nueva, ...offer };
+        detail: `OFERTA ${o!.id} · ${o!.city}${o!.price ? ` · Base ${o!.price}` : " · Recibe propuestas"}`, pill: `Nueva · ${tag(o!.mode)}`, color: COLORS[o!.mode], ...offer };
     case "rotacion":
       return { author: o!.who, title: `Disponible ${o!.mode === "vivo" ? "en vivo" : "para negociar"}: ${o!.lot}`,
         detail: `OFERTA ${o!.id} · ${o!.city}${o!.price ? ` · Base ${o!.price}` : ""}`, pill: tag(o!.mode), color: COLORS[o!.mode], ...offer };
     case "propuesta":
-      return { author: "VMC", title: `Usuario ${e.user} ha enviado su propuesta a la OFERTA ${o?.id ?? e.code}`, detail: o ? `${o.lot} · Negociable` : "Negociable",
-        pill: "Propuesta enviada", color: COLORS.propuesta, imageSrc: o?.imageSrc ?? e.imageSrc };
+      // Por privacidad, sin el usuario que la envió.
+      return { author: "VMC", title: `Se ha enviado una propuesta a la OFERTA ${o?.id ?? e.code}`, detail: o ? `${o.lot} · Negociable` : "Negociable",
+        pill: "Propuesta enviada", color: COLORS.negociable, imageSrc: o?.imageSrc ?? e.imageSrc };
     case "registro":
-      return { author: "VMC", title: `Usuario ${e.user} se registró en VMC`, detail: "", pill: "Nuevo usuario", color: COLORS.registro };
+      return { author: "VMC", title: "Se registró un nuevo usuario en VMC", detail: "", pill: "Nuevo usuario", color: COLORS.morado };
     case "ad-valoriza":
       return { author: "VMC", title: "Valoriza tu auto en VMC", detail: "Descubre cuánto vale tu auto en minutos, gratis.", pill: "Publicidad",
         color: COLORS.promo, imageSrc: "/banners/vmc/valoriza-auto.jpg", imagePos: "75% 30%", cta: "Valorizar", ad: true };
