@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 360" font-family="system-ui, sans-serif" font-size="15" fill="#1D1B2C">
 <rect width="1200" height="360" fill="#fff"/>
-<text x="120" y="28" font-size="18" font-weight="700">Un día con 8 en vivo + 2 negociables (26 entradas simuladas; las claras son mockups)</text>
+<text x="120" y="28" font-size="18" font-weight="700">Un día con 8 en vivo + 2 negociables (26 entradas; los puntos claros son simulados)</text>
 <line x1="120" x2="120" y1="50" y2="320" stroke="#F4F3F8"/><text x="120" y="346" text-anchor="middle" fill="#6B6880" font-size="13">9:00</text>
 <line x1="187.33333333333331" x2="187.33333333333331" y1="50" y2="320" stroke="#F4F3F8"/><text x="187.33333333333331" y="346" text-anchor="middle" fill="#6B6880" font-size="13">10:00</text>
 <line x1="254.66666666666666" x2="254.66666666666666" y1="50" y2="320" stroke="#F4F3F8"/><text x="254.66666666666666" y="346" text-anchor="middle" fill="#6B6880" font-size="13">11:00</text>

@@ -77,8 +77,8 @@ const formulas = slide("Fórmulas", `<div class="grid">
   <div>
     <h3>Publicidad y blog al día</h3>
     ${line("<i>A</i> = <i>R</i> + <i>P</i> + <i>U</i> + nuevas")}
-    ${line(`Pub = mín(${PROMO_MAX}, máx(${PROMO_MIN}, ⌈<i>A</i> / 2⌉))`)}
-    ${line(`Blog = Pub / 3 <span class="muted">(+${BLOG_SIN_NEGOCIABLES} si <i>N</i> = 0)</span>`)}
+    ${line(`Publicidad + blog = mín(${PROMO_MAX}, máx(${PROMO_MIN}, ⌈<i>A</i> / 2⌉))`)}
+    ${line(`Blog = ⅓ de eso <span class="muted">(+${BLOG_SIN_NEGOCIABLES} si <i>N</i> = 0)</span>`)}
     <h3>Simuladas del día</h3>
     ${line("simuladas = máx(0, objetivo − reales)")}
     <h3>Contadores</h3>

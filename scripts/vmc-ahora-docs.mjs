@@ -35,7 +35,7 @@ ${es.map((e) => `<circle cx="${x(e.min).toFixed(1)}" cy="${y}" r="6" fill="${r.c
   }).join("\n");
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" font-family="system-ui, sans-serif" font-size="15" fill="#1D1B2C">
 <rect width="${W}" height="${H}" fill="#fff"/>
-<text x="${L}" y="28" font-size="18" font-weight="700">Un día con ${V} en vivo + ${N} negociables (${plan.length} entradas simuladas; las claras son mockups)</text>
+<text x="${L}" y="28" font-size="18" font-weight="700">Un día con ${V} en vivo + ${N} negociables (${plan.length} entradas; los puntos claros son simulados)</text>
 ${hours.map((h) => `<line x1="${x(h)}" x2="${x(h)}" y1="${top - 6}" y2="${top + ROWS.length * rowH}" stroke="#F4F3F8"/><text x="${x(h)}" y="${H - 14}" text-anchor="middle" fill="#6B6880" font-size="13">${fmtMin(h)}</text>`).join("\n")}
 ${rows}
 </svg>`;
