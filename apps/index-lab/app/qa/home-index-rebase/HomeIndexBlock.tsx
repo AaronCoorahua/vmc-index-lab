@@ -54,7 +54,7 @@ const SHADOW = "rgba(0,0,0,0.07) 0px 0px 16px 4px"; // sombra de las secciones d
 type HeroSlide = {
   label: string; pill: "live" | "seller" | "negotiable" | "whatsapp";
   title: JSX.Element; lead: JSX.Element; cta: string; bg: string;
-  photo: { src: string; side: "l" | "r"; width: string; position: string; flip?: boolean; style?: CSSProperties };
+  photo: { src: string; side: "l" | "r"; width: string; position: string; flip?: boolean; alto?: boolean; style?: CSSProperties }; // alto: encaja por alto (tomas con el sujeto muy abierto)
   copy: "left" | "right"; lot?: boolean;
 };
 // Slides con las campañas reales de VMC (pedido de Julio, 26/10): canal de WhatsApp, Publica y Negociable.
@@ -63,15 +63,15 @@ const SLIDES: HeroSlide[] = [
   { label: "Entérate primero de las subastas por WhatsApp", pill: "whatsapp",
     title: <>Entérate <em>primero</em><br />de las subastas</>, lead: <>Únete al canal de VMC y recibe los lotes nuevos antes que nadie.</>,
     cta: "Unirme al canal", bg: "linear-gradient(100deg, #2A1670 0%, #3D2299 34%, #0E7A5A 78%, #25D366 100%)",
-    photo: { src: "/banners/vmc/hero-whatsapp.jpg", side: "r", width: "100%", position: "70% 40%" }, copy: "left" },
+    photo: { src: "/banners/vmc/hero-whatsapp.jpg", side: "r", width: "100%", position: "70% 30%" }, copy: "left" },
   { label: "Publica tu auto en VMC y recibe ofertas", pill: "seller",
     title: <>Publica tu auto<br />y <em>recibe ofertas</em></>, lead: <>Recibe propuestas y elige la que más te convenga.</>,
     cta: "Publicar mi auto", bg: "linear-gradient(100deg, #2A1670 0%, #3D2299 34%, #6B48DD 76%, #8460E5 100%)",
-    photo: { src: "/banners/vmc/hero-publica.jpg", side: "r", width: "100%", position: "70% 35%" }, copy: "left" },
+    photo: { src: "/banners/vmc/hero-publica.jpg", side: "l", width: "100%", position: "30% 30%" }, copy: "right" },
   { label: "Tú pones el precio, ellos te proponen", pill: "negotiable",
     title: <>Tú pones el precio<br />y <em>ellos te proponen</em></>, lead: <>Publica como Negociable y negocia directo con los compradores.</>,
     cta: "Publicar como negociable", bg: "linear-gradient(100deg, #2A1670 0%, #3D2299 35%, #00838C 78%, #00D2D3 100%)",
-    photo: { src: "/banners/vmc/hero-negociable.jpg", side: "r", width: "100%", position: "70% 0%" }, copy: "left" },
+    photo: { src: "/banners/vmc/hero-negociable.jpg", side: "r", width: "100%", position: "70% 20%", alto: true }, copy: "left" },
 ];
 const AUTOPLAY_MS = 7000;
 
@@ -88,9 +88,12 @@ const HERO_CSS = `
 /* Foto a lo ancho (--pw: 100%): sin máscara; un velo violeta a la izquierda sostiene el texto y la derecha queda limpia. */
 .hp-photo.full { left: 0; right: 0; width: 100%; -webkit-mask-image: none; mask-image: none; }
 .hp-photo.full img { left: auto; right: 0; width: 118%; } /* el 18 % izquierdo de la toma es fondo vacío: la persona gana tamaño y se va a la derecha */
+.hp-photo.full--l img { left: 0; right: auto; }
+.hp-photo.full--alto img { width: auto; height: 100%; } /* encaja por alto, anclada a su lado: el sujeto se aleja del texto */ /* toma en espejo (persona a la izquierda, texto a la derecha) */
 .hp-photo.full::after { content: ""; position: absolute; inset: 0; pointer-events: none;
   background: linear-gradient(90deg, rgba(34,16,92,0.92) 0%, rgba(42,22,112,0.8) 34%, rgba(42,22,112,0.3) 56%, rgba(42,22,112,0) 72%),
     linear-gradient(0deg, rgba(20,8,60,0.35) 0%, rgba(20,8,60,0) 30%); }
+.hp-photo.full--l::after { transform: scaleX(-1); } /* el velo pasa al lado del texto */
 .hp-photo.l { left: 0; -webkit-mask-image: linear-gradient(270deg, transparent 0%, #000 30%); mask-image: linear-gradient(270deg, transparent 0%, #000 30%); }
 .hp-copy { position: absolute; top: 0; bottom: 0; display: flex; flex-direction: column; justify-content: center; align-items: flex-start;
   padding-bottom: 28px; gap: 12px; width: 44%; min-width: 0; }
@@ -284,6 +287,7 @@ const HERO_CSS = `
   .hp-photo { width: 100%; opacity: .6; left: 0; right: 0; }
   .hp-photo.full { opacity: 1; } /* tomas con la izquierda libre: no hace falta lavarlas */
   .hp-slide:has(.hp-photo.full) .hp-copy { width: 58%; }
+  .hp-slide:has(.hp-photo.full--l) .hp-copy { left: auto; right: 20px; }
   .hp-copy, .hp-copy.right { left: 20px; right: auto; width: calc(100% - 40px); }
   .hp--sides .hp-copy, .hp--sides .hp-copy.right { left: 54px; width: calc(100% - 108px); }
   .hp--editorial .hp-copy, .hp--editorial .hp-copy.right, .hp--thin .hp-copy, .hp--thin .hp-copy.right { left: 40px; width: calc(100% - 80px); }
@@ -293,6 +297,8 @@ const HERO_CSS = `
 /* Celular (tomas a lo ancho): la foto arriba, con el velo en vertical, y el texto compacto abajo, sobre los puntos. */
 @container hp (max-width: 480px) {
   .hp-photo.full img { width: 100%; object-position: 82% 18% !important; }
+  .hp-photo.full--l img { object-position: 18% 18% !important; }
+  .hp-photo.full--l::after { transform: none; }
   .hp-photo.full::after { background: linear-gradient(180deg, rgba(42,22,112,0) 18%, rgba(34,16,92,0.72) 50%, rgba(28,12,80,0.96) 100%); }
   .hp-slide:has(.hp-photo.full) .hp-copy { left: 18px; right: 18px; width: auto; justify-content: flex-end; gap: 8px; padding-bottom: 46px; }
   .hp-slide:has(.hp-photo.full) .hp-h { font-size: 23px; line-height: 27px; }
@@ -402,7 +408,7 @@ function PrincipalBanner({ nav = "plain", fx = "letters" }: { nav?: BannerNav; f
         <div key={sl.cta} className={`hp-slide${i === index ? " on" : ""}`} role="group" aria-roledescription="diapositiva"
           aria-label={`${i + 1} de ${SLIDES.length}: ${sl.label}`} aria-hidden={i !== index} inert={i !== index}>
           <div className="hp-bg" style={{ background: sl.bg }} />
-          <div className={`hp-photo ${sl.photo.width === "100%" ? "full" : sl.photo.side}`} style={{ "--pw": sl.photo.width, ...sl.photo.style } as CSSProperties}>
+          <div className={`hp-photo ${sl.photo.width === "100%" ? `full full--${sl.photo.side}${sl.photo.alto ? " full--alto" : ""}` : sl.photo.side}`} style={{ "--pw": sl.photo.width, ...sl.photo.style } as CSSProperties}>
             <img src={sl.photo.src} alt="" style={{ objectPosition: sl.photo.position, ...(sl.photo.flip ? { "--fx": -1 } : {}) } as CSSProperties} />
           </div>
           <div className={`hp-copy ${sl.copy}`}>
