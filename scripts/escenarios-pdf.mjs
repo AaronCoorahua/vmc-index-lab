@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { chromium } from "playwright-core";
 import {
   buildInventory, checkPlan, counts, DAY_MIN, describe, fmtMin, GAP_S, planDay, proposalsPerDay, rotationCap, rotationPerDay,
-  PROMO_MAX, PROMO_MIN, BLOG_SIN_NEGOCIABLES,
+  PROMO_MAX, PROMO_MIN, BLOG_SIN_NEGOCIABLES, REGISTROS_MAX, mockupsLeft, registrosPerDay,
 } from "../apps/index-lab/app/qa/home-index-rebase/feedPlan.ts";
 
 const OUT = fileURLToPath(new URL("../escenarios.pdf", import.meta.url));
@@ -51,11 +51,11 @@ const rows = SCENARIOS.map((s) => {
   return { ...s, c, plan, chk };
 });
 const mainTable = `
-<table class="grid">
+<table class="grid compact">
   <thead><tr>
     <th>Esc.</th><th class="l">Escenario</th><th>V<br><small>en vivo</small></th><th>N<br><small>negoc.</small></th><th>T<br><small>total</small></th>
-    <th>Rotación<br><small>por día · cada</small></th><th>Veces por<br><small>oferta al día</small></th><th>Propuestas<br><small>por día · cada</small></th>
-    <th>Nuevas<br><small>hoy</small></th><th>Registros</th><th>Publicidad</th><th>Blog</th><th>Total<br><small>por día</small></th>
+    <th>Rotación<br><small>por día · cada</small></th><th>Veces por<br><small>oferta al día</small></th><th>Propuestas<br><small>mockup · cada</small></th>
+    <th>Nuevas<br><small>hoy</small></th><th>Registros<br><small>mockup</small></th><th>Publicidad</th><th>Blog</th><th>Total<br><small>por día</small></th>
     <th>Promo<br><small>% del feed</small></th><th>Producción<br><small>1 entrada cada</small></th><th>Demo<br><small>ciclo a 45 s</small></th>
   </tr></thead>
   <tbody>${rows.map(({ id, name, c }) => `<tr>
@@ -99,16 +99,59 @@ const dayTable = (s) => {
   <p class="lead">Cada fila es una entrada del feed a su hora del día. En la demo se reproducen en este orden con 45 s entre una y otra
   (ciclo de ${every((r.plan.length * GAP_S) / 60)}). Comprobación: ${r.chk.promoRun > 1 ? `hasta <b>${r.chk.promoRun}</b> promocionales seguidas (no hay actividad para intercalar)` : "nunca dos promocionales seguidas"}${Number.isFinite(r.chk.propNear) ? ` · la propuesta más cercana a su oferta en el feed queda a <b>${every(r.chk.propNear)}</b>` : ""}.</p>
   <table class="grid day">
-    <thead><tr><th>#</th><th>Hora</th><th class="l">Tipo</th><th class="l">Autor</th><th class="l">Entrada</th><th class="l">Contador</th></tr></thead>
+    <thead><tr><th>#</th><th>Hora</th><th class="l">Tipo</th><th class="l">Autor</th><th class="l">Entrada</th><th class="l">Contador</th><th>En producción</th></tr></thead>
     <tbody>${r.plan.map((e, i) => {
       const t = describe(e, inv);
       const n = t.count ?? 0;
       const count = t.mode ? `${n} ${t.mode === "vivo" ? (n === 1 ? "participante" : "participantes") : n === 1 ? "negociación" : "negociaciones"}` : "";
-      return `<tr><td>${i + 1}</td><td>${fmtMin(e.min)}</td><td class="l">${tag(e.kind)}</td><td class="l">${esc(t.author)}</td><td class="l">${esc(t.title)}${t.detail ? `<span class="muted"> · ${esc(t.detail)}</span>` : ""}</td><td class="l">${count}</td></tr>`;
+      return `<tr><td>${i + 1}</td><td>${fmtMin(e.min)}</td><td class="l">${tag(e.kind)}</td><td class="l">${esc(t.author)}</td><td class="l">${esc(t.title)}${t.detail ? `<span class="muted"> · ${esc(t.detail)}</span>` : ""}</td><td class="l">${count}</td><td>${e.mock ? `<span class="tag" style="--k:#C2410C">Mockup</span>` : `<span class="muted">Real</span>`}</td></tr>`;
     }).join("")}</tbody>
   </table>
 </section>`;
 };
+
+// ─── Mockups ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+const MOCK_TYPES = [
+  ["Propuesta enviada", "Mockup", "Mockup hasta que Francis conecte las reales; después, real", "N", "Pm = mín(2·N, tope) − reales del día. N = 0 → 0. Solo sobre negociables publicadas y abiertas; máx. 2 por oferta."],
+  ["Nuevo usuario", "Mockup", "Mockup hasta conectar los registros reales; después, real", "T", `Rm = 1 + T/4 (hacia abajo), hasta ${REGISTROS_MAX}, − reales del día. T = 0 → 0.`],
+  ["Nueva oferta (empresa / SubasCars)", "Real", "Real, nunca mockup", "Publicación", "Una oferta que no existe no se anuncia."],
+  ["Rotación del inventario", "Real", "Real, nunca mockup", "T", "Solo ofertas publicadas y abiertas."],
+  ["Publicidad y blog", "Contenido de VMC", "Real", "C", "No afirma ningún hecho; no es mockup."],
+  ["Participantes (en vivo)", "Ejemplo", "Real (dato de la subasta)", "Oferta", "Si es 0: «Sé el primero en participar»."],
+  ["Negociaciones · me gusta", "Ejemplo", "Por definir (ver choques)", "Oferta", "Deben cuadrar con los avisos de propuesta que se muestran."],
+];
+const mockTag = `<span class="tag" style="--k:#C2410C">Mockup</span>`;
+const mockRows = rows.map(({ id, name, c }) => {
+  const mocks = c.prop + c.reg;
+  return `<tr><td><b>${id}</b></td><td class="l">${esc(name)}</td><td>${c.V}</td><td>${c.N}</td><td><b>${c.T}</b></td>
+    <td>${c.prop || `<span class="muted">0</span>`}</td><td>${c.N ? (c.prop / c.N).toFixed(c.prop % c.N ? 1 : 0).replace(".", ",") : "—"}</td>
+    <td>${c.reg || `<span class="muted">0</span>`}</td><td><b>${mocks}</b></td><td class="${mocks / c.total > 0.3 ? "warn" : ""}">${pct(mocks / c.total)}</td>
+    <td>${c.prop ? mockupsLeft(c.prop, 2) : "—"}</td><td>${c.reg ? mockupsLeft(c.reg, 2) : "—"}</td></tr>`;
+}).join("");
+const regTs = [0, 1, 3, 4, 8, 12, 16, 20, 30];
+const mockPage = `
+<section class="page">
+  <h2>Mockups <small>qué es simulado por ahora y de qué depende</small></h2>
+  <p class="lead">Por ahora las propuestas enviadas y los registros son mockups: no hay un hecho real detrás. Para que no parezca fake,
+  <b>los mockups dependen del inventario que hay en la página</b>: con pocas negociables hay pocos avisos de propuesta, con 0 no hay ninguno,
+  y sin inventario tampoco hay registros mockup.</p>
+  <div class="cols">
+    <table class="grid tight">
+      <thead><tr><th class="l">Entrada</th><th>Hoy</th><th class="l">En producción</th><th>Depende de</th><th class="l">Regla</th></tr></thead>
+      <tbody>${MOCK_TYPES.map(([a, b, c, d, e]) => `<tr><td class="l"><b>${esc(a)}</b></td><td>${b === "Mockup" ? mockTag : esc(b)}</td><td class="l">${esc(c)}</td><td>${esc(d)}</td><td class="l">${esc(e)}</td></tr>`).join("")}</tbody>
+    </table>
+    <div class="box pr"><h3 style="margin-top:0">Reglas de los mockups</h3><ol>
+      <li><b>Sin inventario, sin mockups.</b> T = 0 → ni propuestas ni registros mockup. N = 0 → ninguna propuesta mockup (confirmado).</li>
+      <li><b>Escalan con lo que hay.</b> Propuestas con N (2 por negociable, con tope 5 / 8 / 12); registros con T (1 + T/4, hasta ${REGISTROS_MAX}).</li>
+      <li><b>Solo sobre lo que existe.</b> Una propuesta mockup apunta a una negociable publicada y abierta en la página; nunca a una cerrada, adjudicada o en vivo.</li>
+      <li><b>Los reales descuentan.</b> Mockups del día = objetivo − reales del día. Si los hechos reales llegan al objetivo, no hay más mockups; los reales nunca se ocultan. Ya aplicado en la demo («Simular acción real»).</li>
+      <li><b>Nunca mockups de ofertas.</b> Nuevas ofertas y rotación muestran solo inventario real.</li>
+      <li><b>Cuadran con los contadores.</b> Si sale «Usuario X ha enviado su propuesta», la oferta no puede seguir en «0 negociaciones» (ver choques).</li>
+      <li><b>Se apagan por tipo.</b> Cuando Francis conecte las propuestas reales, los mockups de propuesta se apagan; igual con los registros.</li>
+    </ol></div>
+  </div>
+  <p class="muted" style="margin-top:10px">Registros mockup según T: ${regTs.map((T) => `T = ${T} → ${registrosPerDay(T)}`).join(" · ")}.</p>
+</section>`;
 
 // ─── Choques ─────────────────────────────────────────────────────────────────────────────────────────────────────────
 const G = rows.find((r) => r.id === "G").c;
@@ -140,6 +183,12 @@ const CLASHES = [
     "Correcto con la fórmula: con N ≥ 5 hay 8 avisos al día (~cada 2 h) y como máximo 2 por oferta.", "Revisar"],
   ["Puros en vivo (N = 0)", "No hay avisos de propuesta (confirmado).",
     `Los espacios pasan al blog: +${BLOG_SIN_NEGOCIABLES} entradas de blog al día. Ya aplicado.`, "Aplicado"],
+  ["Contador con propuestas mockup", "En la demo cada propuesta mockup suma 1 a «negociaciones». En producción el contador real no subiría y el aviso quedaría desmentido por el propio número.",
+    "Mientras las propuestas sean mockup: (a) el contador suma reales + mockups del día, o (b) la negociable se muestra sin número («Recibe propuestas»).", "Julio"],
+  ["Pocas negociables con mockups", "Con N = 1 salen 2 propuestas mockup al día sobre la única oferta: parece muy disputada y nunca se cierra.",
+    "Aceptable con el tope de 2 por oferta. Alternativa: 1 por oferta al día cuando N ≤ 2 (N = 1 → 1, N = 2 → 2).", "Julio"],
+  ["Registros mockup sin inventario", "Sin ofertas, «Usuario X se registró» cada pocas horas se ve fake: ¿a qué se registran?",
+    "Registros mockup según T: 0 sin inventario, 1 + T/4 hasta 6. Ya aplicado.", "Aplicado"],
   ["Ráfagas de registros", "Muchos registros juntos llenarían el feed de «Usuario X se registró».",
     "Agrupar: «5 personas se registraron en la última hora». Mostrar solo el código, nunca el nombre.", "Julio"],
 ];
@@ -154,6 +203,9 @@ const QUESTIONS = [
   "Con 0 ofertas: ¿feed solo con blog y publicidad, ocultarlo, o entrada fija «Pronto nuevas ofertas»?",
   "¿«En vivo» en la cabecera solo cuando hay ofertas en vivo o actividad real reciente?",
   "¿Agrupamos propuestas y registros reales cuando llegan varios en poco tiempo?",
+  "¿Registros mockup según el inventario: 0 sin ofertas y 1 + T/4 al día, hasta 6?",
+  "Mientras las propuestas sean mockup, ¿el contador de negociaciones las cuenta o la oferta se muestra sin número?",
+  "Con 1–2 negociables, ¿1 propuesta mockup por oferta al día en vez de 2?",
 ];
 
 const html = `<!doctype html>
@@ -189,6 +241,8 @@ table.grid { width: 100%; border-collapse: collapse; font-variant-numeric: tabul
 .grid td.warn { color: #B4380F; font-weight: 700; }
 .grid tr.hl td { background: #FFF4EB !important; }
 .grid.tight td { padding: 3px 6px; }
+.grid.compact td { padding: 2.5px 6px; }
+.grid.compact th { padding: 3px 6px; }
 .grid.day td { padding: 2.5px 6px; font-size: 9px; }
 thead { display: table-header-group; }
 tr { break-inside: avoid; }
@@ -197,7 +251,7 @@ tr { break-inside: avoid; }
 .f > div { padding: 6px 8px; }
 .f > div:first-child { font-weight: 800; color: #3B1782; }
 .f code { font: 700 10px/1.4 Consolas, monospace; color: #1B1442; }
-.clash td { vertical-align: top; text-align: left; }
+.clash td { vertical-align: top; text-align: left; padding: 3px 6px; font-size: 9.3px; line-height: 1.35; }
 .who { white-space: nowrap; font-weight: 700; }
 .who.ok { color: #00777A; }
 </style></head><body>
@@ -230,9 +284,9 @@ tr { break-inside: avoid; }
 
   <h3>Fórmulas propuestas</h3>
   <div class="f"><div>Rotación R(T)</div><div><code>T = 0 → 0 · 1–5 → 3·T · 6–30 → T · más de 30 → 30</code><br>Repartidas parejo en W: una cada W / R.</div><div>Con 1–5 cada oferta sale 3 veces, a 5 h o más entre una y otra (con 5 ofertas, una por hora). Desde 6, cada oferta una vez al día. Se intercalan en vivo y negociables en proporción.</div></div>
-  <div class="f"><div>Propuestas P(N)</div><div><code>P = mín(2·N, tope) · tope = 5 (1–4) · 8 (5–11) · 12 (12+)</code><br>Una cada W / P.</div><div>Máximo 2 por oferta al día, a 4 h o más; a 1 h o más de cuando esa oferta salió en el feed; si es nueva, 1 h después de publicada. Solo afecta a la simulación: los reales no tienen tope.</div></div>
+  <div class="f"><div>Propuestas P(N)</div><div><code>P = mín(2·N, tope) · tope = 5 (1–4) · 8 (5–11) · 12 (12+)</code><br>Una cada W / P.</div><div>Máximo 2 por oferta al día, a 4 h o más; a 1 h o más de cuando esa oferta salió en el feed; si es nueva, 1 h después de publicada. Por ahora son mockups: los reales descuentan mockups y no tienen tope.</div></div>
   <div class="f"><div>Nuevas ofertas</div><div>Reales: entran cuando se publican.</div><div>No rotan el día en que se publican. En la demo: con T ≥ 6, una nueva en vivo (empresa) y una negociable (SubasCars).</div></div>
-  <div class="f"><div>Registros</div><div>Reales: entran cuando ocurren. Demo: 4 al día.</div><div>Solo el código del usuario. Si hay varios en 30 min, se agrupan (propuesta).</div></div>
+  <div class="f"><div>Registros Rm(T)</div><div><code>T = 0 → 0 · si no, 1 + T/4 (hacia abajo), hasta ${REGISTROS_MAX}</code></div><div>Por ahora son mockups y dependen del inventario, para que no parezcan fake. Solo el código del usuario. Los reales entran al momento; si hay varios en 30 min, se agrupan (propuesta).</div></div>
   <div class="f"><div>Publicidad + blog</div><div><code>Pr = C / 2 redondeado hacia arriba, entre ${PROMO_MIN} y ${PROMO_MAX}</code> (+${BLOG_SIN_NEGOCIABLES} de blog si N = 0)</div><div>Cerca de 1 de cada 3 entradas: depende de la actividad, no del inventario. Con poco inventario hay menos entradas, no más publicidad. 1/3 es blog; el resto alterna las dos publicidades. Nunca dos promocionales seguidas si hay actividad a menos de 30 min.</div></div>
   <div class="f"><div>Separación</div><div>45 s entre entradas simuladas (demo).</div><div>Una acción real entra al momento y reinicia la cuenta: 10:00:00 entrada → 10:00:30 real → la siguiente simulada desde 10:01:15.</div></div>
 </section>
@@ -241,7 +295,15 @@ tr { break-inside: avoid; }
   <h2>Escenarios <small>entradas por día según V y N</small></h2>
   <p class="lead">En rojo, escenarios donde la promo pasa del 45 % del feed. Las filas de «Rotación» y «Propuestas» muestran cuántas al día y cada cuánto sale una.</p>
   ${mainTable}
+  <h3>Cuánto de cada escenario es mockup <small class="muted">(en rojo, más del 30 % del feed es mockup · reglas en la página siguiente)</small></h3>
+  <table class="grid compact">
+    <thead><tr><th>Esc.</th><th class="l">Escenario</th><th>V</th><th>N</th><th>T</th><th>Propuestas<br><small>mockup al día</small></th><th>Por<br><small>negociable</small></th>
+      <th>Registros<br><small>mockup al día</small></th><th>Mockups<br><small>total</small></th><th>Mockup<br><small>% del feed</small></th>
+      <th>Con 2 propuestas<br><small>reales → mockups</small></th><th>Con 2 registros<br><small>reales → mockups</small></th></tr></thead>
+    <tbody>${mockRows}</tbody>
+  </table>
 </section>
+${mockPage}
 
 <section class="page">
   <h2>Cómo crecen las fórmulas <small>rotación según T · avisos de propuesta según N</small></h2>

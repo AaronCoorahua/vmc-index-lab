@@ -28,7 +28,11 @@ const LOGO: Record<string, string | undefined> = {
 // ─── Reloj de la demo ────────────────────────────────────────────────────────────────────────────────────────────────
 // El tiempo es simulado: a ×10 avanza diez veces más rápido (los 45 s se cumplen en 4,5 s y los «hace X min» también).
 type Shown = PlanEntry & { uid: string; at: number; real?: boolean };
-type FeedState = { scenario: string; speed: number; inv: Offer[]; plan: PlanEntry[]; items: Shown[]; next: number; now: number; lastAt: number; seq: number };
+// `skip`: mockups que se descuentan porque ya entró un hecho real del mismo tipo (mockups = objetivo − reales).
+type FeedState = {
+  scenario: string; speed: number; inv: Offer[]; plan: PlanEntry[]; items: Shown[]; next: number; now: number; lastAt: number; seq: number;
+  skip: Partial<Record<PlanEntry["kind"], number>>; real: number; skipped: number;
+};
 const GAP_MS = GAP_S * 1000;
 const TICK_MS = 500;
 const BACKLOG = 8; // entradas que ya están al abrir la página
@@ -39,7 +43,8 @@ function initState(scenario: string, speed: number): FeedState {
   const plan = planDay(s.V, s.N);
   const k = Math.min(BACKLOG, plan.length);
   const items = plan.slice(0, k).map((e, i): Shown => ({ ...e, uid: `${e.key}#0`, at: -(k - 1 - i) * GAP_MS })).reverse();
-  return { scenario: s.id, speed, inv: buildInventory(s.V, s.N), plan, items, next: plan.length ? k % plan.length : 0, now: 0, lastAt: 0, seq: 1 };
+  return { scenario: s.id, speed, inv: buildInventory(s.V, s.N), plan, items, next: plan.length ? k % plan.length : 0, now: 0, lastAt: 0, seq: 1,
+    skip: {}, real: 0, skipped: 0 };
 }
 const INITIAL = initState(DEFAULT_SCENARIO, 1);
 let state = INITIAL;
@@ -53,7 +58,20 @@ const push = (s: FeedState, e: PlanEntry, real = false): FeedState => ({
 function step() {
   if (paused > 0) return;
   let s: FeedState = { ...state, now: state.now + TICK_MS * state.speed };
-  if (s.plan.length && s.now - s.lastAt >= GAP_MS) s = { ...push(s, s.plan[s.next]), next: (s.next + 1) % s.plan.length };
+  if (s.plan.length && s.now - s.lastAt >= GAP_MS) {
+    // El próximo mockup se salta si un hecho real del mismo tipo ya ocupó su lugar.
+    let next = s.next;
+    const skip = { ...s.skip };
+    let skipped = s.skipped;
+    for (let n = 0; n < s.plan.length; n++) {
+      const e = s.plan[next];
+      if (!e.mock || !skip[e.kind]) break;
+      skip[e.kind]! -= 1;
+      skipped += 1;
+      next = (next + 1) % s.plan.length;
+    }
+    s = { ...push({ ...s, skip, skipped }, s.plan[next]), next: (next + 1) % s.plan.length };
+  }
   state = s;
   emit();
 }
@@ -82,7 +100,7 @@ export function simulateRealAction(): void {
   const e: PlanEntry = o
     ? { key: `real-p${o.id}`, min: 0, kind: "propuesta", offerId: o.id, user }
     : { key: "real-u", min: 0, kind: "registro", user };
-  state = push(state, e, true);
+  state = { ...push(state, e, true), skip: { ...state.skip, [e.kind]: (state.skip[e.kind] ?? 0) + 1 }, real: state.real + 1 };
   emit();
 }
 
@@ -477,8 +495,8 @@ export function VmcAhoraQa(): JSX.Element {
   const c = counts(sc?.V ?? 0, sc?.N ?? 0);
   const n = (k: PlanEntry["kind"][]) => s.plan.filter((e) => k.includes(e.kind)).length;
   const rows: [string, number][] = [
-    ["Rotación del inventario", n(["rotacion"])], ["Propuestas enviadas", n(["propuesta"])], ["Nuevas ofertas", n(["nueva", "nueva-subascars"])],
-    ["Registros", n(["registro"])], ["Publicidad", n(["ad-valoriza", "ad-publica"])], ["Blog", n(["blog"])],
+    ["Rotación del inventario", n(["rotacion"])], ["Propuestas enviadas · mockup", n(["propuesta"])], ["Nuevas ofertas", n(["nueva", "nueva-subascars"])],
+    ["Registros · mockup", n(["registro"])], ["Publicidad", n(["ad-valoriza", "ad-publica"])], ["Blog", n(["blog"])],
   ];
   return (
     <div className="hib-switch va-qa" role="group" aria-label="VMC ahora · reloj">
@@ -486,7 +504,8 @@ export function VmcAhoraQa(): JSX.Element {
       <p>{c.V} en vivo · {c.N} negociables · inventario {c.T}</p>
       <p>Próxima entrada simulada en <b>{left} s</b>{s.speed > 1 ? ` (×${s.speed})` : ""}</p>
       <ul aria-label={`Plan del día: ${s.plan.length} entradas`}>{rows.map(([k, v]) => <li key={k} style={{ display: "contents" }}><span>{k}</span><b>{v}</b></li>)}</ul>
-      <button type="button" onClick={simulateRealAction}><b>Simular acción real</b><small style={{ margin: 0 }}>Entra ya y reinicia los {GAP_S} s</small></button>
+      <button type="button" onClick={simulateRealAction}><b>Simular acción real</b><small style={{ margin: 0 }}>Entra ya, reinicia los {GAP_S} s y descuenta un mockup</small></button>
+      {s.real ? <small>Reales: {s.real} · mockups descontados: {s.skipped}{s.real > s.skipped ? ` (${s.real - s.skipped} por descontar)` : ""}</small> : null}
       <small>Plan del día: {s.plan.length} entradas de 9:00 a 24:00, reproducidas cada {GAP_S} s. Ver escenarios.pdf.</small>
       <style>{QA_CSS}</style>
     </div>

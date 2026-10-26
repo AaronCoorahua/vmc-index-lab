@@ -21,7 +21,11 @@ export type PlanEntry = {
   key: string; min: number; kind: Kind; offerId?: number;
   /** Participantes o negociaciones de la oferta en ese momento (las propuestas del día van sumando). */
   count?: number; user?: string; blog?: number;
+  /** Mockup: hoy no hay un hecho real detrás (propuestas y registros, hasta conectarlos). */
+  mock?: boolean;
 };
+/** Entradas que por ahora son mockups. Las demás muestran datos reales: ofertas publicadas, publicidad y blog de VMC. */
+export const MOCK_KINDS: readonly Kind[] = ["propuesta", "registro"];
 
 export const DAY_START = 9 * 60;
 export const DAY_MIN = 15 * 60;
@@ -44,8 +48,11 @@ export const proposalsPerDay = (N: number): number => (N <= 0 ? 0 : Math.min(2 *
  *  menos inventario no se marca ninguna, para que todas roten. */
 export const hasNew = (T: number, n: number): boolean => T >= 6 && n > 0;
 export const newPerDay = (V: number, N: number): number => Number(hasNew(V + N, V)) + Number(hasNew(V + N, N));
-/** Registros simulados por día (en producción, solo los reales). */
-export const REGISTROS_DEMO = 4;
+/** Registros mockup por día Rm(T): sin inventario no hay (para que no parezca fake); 1 + ⌊T / 4⌋, hasta 6. */
+export const REGISTROS_MAX = 6;
+export const registrosPerDay = (T: number): number => (T <= 0 ? 0 : Math.min(REGISTROS_MAX, 1 + Math.floor(T / 4)));
+/** Los mockups solo completan lo que falta: mockups del día = máx(0, objetivo − reales del día). */
+export const mockupsLeft = (target: number, real: number): number => Math.max(0, target - real);
 /** Límites de la publicidad + blog por día. */
 export const PROMO_MIN = 6;
 export const PROMO_MAX = 15;
@@ -65,7 +72,7 @@ export function counts(V: number, N: number): Counts {
   const nuevas = newPerDay(V, N);
   const rot = Math.min(rotationPerDay(T), rotationCap(T) * (T - nuevas));
   const prop = proposalsPerDay(N);
-  const reg = REGISTROS_DEMO;
+  const reg = registrosPerDay(T);
   const base = promoPerDay(rot + prop + nuevas + reg);
   const extra = N === 0 ? BLOG_SIN_NEGOCIABLES : 0;
   const promo = base + extra;
@@ -175,9 +182,9 @@ export function planDay(V: number, N: number): PlanEntry[] {
       .sort((x, y) => x.t - y.t || (props.get(x.o.id)?.length ?? 0) - (props.get(y.o.id)?.length ?? 0))[0];
     if (!best || best.t > DAY_START + DAY_MIN - 10) return;
     props.set(best.o.id, [...(props.get(best.o.id) ?? []), best.t]);
-    out.push({ key: `p${best.o.id}-${i}`, min: best.t, kind: "propuesta", offerId: best.o.id, user: USERS[(i * 5 + 3) % USERS.length] });
+    out.push({ key: `p${best.o.id}-${i}`, min: best.t, kind: "propuesta", offerId: best.o.id, user: USERS[(i * 5 + 3) % USERS.length], mock: true });
   });
-  spread(c.reg, 0.3).forEach((min, i) => out.push({ key: `u${i}`, min, kind: "registro", user: USERS[(i * 7 + 1) % USERS.length] }));
+  spread(c.reg, 0.3).forEach((min, i) => out.push({ key: `u${i}`, min, kind: "registro", user: USERS[(i * 7 + 1) % USERS.length], mock: true }));
   spread(c.ads, 0.18).forEach((min, i) => out.push({ key: `a${i}`, min, kind: i % 2 ? "ad-publica" : "ad-valoriza" }));
   spread(c.blog, 0.75).forEach((min, i) => out.push({ key: `b${i}`, min, kind: "blog", blog: i % BLOG.length }));
   out.sort((x, y) => x.min - y.min);
