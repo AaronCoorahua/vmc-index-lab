@@ -49,26 +49,26 @@ const SHADOW = "rgba(0,0,0,0.07) 0px 0px 16px 4px"; // sombra de las secciones d
 // Pills: EN VIVO (BadgeStatus de Concorde), PARA VENDEDORES morada y NEGOCIABLE cyan.
 // Avanza solo cada 7 s; se pausa con el puntero o el foco dentro.
 type HeroSlide = {
-  label: string; pill: "live" | "seller" | "negotiable";
+  label: string; pill: "live" | "seller" | "negotiable" | "whatsapp";
   title: JSX.Element; lead: JSX.Element; cta: string; bg: string;
   photo: { src: string; side: "l" | "r"; width: string; position: string; flip?: boolean; style?: CSSProperties };
   copy: "left" | "right"; lot?: boolean;
 };
+// Slides con las campañas reales de VMC (pedido de Julio, 26/10): canal de WhatsApp, Publica y Negociable.
+// Fotos 2K generadas para el hero (persona + vehículo seminuevo a la derecha, izquierda libre para el texto). Copy provisional: Julio lo ajusta.
 const SLIDES: HeroSlide[] = [
-  { label: "Subasta en vivo: puja y llévatelo hoy", pill: "live",
-    title: <>Puja <em>en vivo</em><br />y llévatelo hoy</>, lead: <><b>21 subastas activas</b> con lotes verificados por empresas.</>,
-    cta: "Entrar a la subasta", bg: "linear-gradient(100deg, #2A1670 0%, #3D2299 32%, #C85A1E 78%, #E8732A 100%)",
-    photo: { src: "/demo/inventory-suv-v1.png", side: "r", width: "60%", position: "50% 55%" }, copy: "left", lot: true },
-  { label: "Publica tu auto y véndelo con VMC", pill: "seller",
-    title: <>Publica tu auto<br />y <em>véndelo</em> con VMC</>, lead: <>Llega a compradores de todo el país. Elige subasta en vivo o precio negociable.</>,
+  { label: "Entérate primero de las subastas por WhatsApp", pill: "whatsapp",
+    title: <>Entérate <em>primero</em><br />de las subastas</>, lead: <>Únete al canal de VMC y recibe los lotes nuevos antes que nadie.</>,
+    cta: "Unirme al canal", bg: "linear-gradient(100deg, #2A1670 0%, #3D2299 34%, #0E7A5A 78%, #25D366 100%)",
+    photo: { src: "/banners/vmc/hero-whatsapp.jpg", side: "r", width: "100%", position: "70% 40%" }, copy: "left" },
+  { label: "Publica tu auto en VMC y recibe ofertas", pill: "seller",
+    title: <>Publica tu auto<br />y <em>recibe ofertas</em></>, lead: <>Recibe propuestas y elige la que más te convenga.</>,
     cta: "Publicar mi auto", bg: "linear-gradient(100deg, #2A1670 0%, #3D2299 34%, #6B48DD 76%, #8460E5 100%)",
-    photo: { src: "/demo/inventory-suv-v1.png", side: "r", width: "60%", position: "50% 55%", flip: true }, copy: "left" },
-  { label: "Negocia directo con el vendedor", pill: "negotiable",
-    title: <>Negocia <em>directo</em><br />con el vendedor</>, lead: <><b>12 lotes negociables.</b> Envía tu oferta y cierra el precio.</>,
-    cta: "Ver negociables", bg: "linear-gradient(100deg, #2A1670 0%, #3D2299 35%, #00838C 78%, #00D2D3 100%)",
-    photo: { src: "/demo/inventory-forklift-v1.png", side: "r", width: "44%", position: "50% 50%",
-      style: { right: "7%", WebkitMaskImage: "linear-gradient(90deg, transparent 0%, #000 26%, #000 80%, transparent 100%)", maskImage: "linear-gradient(90deg, transparent 0%, #000 26%, #000 80%, transparent 100%)" } },
-    copy: "left" },
+    photo: { src: "/banners/vmc/hero-publica.jpg", side: "r", width: "100%", position: "70% 35%" }, copy: "left" },
+  { label: "Tú pones el precio, ellos te proponen", pill: "negotiable",
+    title: <>Tú pones el precio<br />y <em>ellos te proponen</em></>, lead: <>Publica como Negociable y negocia directo con los compradores.</>,
+    cta: "Publicar como negociable", bg: "linear-gradient(100deg, #2A1670 0%, #3D2299 35%, #00838C 78%, #00D2D3 100%)",
+    photo: { src: "/banners/vmc/hero-negociable.jpg", side: "r", width: "100%", position: "70% 0%" }, copy: "left" },
 ];
 const AUTOPLAY_MS = 7000;
 
@@ -82,6 +82,12 @@ const HERO_CSS = `
 .hp-photo { position: absolute; top: 0; bottom: 0; width: var(--pw, 58%); }
 .hp-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; transform: scaleX(var(--fx, 1)); } /* --fx: -1 = en espejo */
 .hp-photo.r { right: 0; -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 30%); mask-image: linear-gradient(90deg, transparent 0%, #000 30%); }
+/* Foto a lo ancho (--pw: 100%): sin máscara; un velo violeta a la izquierda sostiene el texto y la derecha queda limpia. */
+.hp-photo.full { left: 0; right: 0; width: 100%; -webkit-mask-image: none; mask-image: none; }
+.hp-photo.full img { left: auto; right: 0; width: 118%; } /* el 18 % izquierdo de la toma es fondo vacío: la persona gana tamaño y se va a la derecha */
+.hp-photo.full::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(90deg, rgba(34,16,92,0.92) 0%, rgba(42,22,112,0.8) 34%, rgba(42,22,112,0.3) 56%, rgba(42,22,112,0) 72%),
+    linear-gradient(0deg, rgba(20,8,60,0.35) 0%, rgba(20,8,60,0) 30%); }
 .hp-photo.l { left: 0; -webkit-mask-image: linear-gradient(270deg, transparent 0%, #000 30%); mask-image: linear-gradient(270deg, transparent 0%, #000 30%); }
 .hp-copy { position: absolute; top: 0; bottom: 0; display: flex; flex-direction: column; justify-content: center; align-items: flex-start;
   padding-bottom: 28px; gap: 12px; width: 44%; min-width: 0; }
@@ -90,6 +96,7 @@ const HERO_CSS = `
 .hp-label { display: inline-flex; align-items: center; gap: 5px; height: 18px; padding: 0 8px 0 6px; border-radius: 999px; font-size: 9px; font-weight: 700; letter-spacing: 0.07em; line-height: 1; text-transform: uppercase; white-space: nowrap; }
 .hp-label svg { flex: none; width: 10px; height: 10px; }
 .hp-label--seller { background: linear-gradient(135deg, #8460E5 0%, #3B1782 100%); box-shadow: rgba(32,0,104,0.45) 0 2px 10px; }
+.hp-label--whatsapp { background: linear-gradient(135deg, #25D366 0%, #0E7A5A 100%); box-shadow: rgba(14,122,90,0.45) 0 2px 10px; }
 .hp-label--negotiable { background: linear-gradient(135deg, #00DAE0 0%, #008688 100%); box-shadow: rgba(0,168,171,0.45) 0 2px 10px; }
 .hp-h { margin: 0; font-size: var(--vmc-font-size-hero); line-height: var(--vmc-line-height-hero); font-weight: var(--vmc-font-weight-bold); letter-spacing: var(--vmc-letter-spacing-tight); }
 .hp-h em { font-style: normal; color: #FFE2C2; }
@@ -272,11 +279,22 @@ const HERO_CSS = `
 @container hp (max-width: 960px) { .hp-copy { width: 50%; } .hp-h { font-size: var(--vmc-font-size-title); line-height: var(--vmc-line-height-title); } .hp-lot { width: 200px; right: 16px; bottom: 16px; } }
 @container hp (max-width: 700px) {
   .hp-photo { width: 100%; opacity: .6; left: 0; right: 0; }
+  .hp-photo.full { opacity: 1; } /* tomas con la izquierda libre: no hace falta lavarlas */
+  .hp-slide:has(.hp-photo.full) .hp-copy { width: 58%; }
   .hp-copy, .hp-copy.right { left: 20px; right: auto; width: calc(100% - 40px); }
   .hp--sides .hp-copy, .hp--sides .hp-copy.right { left: 54px; width: calc(100% - 108px); }
   .hp--editorial .hp-copy, .hp--editorial .hp-copy.right, .hp--thin .hp-copy, .hp--thin .hp-copy.right { left: 40px; width: calc(100% - 80px); }
   .hp-odots { left: 20px; }
   .hp-lot { display: none; }
+}
+/* Celular (tomas a lo ancho): la foto arriba, con el velo en vertical, y el texto compacto abajo, sobre los puntos. */
+@container hp (max-width: 480px) {
+  .hp-photo.full img { width: 100%; object-position: 82% 18% !important; }
+  .hp-photo.full::after { background: linear-gradient(180deg, rgba(42,22,112,0) 18%, rgba(34,16,92,0.72) 50%, rgba(28,12,80,0.96) 100%); }
+  .hp-slide:has(.hp-photo.full) .hp-copy { left: 18px; right: 18px; width: auto; justify-content: flex-end; gap: 8px; padding-bottom: 46px; }
+  .hp-slide:has(.hp-photo.full) .hp-h { font-size: 23px; line-height: 27px; }
+  .hp-slide:has(.hp-photo.full) .hp-p { font-size: 13px; line-height: 18px; max-width: 34ch; }
+  .hp-slide:has(.hp-photo.full) .hib-glass { height: 34px; padding: 0 22px; font-size: 14px; }
 }
 
 /* Botón de vidrio con borde degradado (VYStrokes1) */
@@ -298,13 +316,6 @@ const HERO_CSS = `
 .hib-glass:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
 `;
 
-// Pill «Para vendedores»: versión sólida simplificada del ícono «vender» de la skill (a 10 px no se usa el vidrio).
-const SellerGlyph = () => (
-  <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-    <path d="M6.6 11l1.6-3.1A2 2 0 0 1 10 6.8h3a2 2 0 0 1 1.8 1.1l1.6 3.1h1.8a2 2 0 0 1 2 2v3a1.5 1.5 0 0 1-1.5 1.5h-.9a2 2 0 0 1-3.6 0H9.8a2 2 0 0 1-3.6 0h-.9A1.5 1.5 0 0 1 3.8 16v-3a2 2 0 0 1 2-2z" />
-    <path d="M16.5 1.5h4.6a1 1 0 0 1 1 1v4.6a1 1 0 0 1-.3.7l-3.1 3.1-5.3-5.3 3.1-3.8a1 1 0 0 1 .8-.3z" />
-  </svg>
-);
 const TimerIcon = () => (
   <svg width="14" height="14" viewBox="0 0 22 22" fill="none" aria-hidden><path d="M4.63973 10C5.09082 6.38255 8.17668 3.58333 11.9163 3.58333C15.9664 3.58333 19.2496 6.86658 19.2496 10.9167C19.2496 14.9668 15.9664 18.25 11.9163 18.25H7.33333M11.9167 10.9167V7.25M10.0833 1.75H13.75M2.75 12.75H7.33333M4.58333 15.5H9.16667" stroke="#FFE2C2" strokeWidth="1.83333" strokeLinecap="round" strokeLinejoin="round" /></svg>
 );
@@ -362,7 +373,12 @@ const plain = (node: ReactNode): string =>
   typeof node === "string" ? node : Array.isArray(node) ? node.map(plain).join("")
     : isValidElement<{ children?: ReactNode }>(node) ? (node.type === "br" ? " " : plain(node.props.children)) : "";
 // Nombre corto de cada diapositiva (pestañas y vista previa).
-const SHORT: Record<HeroSlide["pill"], string> = { live: "En vivo", seller: "Vende", negotiable: "Negocia" };
+const SHORT: Record<HeroSlide["pill"], string> = { live: "En vivo", seller: "Vende", negotiable: "Negocia", whatsapp: "Entérate" };
+
+const PILL: Record<HeroSlide["pill"], string> = { live: "En vivo", seller: "Publica en VMC", negotiable: "Negociable", whatsapp: "Canal de WhatsApp" };
+const WhatsAppGlyph = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.3-.5.1-1 .1-3.2-.7-2.7-1.1-4.4-3.8-4.5-4s-1.1-1.5-1.1-2.8 .7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.4.6-.4.4c-.1.2-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.3.2.5.1.6 0l.9-1c.2-.3.4-.2.6-.1l1.9.9c.3.1.4.2.5.3.1.2.1.7-.1 1.4Z" /></svg>
+);
 
 function PrincipalBanner({ nav = "plain", fx = "letters" }: { nav?: BannerNav; fx?: BannerFx }): JSX.Element {
   const [index, setIndex] = useState(0);
@@ -383,12 +399,12 @@ function PrincipalBanner({ nav = "plain", fx = "letters" }: { nav?: BannerNav; f
         <div key={sl.cta} className={`hp-slide${i === index ? " on" : ""}`} role="group" aria-roledescription="diapositiva"
           aria-label={`${i + 1} de ${SLIDES.length}: ${sl.label}`} aria-hidden={i !== index} inert={i !== index}>
           <div className="hp-bg" style={{ background: sl.bg }} />
-          <div className={`hp-photo ${sl.photo.side}`} style={{ "--pw": sl.photo.width, ...sl.photo.style } as CSSProperties}>
+          <div className={`hp-photo ${sl.photo.width === "100%" ? "full" : sl.photo.side}`} style={{ "--pw": sl.photo.width, ...sl.photo.style } as CSSProperties}>
             <img src={sl.photo.src} alt="" style={{ objectPosition: sl.photo.position, ...(sl.photo.flip ? { "--fx": -1 } : {}) } as CSSProperties} />
           </div>
           <div className={`hp-copy ${sl.copy}`}>
             {sl.pill === "live" ? <BadgeStatus variant="live" />
-              : <span className={`hp-label hp-label--${sl.pill}`}>{sl.pill === "negotiable" ? <TagIcon /> : <SellerGlyph />}{sl.pill === "seller" ? "Para vendedores" : "Negociable"}</span>}
+              : <span className={`hp-label hp-label--${sl.pill}`}>{sl.pill === "negotiable" ? <TagIcon /> : sl.pill === "whatsapp" ? <WhatsAppGlyph /> : null}{PILL[sl.pill]}</span>}
             {fx === "letters"
               ? <h2 className="hp-h"><span className="hp-sr">{plain(sl.title)}</span><span aria-hidden><Letters>{sl.title}</Letters></span></h2>
               : <h2 className="hp-h">{sl.title}</h2>}
@@ -506,11 +522,37 @@ function PrincipalBanner({ nav = "plain", fx = "letters" }: { nav?: BannerNav; f
 // Banner de campaña 766 × 168 (el del bloque es 100 de alto; aquí crece para que entre el contenido).
 const BANNER_HEIGHT = 204; // con aire arriba y abajo: el copy y el panel de beneficios no tocan los bordes
 // Íconos de vidrio (set de mi-garaje-lab): sólido detrás, vidrio delante y detalle en blanco.
-const POINTS = [
-  { icon: "empresa" as VidrioName, text: "Activos de empresas de confianza" },
-  { icon: "verificado" as VidrioName, text: "Equipos verificados y listos para operar" },
-  { icon: "crecimiento" as VidrioName, text: "Oportunidades para hacer crecer tu negocio" },
+// Campañas del banner secundario (pedido de Julio, 26/10): Subastop «Venta para empresas» y Valoriza tu auto, en lugar de la maquinaria.
+// Copy de las plantillas venta-empresa.html y publica-vmc.html (VMC-Laptop); `cut` = PNG recortado, si no la foto va en panel.
+type Campaign = { id: "subastop" | "valoriza" | "moto"; label: string; hint: string; eyebrow: string; title: JSX.Element; aria: string; lead: string; cta: string;
+  img: string; pos?: string; fondo: { pos: string; bg: string }; cut?: boolean; points: { icon: VidrioName; text: string }[] };
+const CAMPAIGNS: Campaign[] = [
+  { id: "subastop", label: "Subastop", hint: "Venta para empresas", eyebrow: "Subastop · Venta para empresas", aria: "Vehículos parados, ponlos a la venta",
+    title: <>¿Vehículos parados? <em>Ponlos</em> a la venta</>, lead: "Un vehículo o toda una flota: cuéntanos qué quieres vender.", cta: "Quiero vender mi flota",
+    img: "/banners/vmc/subastop-flota.jpg", pos: "62% 40%",
+    fondo: { pos: "55% 30%", bg: "linear-gradient(100deg, #2A1670 0%, #3D2299 45%, #6B48DD 80%, #C85A1E 100%)" }, points: [
+      { icon: "empresa", text: "Para empresas que liquidan activos sin uso" },
+      { icon: "maquinaria", text: "Vehículos, maquinaria, tecnología y repuestos" },
+      { icon: "crecimiento", text: "Convierte lo que no usas en liquidez" },
+    ] },
+  { id: "valoriza", label: "Valoriza tu auto", hint: "Valor estimado en VMC", eyebrow: "Valoriza en VMC", aria: "Cuánto vale tu auto",
+    title: <>¿Cuánto <em>vale</em> tu auto?</>, lead: "Responde unas preguntas y conoce el valor estimado de tu auto.", cta: "Valoriza tu auto",
+    img: "/banners/vmc/valoriza-auto.jpg", pos: "75% 30%",
+    fondo: { pos: "70% 22%", bg: "linear-gradient(100deg, #2A1670 0%, #3D2299 45%, #403566 100%)" }, points: [
+      { icon: "valorizaciones", text: "Valor estimado en minutos" },
+      { icon: "auto", text: "Con datos reales del mercado de autos" },
+      { icon: "publicar", text: "Guarda el resultado y publícalo cuando quieras" },
+    ] },
+  { id: "moto", label: "Publica tu moto", hint: "Recibe propuestas en VMC", eyebrow: "Publica en VMC", aria: "Vendes tu moto",
+    title: <>¿Vendes tu moto? <em>Publícala</em> en VMC</>, lead: "Los compradores te hacen propuestas y tú decides cuál aceptar.", cta: "Publica tu moto",
+    img: "/banners/vmc/publica-moto.jpg", pos: "72% 22%",
+    fondo: { pos: "70% 24%", bg: "linear-gradient(100deg, #2A1670 0%, #3D2299 45%, #1B1442 100%)" }, points: [
+      { icon: "publicar", text: "Publica en minutos desde tu celular" },
+      { icon: "negociaciones", text: "Los compradores te hacen propuestas" },
+      { icon: "precio", text: "Tú decides cuál aceptar" },
+    ] },
 ];
+type CampaignId = Campaign["id"];
 
 // Foto en un panel redondeado (sin máscara que la ensucie con el lila), botón compacto de 40 px y
 // beneficios separados por un filete. En móvil se apila: copy, foto y beneficios, con el CTA a lo ancho.
@@ -646,43 +688,137 @@ const CAMPAIGN_RICH_CSS = `
   .hib-campaign--hero .hib-campaign__copy ul { grid-template-columns: minmax(0, 1fr); }
 }
 `;
-type BannerView = "panel" | "recorte" | "forma" | "hero" | "glass" | "claro";
+type BannerView = "fondo" | "panel" | "recorte" | "forma" | "hero" | "glass" | "claro";
 const BANNER_VIEWS: { id: BannerView; label: string; hint: string }[] = [
-  { id: "panel", label: "Panel", hint: "Foto con fondo en panel redondeado" },
-  { id: "recorte", label: "A · Recorte", hint: "Excavadora sin fondo sobre el lila" },
-  { id: "forma", label: "B · Forma", hint: "Sobre círculo degradado del CTA" },
-  { id: "hero", label: "C · Protagonista", hint: "Máquina grande a la derecha, beneficios en fila" },
-  { id: "glass", label: "D · Anillos", hint: "Fondo claro con anillos lila, panel de vidrio sobre la máquina" },
-  { id: "claro", label: "E · Vidrio claro", hint: "Lila con panel de vidrio blanco sobre la máquina" },
+  { id: "fondo", label: "Foto de fondo", hint: "Como el banner principal: foto a sangre y mensaje en vidrio" },
+  { id: "panel", label: "Panel · Arco", hint: "Foto al borde derecho con corte curvo" },
+  { id: "recorte", label: "A · Recorte", hint: "Foto a sangre que se funde con el lila" },
+  { id: "forma", label: "B · Forma", hint: "Círculo grande que desborda, con aro del CTA" },
+  { id: "hero", label: "C · Protagonista", hint: "Foto en el panel diagonal, beneficios en fila" },
+  { id: "glass", label: "D · Anillos", hint: "Banner nocturno: foto fundida y vidrio oscuro" },
+  { id: "claro", label: "E · Vidrio claro", hint: "Foto en la mitad derecha, vidrio sobre el corte" },
 ];
 
-function CampaignBanner({ view }: { view: BannerView }): JSX.Element {
+function CampaignBanner({ view, camp = "subastop" }: { view: BannerView; camp?: CampaignId }): JSX.Element {
+  const c = CAMPAIGNS.find((x) => x.id === camp) ?? CAMPAIGNS[0];
   const points = (
     <ul>
-      {POINTS.map(({ icon, text }) => (
+      {c.points.map(({ icon, text }) => (
         <li key={text}><span className="hib-campaign__ico"><Vidrio s={icon} size={view === "panel" || view === "forma" ? 28 : view === "recorte" ? 24 : 22} /></span>{text}</li>
       ))}
     </ul>
   );
   return (
-    <section className={`hib-campaign hib-campaign--${view}${view === "glass" || view === "claro" ? " hib-campaign--overlap" : ""}`} aria-label="Maquinaria que mueve tu negocio">
+    <section className={`hib-campaign hib-campaign--${view}${view === "glass" || view === "claro" ? " hib-campaign--overlap" : ""}${c.cut ? "" : " hib-campaign--foto"}`} aria-label={c.aria}
+      style={view === "fondo" ? { background: c.fondo.bg } : undefined}>
       <div className="hib-campaign__copy">
-        <small className="hib-campaign__eyebrow">2 lotes disponibles</small>
-        <h2>Maquinaria que <em>mueve</em> tu negocio</h2>
-        <p>Equipos industriales y vehículos de empresas confiables, en un solo lugar.</p>
+        <small className="hib-campaign__eyebrow">{c.eyebrow}</small>
+        <h2>{c.title}</h2>
+        <p>{c.lead}</p>
         {view === "hero" ? points : null}
-        <Button variant="primary">Ver maquinaria</Button>
+        {view === "fondo" ? <button type="button" className="hib-glass">{c.cta}</button> : <Button variant="primary">{c.cta}</Button>}
       </div>
       <div className="hib-campaign__media">
-        {view === "panel"
-          ? <img src="/demo/inventory-excavator-v1.png" alt="" />
-          : <img className="hib-campaign__cut" src="/demo/inventory-excavator-cutout.png" alt="" />}
+        {view === "fondo"
+          ? <img src={c.img} alt="" style={{ objectPosition: c.fondo.pos }} />
+          : view === "panel" || !c.cut
+          ? <img src={c.img} alt="" style={c.pos ? { objectPosition: c.pos } : undefined} />
+          : <img className="hib-campaign__cut" src={c.img} alt="" />}
       </div>
-      {view === "hero" ? null : points}
-      <style>{CAMPAIGN_CSS + CAMPAIGN_VARIANT_CSS + CAMPAIGN_RICH_CSS}</style>
+      {view === "hero" || view === "fondo" ? null : points}
+      <style>{CAMPAIGN_CSS + CAMPAIGN_VARIANT_CSS + CAMPAIGN_RICH_CSS + CAMPAIGN_FOTO_CSS}</style>
     </section>
   );
 }
+// Fotos con fondo (las tomas de persona + vehículo, estudio violeta): cada vista las trata a su manera.
+//   Panel · Arco: la foto llega al borde derecho con un corte curvo; los beneficios pasan al centro, sobre el lila.
+//   A · Recorte: la foto en el centro, fundida con el lila por los dos lados; los beneficios en vidrio rozan su borde derecho.
+//   B · Forma: ojo de buey, un círculo grande que desborda el banner, con aro degradado del CTA y halos.
+//   C · Protagonista: la foto llena el panel en diagonal de la derecha.
+//   D · Anillos (nocturno): el banner toma el violeta del estudio, así la foto se funde sin velo gris; vidrio oscuro.
+//   E · Vidrio claro (costura): la foto ocupa la mitad derecha con corte recto y el vidrio queda montado sobre el corte.
+// «Foto de fondo»: el lenguaje del banner principal (degradado del sistema, foto a la derecha fundida con máscara)
+// y el mensaje en un panel de vidrio. Sin beneficios: el panel ya hace de bajada.
+const CAMPAIGN_FOTO_CSS = `
+.hib-campaign--foto .hib-campaign__copy, .hib-campaign--foto > ul { position: relative; z-index: 2; }
+.hib-campaign--foto .hib-campaign__media::before, .hib-campaign--foto .hib-campaign__media::after { display: none; }
+.hib-campaign--foto .hib-campaign__media { overflow: hidden; }
+.hib-campaign--foto .hib-campaign__copy { grid-row: 1; grid-column: 1; }
+@media (min-width: 1024px) {
+/* Panel · Arco */
+.hib-campaign--foto.hib-campaign--panel { grid-template-columns: 300px 230px minmax(0, 1fr); }
+.hib-campaign--foto.hib-campaign--panel > ul { grid-row: 1; grid-column: 2; padding: 0 0 0 16px; }
+.hib-campaign--foto.hib-campaign--panel .hib-campaign__media { grid-row: 1; grid-column: 3; align-self: stretch; height: auto; margin: -20px -14px -20px 0; border-radius: 0;
+  clip-path: ellipse(100% 125% at 100% 50%); }
+/* A, D: foto al centro, fundida por los dos lados para que la persona no quede detrás de los beneficios. */
+.hib-campaign--foto.hib-campaign--recorte .hib-campaign__media, .hib-campaign--foto.hib-campaign--glass .hib-campaign__media {
+  position: absolute; top: 0; left: 28%; right: 250px; bottom: 0; width: auto; height: auto; border-radius: 0;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 26%, #000 92%, transparent 100%); mask-image: linear-gradient(90deg, transparent 0%, #000 26%, #000 92%, transparent 100%); }
+.hib-campaign--foto.hib-campaign--recorte > ul, .hib-campaign--foto.hib-campaign--glass > ul { grid-row: 1; grid-column: 3; }
+/* B · Ojo de buey */
+.hib-campaign--foto.hib-campaign--forma .hib-campaign__media { grid-row: 1; grid-column: 2; justify-self: center; align-self: center; width: 250px; height: 250px; margin-block: -60px; /* el margen negativo evita que el círculo estire la fila */
+  border-radius: 50%; padding: 5px; background: linear-gradient(135deg, #ED8936 0%, #C4618F 50%, #8460E5 100%);
+  box-shadow: 0 0 0 14px rgba(132,96,229,0.1), 0 0 0 30px rgba(132,96,229,0.05), rgba(59,23,130,0.3) 0 18px 30px -10px; }
+.hib-campaign--foto.hib-campaign--forma .hib-campaign__media img { border-radius: 50%; }
+.hib-campaign--foto.hib-campaign--forma > ul { grid-row: 1; grid-column: 3; }
+/* C: la foto ocupa el panel diagonal de la derecha. */
+.hib-campaign--foto.hib-campaign--hero::before { display: none; }
+.hib-campaign--foto.hib-campaign--hero .hib-campaign__media { position: absolute; top: 0; right: 0; bottom: 0; width: 40%; height: auto; border-radius: 0;
+  clip-path: polygon(22% 0, 100% 0, 100% 100%, 0 100%); }
+/* E · Costura */
+.hib-campaign--foto.hib-campaign--claro { grid-template-columns: 300px 270px minmax(0, 1fr); }
+.hib-campaign--foto.hib-campaign--claro .hib-campaign__media { position: absolute; top: 0; right: 0; bottom: 0; left: 47%; width: auto; height: auto; border-radius: 0;
+  box-shadow: inset 1px 0 0 rgba(255,255,255,0.6); }
+.hib-campaign--foto.hib-campaign--claro > ul { grid-row: 1; grid-column: 2; background: linear-gradient(160deg, rgba(255,255,255,0.86), rgba(255,255,255,0.62)); }
+}
+/* D · Nocturno */
+.hib-campaign--foto.hib-campaign--glass { background: linear-gradient(100deg, #1C0E4D 0%, #2A1670 50%, #2C1675 100%); border-color: #2A1670; }
+.hib-campaign--foto.hib-campaign--glass::before, .hib-campaign--foto.hib-campaign--glass::after { z-index: 1; border-color: rgba(255,255,255,0.05); }
+.hib-campaign--foto.hib-campaign--glass h2 { color: #fff; }
+.hib-campaign--foto.hib-campaign--glass h2 em { background: none; color: #FFD7B0; -webkit-text-fill-color: currentColor; }
+.hib-campaign--foto.hib-campaign--glass p { color: rgba(255,255,255,0.78); }
+.hib-campaign--foto.hib-campaign--glass .hib-campaign__eyebrow { color: #fff; border-color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.1); box-shadow: none; }
+.hib-campaign--foto.hib-campaign--glass .hib-campaign__eyebrow::before { background: #FFD7B0; box-shadow: 0 0 0 3px rgba(255,215,176,0.25); }
+.hib-campaign--foto.hib-campaign--glass > ul { border-color: rgba(255,255,255,0.22); background: rgba(255,255,255,0.08);
+  box-shadow: rgba(10,0,40,0.35) 0 12px 28px -10px, inset 0 1px 0 rgba(255,255,255,0.2); }
+.hib-campaign--foto.hib-campaign--glass li { color: #fff; }
+@media (max-width: 1023px) {
+  .hib-campaign--foto:not(.hib-campaign--fondo) .hib-campaign__copy { grid-row: auto; }
+  .hib-campaign--foto:not(.hib-campaign--fondo) .hib-campaign__media { order: -1; } /* en el celular la foto encabeza la tarjeta */
+  .hib-campaign--foto .hib-campaign__media { height: 200px; }
+  .hib-campaign--foto.hib-campaign--forma .hib-campaign__media { justify-self: center; width: 220px; height: 220px; border-radius: 50%; padding: 4px;
+    background: linear-gradient(135deg, #ED8936 0%, #C4618F 50%, #8460E5 100%); box-shadow: 0 0 0 10px rgba(132,96,229,0.1), rgba(59,23,130,0.3) 0 14px 26px -10px; }
+  .hib-campaign--foto.hib-campaign--forma .hib-campaign__media img { border-radius: 50%; }
+  .hib-campaign--foto.hib-campaign--panel .hib-campaign__media { border-radius: 14px 14px 14px 120px; }
+  .hib-campaign--foto.hib-campaign--hero .hib-campaign__media { clip-path: polygon(0 0, 100% 0, 100% 88%, 0 100%); }
+  .hib-campaign--foto.hib-campaign--overlap > ul { margin-top: 0; }
+  .hib-campaign--foto.hib-campaign--claro > ul { background: linear-gradient(160deg, rgba(255,255,255,0.86), rgba(255,255,255,0.62)); }
+  .hib-campaign--foto.hib-campaign--glass .hib-campaign__media { -webkit-mask-image: linear-gradient(180deg, #000 65%, transparent 100%); mask-image: linear-gradient(180deg, #000 65%, transparent 100%); }
+}
+.hib-campaign.hib-campaign--fondo { display: block; padding: 0; color: #fff; border: 0; }
+.hib-campaign.hib-campaign--fondo::before, .hib-campaign.hib-campaign--fondo::after { display: none; }
+.hib-campaign.hib-campaign--fondo .hib-campaign__media { position: absolute; top: 0; right: 0; bottom: 0; width: 68%; height: auto; border-radius: 0; overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 34%); mask-image: linear-gradient(90deg, transparent 0%, #000 34%); }
+.hib-campaign.hib-campaign--fondo .hib-campaign__media::before, .hib-campaign.hib-campaign--fondo .hib-campaign__media::after { display: none; }
+.hib-campaign.hib-campaign--fondo .hib-campaign__media img { width: 100%; height: 100%; object-fit: cover; }
+.hib-campaign--fondo .hib-campaign__copy { position: absolute; z-index: 1; left: 20px; top: 50%; transform: translateY(-50%); box-sizing: border-box; width: min(440px, 52%);
+  padding: 16px 20px 18px; gap: 6px; border-radius: 16px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.22);
+  -webkit-backdrop-filter: blur(16px) saturate(140%); backdrop-filter: blur(16px) saturate(140%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 10px 30px rgba(20,8,60,0.3); }
+.hib-campaign--fondo .hib-campaign__eyebrow { color: #fff; padding: 3px 10px 3px 8px; border-radius: 999px; background: rgba(255,255,255,0.14); box-shadow: none; }
+.hib-campaign--fondo .hib-campaign__eyebrow::before { background: #FFD7B0; box-shadow: 0 0 0 3px rgba(255,215,176,0.3); }
+.hib-campaign--fondo h2 { color: #fff; font-size: 22px; line-height: 26px; }
+.hib-campaign--fondo h2 em { color: #FFD7B0; background: none; -webkit-text-fill-color: currentColor; font-style: normal; }
+.hib-campaign--fondo p { color: rgba(255,255,255,0.85); margin-bottom: 6px; }
+.hib-campaign--fondo .hib-glass { color: #fff; }
+@media (max-width: 1023px) {
+  .hib-campaign.hib-campaign--fondo { height: auto; min-height: 340px; display: flex; align-items: flex-end; padding: 12px; }
+  .hib-campaign.hib-campaign--fondo .hib-campaign__media { width: 100%; height: 62%; bottom: auto; -webkit-mask-image: linear-gradient(180deg, #000 55%, transparent 100%); mask-image: linear-gradient(180deg, #000 55%, transparent 100%); }
+  .hib-campaign--fondo .hib-campaign__copy { position: relative; left: auto; top: auto; transform: none; width: 100%; }
+}
+
+.hib-campaign--foto .hib-campaign__media::before, .hib-campaign--foto .hib-campaign__media::after { display: none; }
+`;
 
 // «Explora por categoría»: cinco cards con la caja de OfferCard (radio 8, sombra y elevación al pasar).
 // Íconos dúotono como los del banner. Las fotos son las de demo del lab (no hay una de artículos diversos).
@@ -1656,7 +1792,7 @@ function AdStrip(): JSX.Element {
 
 // Todos los selectores de QA en una lista: el panel de la vista mobile los muestra igual que escritorio y los envía al teléfono.
 export type QaKey = "bannerNav" | "bannerFx" | "feedView" | "feedScenario" | "feedSpeed" | "offerView" | "lotsView" | "cardStyle" | "lotsView2" | "cardStyle2"
-  | "categoriesView" | "bannerView" | "companiesView";
+  | "categoriesView" | "bannerView" | "bannerCamp" | "companiesView";
 type QaOption = { id: string; label: string; hint: string };
 export const QA_CONTROLS: { key: QaKey; title: string; options: QaOption[] }[] = [
   { key: "bannerNav", title: "Banner · indicador", options: BANNER_NAVS },
@@ -1670,7 +1806,8 @@ export const QA_CONTROLS: { key: QaKey; title: string; options: QaOption[] }[] =
   { key: "lotsView2", title: "Mapfre · lotes", options: LOTS_VIEWS },
   { key: "cardStyle2", title: "Mapfre · detail card", options: CARD_STYLES },
   { key: "categoriesView", title: "Categorías · vista", options: CATEGORIES_VIEWS },
-  { key: "bannerView", title: "Banner de maquinaria", options: BANNER_VIEWS },
+  { key: "bannerCamp", title: "Banner secundario · campaña", options: CAMPAIGNS },
+  { key: "bannerView", title: "Banner secundario · vista", options: BANNER_VIEWS },
   { key: "companiesView", title: "Empresas · vista", options: COMPANIES_VIEWS },
 ];
 const isQaValue = (key: QaKey, v: unknown) => QA_CONTROLS.some((c) => c.key === key && c.options.some((o) => o.id === v));
@@ -1698,17 +1835,18 @@ export default function HomeIndexBlock({ hideFeed = false, feedSlot = false, onO
   useEffect(() => setFeedConfig(feedScenario, Number(feedSpeed)), [feedScenario, feedSpeed]);
   const [heroH, setHeroH] = useState(OPTION_A.heroH); // alto del banner + VMC ahora (control QA)
   const [categoriesView, setCategoriesView] = useState<CategoriesView>(() => initQa("categoriesView", OPTION_A.categoriesView));
-  const [bannerView, setBannerView] = useState<BannerView>(() => initQa("bannerView", "recorte"));
+  const [bannerView, setBannerView] = useState<BannerView>(() => initQa("bannerView", "fondo"));
+  const [bannerCamp, setBannerCamp] = useState<CampaignId>(() => initQa("bannerCamp", "subastop"));
   const [controls, setControls] = useState(false);
   const [bannerNav, setBannerNav] = useState<BannerNav>(() => initQa("bannerNav", "plain"));
   const [bannerFx, setBannerFx] = useState<BannerFx>(() => initQa("bannerFx", "letters"));
-  const qa: Record<QaKey, string> = { bannerNav, bannerFx, feedView, feedScenario, feedSpeed, offerView, lotsView, cardStyle, lotsView2, cardStyle2, categoriesView, bannerView, companiesView };
+  const qa: Record<QaKey, string> = { bannerNav, bannerFx, feedView, feedScenario, feedSpeed, offerView, lotsView, cardStyle, lotsView2, cardStyle2, categoriesView, bannerView, bannerCamp, companiesView };
   const setQa = useCallback((key: QaKey, v: string) => {
     const set: Record<QaKey, (v: string) => void> = {
       bannerNav: (x) => setBannerNav(x as BannerNav), bannerFx: (x) => setBannerFx(x as BannerFx),
       feedView: (x) => setFeedView(x as FeedView), feedScenario: setFeedScenario, feedSpeed: setFeedSpeed, offerView: (x) => setOfferView(x as OfferTypeView), lotsView: (x) => setLotsView(x as LotsView),
       cardStyle: (x) => setCardStyle(x as CardStyle), lotsView2: (x) => setLotsView2(x as LotsView), cardStyle2: (x) => setCardStyle2(x as CardStyle),
-      categoriesView: (x) => setCategoriesView(x as CategoriesView), bannerView: (x) => setBannerView(x as BannerView), companiesView: (x) => setCompaniesView(x as CompaniesView),
+      categoriesView: (x) => setCategoriesView(x as CategoriesView), bannerView: (x) => setBannerView(x as BannerView), bannerCamp: (x) => setBannerCamp(x as CampaignId), companiesView: (x) => setCompaniesView(x as CompaniesView),
     };
     if (isQaValue(key, v)) set[key](v);
   }, []);
@@ -1821,8 +1959,11 @@ export default function HomeIndexBlock({ hideFeed = false, feedSlot = false, onO
         <Switches visible={controls}><ViewSwitch title="Categorías" options={CATEGORIES_VIEWS} value={categoriesView} onChange={setCategoriesView} /></Switches>
       </div>
       <div data-slot="banner" style={{ position: "relative", width: "100%" }}>
-        <CampaignBanner view={bannerView} />
-        <Switches visible={controls}><ViewSwitch title="Banner" options={BANNER_VIEWS} value={bannerView} onChange={setBannerView} /></Switches>
+        <CampaignBanner view={bannerView} camp={bannerCamp} />
+        <Switches visible={controls}>
+          <ViewSwitch title="Campaña" suffix="" options={CAMPAIGNS} value={bannerCamp} onChange={setBannerCamp} />
+          <ViewSwitch title="Banner" options={BANNER_VIEWS} value={bannerView} onChange={setBannerView} />
+        </Switches>
       </div>
       <div style={{ width: "100%" }}><SellSection /></div>
       <div style={{ position: "relative", width: "100%" }}>
