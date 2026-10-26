@@ -396,7 +396,7 @@ function countLabel(t: EntryText): string {
 const fmtViews = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(1).replace(".0", "").replace(".", ",")} mil` : String(n));
 const fmtFull = (n: number) => n.toLocaleString("es-PE");
 /** Visualizaciones en su propia línea («ojo-palabra» y «texto»), como las de un post de X. */
-const viewsLine = (t: EntryText, d: FeedDesign) => d.views === "ojo-palabra"
+const viewsLine = (t: EntryText, d: FeedDesign) => !t.views ? null : d.views === "ojo-palabra"
   ? <p className="va-views">{Ico.eye}{fmtViews(t.views)} visitas</p>
   : d.views === "texto" ? <p className="va-views"><b>{fmtViews(t.views)}</b> visualizaciones</p> : null;
 
@@ -412,13 +412,13 @@ function Acts({ t, d, x = false }: { t: EntryText; d: FeedDesign; x?: boolean })
   const inRow = d.views === "ojo" || d.views === "completo";
   const views = inRow ? (
     <span className="va-acts__count va-acts__views" style={{ "--k": "#6B6880" } as CSSProperties} aria-label={`${t.views} visualizaciones`}>
-      {wrap(Ico.eye)}{d.views === "completo" ? fmtFull(t.views) : fmtViews(t.views)}</span>
+      {wrap(Ico.eye)}{!t.views ? null : d.views === "completo" ? fmtFull(t.views) : fmtViews(t.views)}</span>
   ) : null;
   if (!t.mode) return <div className={`${x ? "va-x__acts" : "va-acts"} va-acts--share${views ? " va-acts--views" : ""}`}>{views}{share}</div>;
   return (
     <div className={x ? "va-x__acts" : "va-acts"}>
       <button type="button" style={{ "--k": "#F91880" } as CSSProperties} aria-pressed={liked} aria-label={`Me gusta · ${likes}`}
-        onClick={stop(() => setLiked((v) => !v))}>{wrap(Ico.heart)}{likes}</button>
+        onClick={stop(() => setLiked((v) => !v))}>{wrap(Ico.heart)}{likes || null}</button>
       <span className="va-acts__count" style={{ "--k": t.color } as CSSProperties} title={countLabel(t)}>{wrap(Ico.people)}{countLabel(t)}</span>
       {views}
       {share}
@@ -477,7 +477,7 @@ const when = (t: EntryText, d: FeedDesign, label: string) => (t.ad && d.badge ==
 export function VmcAhoraTicker({ onOpen }: { onOpen: () => void }): JSX.Element {
   const s = useFeed();
   const e = s.items[0];
-  const t = describe(e, s.inv);
+  const t = describe(e, s.inv, (s.now - e.at) / 60_000);
   return (
     <button type="button" className="va-ticker" onClick={onOpen} aria-label={`VMC ahora, en vivo: ${t.author}, ${t.title}. Abrir el feed`}>
       <span className="va-ticker__live"><i />En vivo</span>
@@ -532,7 +532,7 @@ export default function VmcAhora({ view, live = true, more = false, x = false, h
         ) : null}
         <ol className={`va-posts${page ? "" : " va-scroll"}`} aria-live="polite">
           {items.map((e, i) => {
-            const t = describe(e, s.inv);
+            const t = describe(e, s.inv, (s.now - e.at) / 60_000);
             return (
               <li key={e.uid} className={`va-x${enter(i)}`}>
                 <Avatar who={t.author} size={40} />
@@ -557,7 +557,7 @@ export default function VmcAhora({ view, live = true, more = false, x = false, h
         {fresh ? <span key={top.uid} className="va-newpill" aria-hidden>{Ico.arrowUp}Nuevo</span> : null}
         <ol className={`va-posts${more ? "" : " va-scroll"}`} aria-live="polite">
           {items.map((e, i) => {
-            const t = describe(e, s.inv);
+            const t = describe(e, s.inv, (s.now - e.at) / 60_000);
             return (
               <li key={e.uid} className={`va-post${enter(i)}`}>
                 <div className="va-post__rail"><Avatar who={t.author} size={32} /><span className="va-post__line" /></div>
@@ -583,7 +583,7 @@ export default function VmcAhora({ view, live = true, more = false, x = false, h
         {/* Fila tipo listado de eBay: la insignia cuenta el tipo de entrada, el título, un dato fuerte (el precio, si hay)
             y una línea gris con autor · tiempo · participantes o negociaciones. */}
         {items.map((e, i) => {
-          const t = describe(e, s.inv);
+          const t = describe(e, s.inv, (s.now - e.at) / 60_000);
           const o = s.inv.find((x) => x.id === e.offerId);
           return (
             <li key={e.uid} className={`va-item${enter(i)}`}>
@@ -595,7 +595,7 @@ export default function VmcAhora({ view, live = true, more = false, x = false, h
                 <p className="va-item__title">{t.mode && o ? o.lot : t.title}</p>
                 {t.mode && o?.price ? <b className="va-item__value">{o.price}</b> : null}
                 <span className="va-item__meta"><span className="va-item__who">{t.author}</span><Verified />
-                  <span>· {ago(s.now - e.at)}{t.mode ? ` · ${countLabel(t)}` : ""} · {s.design.views === "completo" ? fmtFull(t.views) : fmtViews(t.views)} {s.design.views === "texto" ? "visualizaciones" : "visitas"}</span></span>
+                  <span>· {ago(s.now - e.at)}{t.mode ? ` · ${countLabel(t)}` : ""}{t.views ? ` · ${s.design.views === "completo" ? fmtFull(t.views) : fmtViews(t.views)} ${s.design.views === "texto" ? "visualizaciones" : "visitas"}` : ""}</span></span>
               </div>
             </li>
           );

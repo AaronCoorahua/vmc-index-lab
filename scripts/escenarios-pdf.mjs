@@ -84,7 +84,8 @@ const formulas = slide("Fórmulas", table("<th class=\"l\">Entrada</th><th class
   ["Publicidad y blog", "Actividad del día", "La mitad de la actividad del día, entre 6 y 15. Un tercio es blog. Sin negociables, 2 de blog más.", `${G.ads} y ${G.blog}`],
   ["Actividad del día", "", "Rotación + propuestas + nuevas ofertas + registros.", G.rot + G.prop + G.nuevas + G.reg],
   ["Al abrir la página", "Cada visita", "La primera entrada es una publicidad. En cada visita se alterna entre las dos.", 1],
-].map(([a, b, c, d]) => `<tr><td class="l"><b>${a}</b></td><td class="l">${b}</td><td class="l">${c}</td><td class="num">${d}</td></tr>`).join(""), "rules"));
+  ["Visitas, me gusta y participantes", "Tiempo publicada", "Empiezan en 0 y crecen: a las 6 horas, cerca del 63 % del tope. Visitas hasta 120 a 500; las ofertas muy buenas, 600 a 800.", "0 al publicar"],
+].map(([a, b, c, d]) => `<tr><td class="l"><b>${a}</b></td><td class="l">${b}</td><td class="l">${c}</td><td class="num">${d}</td></tr>`).join(""), "rules snug"));
 
 const Ts = [0, 1, 2, 3, 4, 5, 6, 8, 11, 12, 30, 60];
 const Ns = [0, 1, 2, 3, 4, 5, 8, 11, 12, 20, 30];

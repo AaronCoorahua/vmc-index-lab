@@ -13,15 +13,17 @@ export type Offer = {
   id: number; mode: Mode; who: string; lot: string; price?: string; city: string; imageSrc: string;
   /** Publicada hoy: sale como «nueva» y no entra a la rotación del día. */
   isNew: boolean;
-  /** Participantes (en vivo) o negociaciones (negociable) al empezar el día. */
-  base: number; likes: number;
-  /** Visitas de la oferta (el ojito de la detail card). */
-  views: number;
+  /** Días desde que se publicó (0 si es de hoy). Visitas, me gusta y participantes crecen con el tiempo desde ahí. */
+  ageDays: number;
+  /** Hasta cuántas visitas llega (120–500; las muy buenas, 600–800) y qué parte de ellas da me gusta o participa. */
+  viewsCap: number; likeRate: number; partRate: number;
+  /** Negociaciones que ya tenía al empezar el día (solo negociables publicadas antes de hoy). */
+  base: number;
 };
 export type Kind = "nueva" | "nueva-subascars" | "registro" | "ad-valoriza" | "ad-publica" | "propuesta" | "blog" | "rotacion";
 export type PlanEntry = {
   key: string; min: number; kind: Kind; offerId?: number;
-  /** Participantes o negociaciones de la oferta en ese momento (las propuestas del día van sumando). */
+  /** Negociaciones de la oferta en ese momento (las propuestas reales del día van sumando). */
   count?: number; blog?: number;
   /** Mockup: hoy no hay un hecho real detrás (propuestas y registros, hasta conectarlos). */
   mock?: boolean;
@@ -114,14 +116,18 @@ export const BLOG = [
 
 /** V ofertas en vivo (de las empresas) y N negociables (de SubasCars), con datos estables para un mismo V y N. */
 export function buildInventory(V: number, N: number): Offer[] {
-  const vivo = Array.from({ length: V }, (_, i): Offer => ({
-    ...POOL[i % POOL.length], id: 51015 + i * 97, mode: "vivo", who: EMPRESAS[i % EMPRESAS.length],
-    isNew: hasNew(V + N, V) && i === 0, base: 8 + ((i * 13) % 30), likes: 12 + ((i * 17) % 50), views: 180 + ((i * 1733) % 4600),
-  }));
+  const vivo = Array.from({ length: V }, (_, i): Offer => {
+    const isNew = hasNew(V + N, V) && i === 0;
+    return { ...POOL[i % POOL.length], id: 51015 + i * 97, mode: "vivo", who: EMPRESAS[i % EMPRESAS.length], isNew,
+      ageDays: isNew ? 0 : 1 + ((i * 3) % 6), viewsCap: i % 6 === 2 ? 600 + ((i * 53) % 200) : 120 + ((i * 137) % 380),
+      likeRate: 0.04 + ((i * 7) % 5) / 100, partRate: 0.04 + ((i * 3) % 5) / 100, base: 0 };
+  });
   const neg = Array.from({ length: N }, (_, j): Offer => {
     const p = POOL[(j + 5) % POOL.length];
-    return { ...p, price: undefined, id: 67942 + j * 113, mode: "negociable", who: "SubasCars",
-      isNew: hasNew(V + N, N) && j === 0, base: (j * 3) % 5, likes: 9 + ((j * 11) % 40), views: 120 + ((j * 1291) % 3900) };
+    const isNew = hasNew(V + N, N) && j === 0;
+    return { ...p, price: undefined, id: 67942 + j * 113, mode: "negociable", who: "SubasCars", isNew,
+      ageDays: isNew ? 0 : 1 + ((j * 5) % 6), viewsCap: j % 6 === 3 ? 600 + ((j * 71) % 200) : 100 + ((j * 151) % 360),
+      likeRate: 0.04 + ((j * 3) % 5) / 100, partRate: 0, base: isNew ? 0 : (j * 3) % 4 };
   });
   return [...vivo, ...neg];
 }
@@ -190,15 +196,15 @@ export function planDay(V: number, N: number): PlanEntry[] {
     const [e] = out.splice(j, 1);
     out.splice(i, 0, { ...e, min: at });
   }
-  // Contadores al momento de cada entrada: solo las propuestas reales (con oferta) suman negociaciones; las mockup no tocan
-  // ningún contador. Los participantes crecen durante el día.
+  // Negociaciones al momento de cada entrada: solo las propuestas reales (con oferta) suman; las simuladas no tocan ningún
+  // contador. Visitas, me gusta y participantes se calculan al mostrar la entrada (`describe`), según el tiempo que pasó.
   const byId = new Map(inv.map((o) => [o.id, o]));
   const extra = new Map<number, number>();
   for (const e of out) {
     const o = e.offerId != null ? byId.get(e.offerId) : undefined;
     if (!o) continue;
     if (e.kind === "propuesta") extra.set(o.id, (extra.get(o.id) ?? 0) + 1);
-    e.count = o.mode === "vivo" ? o.base + Math.round(((e.min - DAY_START) / DAY_MIN) * 20) : o.base + (extra.get(o.id) ?? 0);
+    if (o.mode === "negociable") e.count = o.base + (extra.get(o.id) ?? 0);
   }
   return out;
 }
@@ -229,16 +235,36 @@ export type EntryText = {
  *  negociables). Todo lo demás, morado. */
 export const COLORS = { vivo: "#C2410C", negociable: "#00777A", morado: "#7B5CE6", promo: "#3B1782", blog: "#4A2CE0" };
 
-// Visualizaciones de ejemplo de una entrada que no es oferta (estables para la misma entrada).
-const viewsOf = (key: string) => 150 + ([...key].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) % 100003, 7) % 2800);
-
-export function describe(e: PlanEntry, inv: Offer[]): EntryText {
-  return { views: viewsOf(e.key), ...describeEntry(e, inv) };
+// ─── Contadores en el tiempo ─────────────────────────────────────────────────────────────────────────────────────────
+// Todo empieza en 0 al publicarse y crece hacia su tope: tope × (1 − e^(−edad / τ)). Una oferta recién publicada no tiene
+// visitas, me gusta ni participantes; a las 6 h lleva cerca del 63 % de su tope (lo más visto es lo de las primeras horas).
+const grow = (cap: number, min: number, tau: number) => Math.floor(cap * (1 - Math.exp(-Math.max(0, min) / tau)));
+/** Visitas, me gusta y participantes de una oferta con `ageMin` minutos de publicada. */
+export function offerStats(o: Offer, ageMin: number): { views: number; likes: number; participants: number } {
+  const views = grow(o.viewsCap, ageMin, 360);
+  return { views, likes: Math.floor(views * o.likeRate), participants: Math.floor(views * o.partRate) };
 }
-function describeEntry(e: PlanEntry, inv: Offer[]): Omit<EntryText, "views"> & { views?: number } {
+const hash = (key: string) => ([...key].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) % 100003, 7) * 7919) % 100003;
+/** Visitas de lo que no es oferta: publicidad y blog llevan días publicados (140–470); propuestas y registros empiezan en
+ *  0 y suben hasta 40–200. */
+const entryViews = (e: PlanEntry, sinceMin: number) => (isPromo(e.kind)
+  ? grow(180 + (hash(e.key) % 420), 3 * 1440 + sinceMin, 2880)
+  : grow(40 + (hash(e.key) % 160), sinceMin, 180));
+
+/** Textos y contadores de una entrada que salió hace `sinceMin` minutos (en la demo, minutos simulados). */
+export function describe(e: PlanEntry, inv: Offer[], sinceMin = 0): EntryText {
+  const t = describeEntry(e, inv);
+  const o = inv.find((x) => x.id === e.offerId);
+  if (!t.mode || !o) return { ...t, views: entryViews(e, sinceMin) };
+  // Edad de la oferta: la nueva se publicó cuando salió su entrada; la que rota, hace `ageDays` días.
+  const age = o.isNew ? sinceMin : o.ageDays * 1440 + (e.min - DAY_START) + sinceMin;
+  const st = offerStats(o, age);
+  return { ...t, views: st.views, likes: st.likes, count: o.mode === "vivo" ? st.participants : e.count ?? o.base };
+}
+function describeEntry(e: PlanEntry, inv: Offer[]): Omit<EntryText, "views"> {
   const o = inv.find((x) => x.id === e.offerId);
   const tag = (m: Mode) => (m === "vivo" ? "En vivo" : "Negociable");
-  const offer = o ? { imageSrc: o.imageSrc, mode: o.mode, likes: o.likes, count: e.count, views: o.views } : {};
+  const offer = o ? { imageSrc: o.imageSrc, mode: o.mode } : {};
   switch (e.kind) {
     case "nueva":
     case "nueva-subascars":
