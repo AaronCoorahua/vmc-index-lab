@@ -35,7 +35,7 @@ const RULES = [
   "Sin ofertas no se simula nada.",
   "La rotación muestra la oferta como disponible. Una oferta nueva no rota el día en que se publica.",
   "Los avisos de propuestas y registros no dicen quién fue.",
-  "La propuesta simulada usa un código de oferta al azar y no cambia ningún contador.",
+  "La propuesta simulada usa un código de oferta al azar, no lleva foto y no cambia ningún contador. La real lleva la foto de su oferta.",
   "Cada hecho real reemplaza a uno simulado del mismo tipo. Los reales no tienen tope.",
   "Visitas, me gusta y participantes empiezan en 0 y crecen con el tiempo.",
   "Ofertas: me gusta, participantes o negociaciones, visitas y compartir. El resto: visitas y compartir.",
@@ -80,7 +80,7 @@ const PENDING = [
   ["Sin ofertas", "Solo publicidad y blog, ocultar o \"Pronto nuevas ofertas\""],
   ["\"En vivo\" en la cabecera", "Solo si hay ofertas en vivo"],
   ["Propuestas y registros reales", "Conectarlos (Francis)"],
-  ["Foto de la propuesta simulada", "Genérica o sin foto"],
+  ["Palabras del contador", "Las mismas en la ficha y en VMC ahora"],
 ];
 const pending = slide("Por decidir con Julio", `<table class="data rules">
   <thead><tr><th class="l">Tema</th><th class="l">Propuesta</th></tr></thead>

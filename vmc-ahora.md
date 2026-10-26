@@ -46,7 +46,7 @@ node scripts/escenarios-short-pdf.mjs
 | `registro` | VMC | Se registró un nuevo usuario en VMC | Simulado | Visitas, compartir |
 | `ad-valoriza` | VMC | Valoriza tu auto en VMC | Contenido de VMC | Botón Valorizar, visitas, compartir |
 | `ad-publica` | VMC | Publica tu auto en VMC y recibe ofertas | Contenido de VMC | Botón Publicar, visitas, compartir |
-| `blog` | Blog VMC | Cómo funciona una subasta en VMC, paso a paso | Contenido de VMC | Botón Leer, visitas, compartir |
+| `blog` | Blog VMC | Cómo funciona una subasta en VMC, paso a paso | Contenido de VMC | Portada, botón Leer, visitas, compartir |
 
 El aviso de propuesta no tiene enlace y dice que la propuesta se envió, no que se aceptó.
 
@@ -58,11 +58,12 @@ El aviso de propuesta no tiene enlace y dice que la propuesta se envió, no que 
 4. Sin ofertas no se simula nada: ni propuestas ni registros.
 5. La rotación muestra la oferta como disponible, nunca como nueva. Una oferta publicada hoy no rota ese día.
 6. Por privacidad, los avisos de propuestas y registros no muestran quién fue.
-7. La propuesta simulada usa un código de oferta al azar (que no choca con uno real) y una foto genérica. No apunta a ninguna oferta del feed, así que no cambia ningún contador.
-8. Cada hecho real reemplaza a uno simulado del mismo tipo: simulados del día = máx(0, objetivo − reales). Los reales no tienen tope y nunca se ocultan.
-9. Como mucho 2 propuestas al día por cada negociable publicada, por eso P(N) nunca pasa de 2N.
-10. Nunca dos entradas de publicidad o blog seguidas si hay actividad en los 30 minutos siguientes.
-11. Visitas, me gusta y participantes empiezan en 0 al publicarse y crecen con el tiempo.
+7. La propuesta simulada usa un código de oferta al azar (que no choca con uno real) y no lleva foto, porque su oferta no existe. No apunta a ninguna oferta del feed, así que no cambia ningún contador. La propuesta real lleva la foto de su oferta. La regla vale para lo que traiga el backend: si la propuesta no tiene una oferta real detrás, va sin foto.
+8. Las ofertas (nuevas y en rotación) llevan siempre su foto. El blog lleva su portada.
+9. Cada hecho real reemplaza a uno simulado del mismo tipo: simulados del día = máx(0, objetivo − reales). Los reales no tienen tope y nunca se ocultan.
+10. Como mucho 2 propuestas al día por cada negociable publicada, por eso P(N) nunca pasa de 2N.
+11. Nunca dos entradas de publicidad o blog seguidas si hay actividad en los 30 minutos siguientes.
+12. Visitas, me gusta y participantes empiezan en 0 al publicarse y crecen con el tiempo.
 
 ## Fórmulas
 
@@ -161,7 +162,7 @@ Están en "Abrir controles" (y en el panel de la vista móvil, que usa la misma 
 
 El panel "VMC ahora · reloj" muestra cuánto falta para la próxima entrada simulada, el plan del día y el botón "Simular acción real".
 
-La publicidad usa las fotos de `apps/index-lab/public/banners/vmc` y el botón de vidrio del banner principal (`va-glass`, copia de `hib-glass`), siempre sobre la foto.
+La publicidad y el blog usan las fotos de `apps/index-lab/public/banners/vmc` (fondo morado) y el botón de vidrio del banner principal (`va-glass`, copia de `hib-glass`), siempre sobre la foto y sin flecha. Ningún botón de VMC ahora usa otro estilo.
 
 ## Para producción
 
@@ -181,6 +182,5 @@ La demo inventa el inventario (`buildInventory`) y reproduce el día comprimido.
 - Qué mostrar sin ofertas: solo publicidad y blog, ocultar VMC ahora o poner "Pronto nuevas ofertas".
 - "En vivo" en la cabecera solo cuando hay ofertas en vivo.
 - Juntar propuestas y registros reales cuando llegan varios seguidos.
-- Foto de la propuesta simulada: genérica o sin foto.
 - Mismas palabras en el contador de la ficha ("ofertas", "propuestas") y de VMC ahora ("participantes", "negociaciones").
 - Publicidad siempre primera al abrir, alternando las dos en cada visita.

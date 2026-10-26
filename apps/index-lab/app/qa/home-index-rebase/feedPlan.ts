@@ -27,8 +27,8 @@ export type PlanEntry = {
   count?: number; blog?: number;
   /** Mockup: hoy no hay un hecho real detrás (propuestas y registros, hasta conectarlos). */
   mock?: boolean;
-  /** Propuesta mockup: código de oferta aleatorio (no tiene que existir) y foto genérica. */
-  code?: number; imageSrc?: string;
+  /** Propuesta simulada: código de oferta aleatorio (no tiene que existir). No lleva foto. */
+  code?: number;
 };
 /** Entradas que por ahora son mockups. Las demás muestran datos reales: ofertas publicadas, publicidad y blog de VMC. */
 export const MOCK_KINDS: readonly Kind[] = ["propuesta", "registro"];
@@ -106,12 +106,13 @@ const POOL: { lot: string; price: string; city: string; imageSrc: string }[] = [
   { lot: "Montacargas Toyota 2018", price: "US$ 8,600", city: "Callao", imageSrc: "/demo/inventory-forklift-v1.png" },
 ];
 const EMPRESAS = ["Autoplan", "Mapfre", "Pacífico", "Trupal S.A."];
+// Artículos del blog, con una portada de los banners de VMC (fondo morado, para que el botón de vidrio se lea encima).
 export const BLOG = [
-  { title: "Cómo funciona una subasta en VMC, paso a paso", detail: "Guía · 4 min de lectura" },
-  { title: "¿Qué es una oferta negociable y cómo se envía una propuesta?", detail: "Guía · 3 min de lectura" },
-  { title: "5 cosas que revisar antes de ofertar por un auto usado", detail: "Consejos · 5 min de lectura" },
-  { title: "Documentos para transferir un vehículo en Perú", detail: "Trámites · 6 min de lectura" },
-  { title: "Cómo se fija el precio base de una subasta", detail: "Guía · 4 min de lectura" },
+  { title: "Cómo funciona una subasta en VMC, paso a paso", detail: "Guía · 4 min de lectura", imageSrc: "/banners/vmc/hero-whatsapp.jpg", imagePos: "70% 40%" },
+  { title: "¿Qué es una oferta negociable y cómo se envía una propuesta?", detail: "Guía · 3 min de lectura", imageSrc: "/banners/vmc/hero-negociable.jpg", imagePos: "70% 10%" },
+  { title: "5 cosas que revisar antes de ofertar por un auto usado", detail: "Consejos · 5 min de lectura", imageSrc: "/banners/vmc/publica-moto.jpg", imagePos: "72% 22%" },
+  { title: "Documentos para transferir un vehículo en Perú", detail: "Trámites · 6 min de lectura", imageSrc: "/banners/vmc/subastop-flota.jpg", imagePos: "62% 40%" },
+  { title: "Cómo se fija el precio base de una subasta", detail: "Guía · 4 min de lectura", imageSrc: "/banners/vmc/hero-publica.jpg", imagePos: "70% 35%" },
 ];
 
 /** V ofertas en vivo (de las empresas) y N negociables (de SubasCars), con datos estables para un mismo V y N. */
@@ -178,7 +179,7 @@ export function planDay(V: number, N: number): PlanEntry[] {
     let code = 62000 + ((i * 7919 + N * 104729 + V * 31) % 18000);
     while (ids.has(code)) code++;
     ids.add(code);
-    out.push({ key: `p${code}`, min, kind: "propuesta", code, imageSrc: POOL[(i * 7 + N * 3) % 10].imageSrc, mock: true });
+    out.push({ key: `p${code}`, min, kind: "propuesta", code, mock: true });
   });
   spread(c.reg, 0.3).forEach((min, i) => out.push({ key: `u${i}`, min, kind: "registro", mock: true }));
   spread(c.ads, 0.18).forEach((min, i) => out.push({ key: `a${i}`, min, kind: i % 2 ? "ad-publica" : "ad-valoriza" }));
@@ -274,9 +275,10 @@ function describeEntry(e: PlanEntry, inv: Offer[]): Omit<EntryText, "views"> {
       return { author: o!.who, title: `Disponible ${o!.mode === "vivo" ? "en vivo" : "para negociar"}: ${o!.lot}`,
         detail: `OFERTA ${o!.id} · ${o!.city}${o!.price ? ` · Base ${o!.price}` : ""}`, pill: tag(o!.mode), color: COLORS[o!.mode], ...offer };
     case "propuesta":
-      // Por privacidad, sin el usuario que la envió.
+      // Por privacidad, sin el usuario que la envió. Foto solo si es real (apunta a una oferta que existe); la simulada no
+      // lleva foto, porque su oferta no existe.
       return { author: "VMC", title: `Se ha enviado una propuesta a la OFERTA ${o?.id ?? e.code}`, detail: o ? `${o.lot} · Negociable` : "Negociable",
-        pill: "Propuesta enviada", color: COLORS.negociable, imageSrc: o?.imageSrc ?? e.imageSrc };
+        pill: "Propuesta enviada", color: COLORS.negociable, imageSrc: o?.imageSrc };
     case "registro":
       return { author: "VMC", title: "Se registró un nuevo usuario en VMC", detail: "", pill: "Nuevo usuario", color: COLORS.morado };
     case "ad-valoriza":
@@ -286,7 +288,7 @@ function describeEntry(e: PlanEntry, inv: Offer[]): Omit<EntryText, "views"> {
       return { author: "VMC", title: "Publica tu auto en VMC y recibe ofertas", detail: "Empresas y compradores verificados.", pill: "Publicidad",
         color: COLORS.promo, imageSrc: "/banners/vmc/hero-publica.jpg", imagePos: "70% 35%", cta: "Publicar", ad: true };
     case "blog":
-      return { author: "Blog VMC", title: BLOG[e.blog ?? 0].title, detail: BLOG[e.blog ?? 0].detail, pill: "Blog", color: COLORS.blog, cta: "Leer" };
+      return { author: "Blog VMC", ...BLOG[e.blog ?? 0], pill: "Blog", color: COLORS.blog, cta: "Leer" };
   }
 }
 

@@ -296,10 +296,6 @@ const CSS = `
 /* Propuesta enviada: texto + foto pequeña de la oferta, sin enlace. */
 .va-prop { display: grid; grid-template-columns: minmax(0, 1fr) 44px; gap: 10px; align-items: start; }
 .va-prop > img { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; background: #F3EFFD; }
-.va-cta { display: inline-flex; align-items: center; gap: 6px; height: 28px; margin: 8px 0 4px; padding: 0 12px; border: 1px solid #DCD2FB; border-radius: 999px;
-  background: #F8F6FF; color: #3B1782; font: 700 12px/1 var(--vmc-font-display, 'Plus Jakarta Sans', sans-serif); cursor: pointer; transition: background 0.2s, border-color 0.2s; }
-.va-cta:hover { background: #EFE9FF; border-color: #B9A8EF; }
-.va-cta:focus-visible { outline: 2px solid #8460E5; outline-offset: 2px; }
 /* Acciones de oferta en el timeline: me gusta · participantes o negociaciones · compartir. */
 .va-acts { display: flex; align-items: center; gap: 2px; margin: 6px 0 0 -6px; font-size: 12px; color: #6B6880; }
 .va-acts button, .va-acts__count { display: inline-flex; align-items: center; gap: 5px; min-width: 0; height: 28px; padding: 0 6px; border: 0; border-radius: 999px;
@@ -317,9 +313,6 @@ const CSS = `
 .va-post .va-acts { gap: 0; margin-left: -3px; font-size: 10.5px; letter-spacing: -0.015em; }
 .va-post .va-acts button, .va-post .va-acts__count { gap: 2px; padding: 0 2px; }
 .va-post .va-acts svg { width: 13px; height: 13px; }
-/* Publicidad y blog: el botón y compartir en la misma fila. */
-.va-ctarow { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.va-ctarow > .va-acts, .va-ctarow > .va-x__acts { margin: 4px 0 0; }
 /* Solo compartir (propuestas, registros, publicidad, blog): el botón queda a la derecha, como en las ofertas. */
 .va-acts--share { justify-content: flex-end; margin-top: 2px; }
 .va-x__acts.va-acts--share { justify-content: flex-end; }
@@ -419,7 +412,6 @@ const Ico = {
   avion: <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden><path d="M21 3L10.5 13.5M21 3l-6.5 18-4-7.5L3 9.5z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" /></svg>,
   more: <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden><circle cx="5" cy="12" r="1.7" fill="currentColor" /><circle cx="12" cy="12" r="1.7" fill="currentColor" /><circle cx="19" cy="12" r="1.7" fill="currentColor" /></svg>,
   arrowUp: <svg width="11" height="11" viewBox="0 0 24 24" aria-hidden><path d="M12 19V5M6 11l6-6 6 6" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" /></svg>,
-  go: <svg width="12" height="12" viewBox="0 0 20 20" aria-hidden><path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>,
 };
 
 /** «32 participantes» / «4 negociaciones»; en 0 no se muestra un contador vacío. */
@@ -489,7 +481,8 @@ function Ad({ t, d, x }: { t: EntryText; d: FeedDesign; x: boolean }): JSX.Eleme
 }
 
 /** Texto de la entrada: insignia del tipo, título, detalle y, en las propuestas, la foto pequeña de la oferta (sin enlace). */
-function Body({ t, kind, big, d, x = false }: { t: EntryText; kind: PlanEntry["kind"]; big: boolean; d: FeedDesign; x?: boolean }): JSX.Element {
+/** Fotos: las ofertas (nuevas y en rotación) llevan siempre la suya; la propuesta, solo si es real; el blog, su portada. */
+function Body({ t, kind, d, x = false }: { t: EntryText; kind: PlanEntry["kind"]; d: FeedDesign; x?: boolean }): JSX.Element {
   // El detalle va del color del tipo: en vivo naranja, negociable cian, el resto morado.
   const text = <p className={x ? "va-x__text" : "va-post__text"} style={{ "--k": t.color } as CSSProperties}>{t.title}.{t.detail ? <> <em>{t.detail}</em></> : null}</p>;
   if (t.ad) {
@@ -505,10 +498,13 @@ function Body({ t, kind, big, d, x = false }: { t: EntryText; kind: PlanEntry["k
   return (
     <>
       {d.tags === "con" ? <span className="va-tag" style={{ "--k": t.color } as CSSProperties}>{t.pill}</span> : null}
-      {kind === "propuesta" ? <div className="va-prop">{text}{t.imageSrc ? <img src={t.imageSrc} alt="" /> : null}</div> : text}
-      {big && kind !== "propuesta" && t.imageSrc ? <span className="va-post__media"><img src={t.imageSrc} alt="" /></span> : null}
+      {kind === "propuesta" && t.imageSrc ? <div className="va-prop">{text}<img src={t.imageSrc} alt="" /></div> : text}
+      {/* El blog lleva siempre su portada con el botón de vidrio encima, como la publicidad. */}
+      {kind === "blog" && t.imageSrc
+        ? <span className="va-post__media va-ad__media"><img src={t.imageSrc} alt="" style={{ objectPosition: t.imagePos }} /><button type="button" className="va-glass">{t.cta}</button></span>
+        : t.mode && t.imageSrc ? <span className="va-post__media"><img src={t.imageSrc} alt="" /></span> : null}
       {viewsLine(t, d)}
-      {t.cta ? <div className="va-ctarow"><button type="button" className="va-cta">{t.cta}{Ico.go}</button><Acts t={t} d={d} x={x} /></div> : <Acts t={t} d={d} x={x} />}
+      <Acts t={t} d={d} x={x} />
     </>
   );
 }
@@ -580,7 +576,7 @@ export default function VmcAhora({ view, live = true, more = false, x = false, h
                 <div style={{ minWidth: 0 }}>
                   <div className="va-x__head"><b>{t.author}</b><Verified /><span>{handle(t.author)} · {when(t, s.design, agoShort(s.now - e.at))}</span></div>
                   <button type="button" className="va-x__more" aria-label="Más opciones">{Ico.more}</button>
-                  <Body t={t} kind={e.kind} big={i === 0} d={s.design} x />
+                  <Body t={t} kind={e.kind} d={s.design} x />
                 </div>
               </li>
             );
@@ -604,7 +600,7 @@ export default function VmcAhora({ view, live = true, more = false, x = false, h
                 <div className="va-post__rail"><Avatar who={t.author} size={32} /><span className="va-post__line" /></div>
                 <div className="va-post__main">
                   <div className="va-post__head"><b>{t.author}</b><Verified /><span>{when(t, s.design, ago(s.now - e.at))}</span></div>
-                  <Body t={t} kind={e.kind} big={i === 0} d={s.design} />
+                  <Body t={t} kind={e.kind} d={s.design} />
                 </div>
               </li>
             );

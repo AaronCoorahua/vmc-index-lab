@@ -67,7 +67,7 @@ const cover = `
 const confirmed = slide("Reglas confirmadas", table("<th class=\"l\">Tema</th><th class=\"l\">Regla</th>", ruleRows([
   ["Tipos de entrada", "Nueva oferta de empresa, nueva negociable de SubasCars, nuevo usuario, publicidad \"Valoriza tu auto en VMC\", publicidad \"Publica tu auto en VMC y recibe ofertas\", propuesta enviada, blog y rotación del inventario."],
   ["Separación", `${GAP_S} segundos entre entradas simuladas. Una acción real entra en el momento y desde ella se cuentan los ${GAP_S} segundos.`],
-  ["Aviso de propuesta", "Lo firma VMC, lleva una foto pequeña y no tiene enlace. Dice que la propuesta se envió, no que se aceptó."],
+  ["Aviso de propuesta", "Lo firma VMC y no tiene enlace. Dice que la propuesta se envió, no que se aceptó. Lleva la foto de la oferta solo si es real."],
   ["Privacidad", "Los avisos de propuestas y registros no muestran quién fue: \"Se ha enviado una propuesta a la OFERTA 67942\"."],
   ["Sin negociables", "No hay avisos de propuesta. En ese espacio va publicidad o blog."],
   ["Rotación", "La oferta sale como disponible, no como recién publicada."],
@@ -127,7 +127,7 @@ const simTypes = slide("Qué es simulado", table("<th class=\"l\">Entrada</th><t
 const simRules = slide("Reglas de lo simulado", `<ol class="steps">
   <li>Sin ofertas no se simula nada. Sin negociables no hay propuestas simuladas.</li>
   <li>La cantidad depende de lo publicado: 2 propuestas por negociable y 1 registro más por cada 4 ofertas, con topes.</li>
-  <li>La propuesta simulada usa un código de oferta al azar y una foto genérica.</li>
+  <li>La propuesta simulada usa un código de oferta al azar y no lleva foto. La real lleva la foto de su oferta.</li>
   <li>Lo simulado no cambia el contador de ninguna oferta.</li>
   <li>Cada hecho real reemplaza a uno simulado del mismo tipo. Los reales no tienen tope.</li>
   <li>Cuando se conecten las propuestas y los registros reales, se deja de simular.</li>
@@ -189,7 +189,6 @@ const QUESTIONS = [
   "¿\"En vivo\" en la cabecera solo cuando hay ofertas en vivo?",
   "¿Juntamos propuestas y registros reales cuando llegan varios seguidos?",
   "¿Registros simulados según el total de ofertas, hasta 6 al día?",
-  "En la propuesta simulada, ¿foto genérica o sin foto?",
   "¿Mismas palabras en el contador de la ficha y en VMC ahora?",
   "¿Publicidad siempre primera al abrir la página, alternando las dos en cada visita?",
 ];
