@@ -112,13 +112,13 @@ const dayTable = (s) => {
 
 // ─── Mockups ─────────────────────────────────────────────────────────────────────────────────────────────────────────
 const MOCK_TYPES = [
-  ["Propuesta enviada", "Mockup", "Mockup hasta que Francis conecte las reales; después, real", "N", "Pm = mín(2·N, tope) − reales del día. N = 0 → 0. Solo sobre negociables publicadas y abiertas; máx. 2 por oferta."],
+  ["Propuesta enviada", "Mockup", "Mockup hasta que Francis conecte las reales; después, real", "N", "Pm = mín(2·N, tope) − reales del día. N = 0 → 0. Código de oferta aleatorio (no tiene que existir) y foto genérica."],
   ["Nuevo usuario", "Mockup", "Mockup hasta conectar los registros reales; después, real", "T", `Rm = 1 + T/4 (hacia abajo), hasta ${REGISTROS_MAX}, − reales del día. T = 0 → 0.`],
   ["Nueva oferta (empresa / SubasCars)", "Real", "Real, nunca mockup", "Publicación", "Una oferta que no existe no se anuncia."],
   ["Rotación del inventario", "Real", "Real, nunca mockup", "T", "Solo ofertas publicadas y abiertas."],
   ["Publicidad y blog", "Contenido de VMC", "Real", "C", "No afirma ningún hecho; no es mockup."],
   ["Participantes (en vivo)", "Ejemplo", "Real (dato de la subasta)", "Oferta", "Si es 0: «Sé el primero en participar»."],
-  ["Negociaciones · me gusta", "Ejemplo", "Por definir (ver choques)", "Oferta", "Deben cuadrar con los avisos de propuesta que se muestran."],
+  ["Negociaciones · me gusta", "Ejemplo", "Real", "Oferta", "Las propuestas mockup no las tocan (código aleatorio)."],
 ];
 const mockTag = `<span class="tag" style="--k:#C2410C">Mockup</span>`;
 const mockRows = rows.map(({ id, name, c }) => {
@@ -142,11 +142,11 @@ const mockPage = `
     </table>
     <div class="box pr"><h3 style="margin-top:0">Reglas de los mockups</h3><ol>
       <li><b>Sin inventario, sin mockups.</b> T = 0 → ni propuestas ni registros mockup. N = 0 → ninguna propuesta mockup (confirmado).</li>
-      <li><b>Escalan con lo que hay.</b> Propuestas con N (2 por negociable, con tope 5 / 8 / 12); registros con T (1 + T/4, hasta ${REGISTROS_MAX}).</li>
-      <li><b>Solo sobre lo que existe.</b> Una propuesta mockup apunta a una negociable publicada y abierta en la página; nunca a una cerrada, adjudicada o en vivo.</li>
+      <li><b>Escalan con lo que hay.</b> Propuestas mockup con N (2 por negociable, con tope 5 / 8 / 12); registros con T (1 + T/4, hasta ${REGISTROS_MAX}).</li>
+      <li><b>Código aleatorio, pero nunca de la nada.</b> Nadie puede verificar una propuesta, así que el mockup usa un código de OFERTA aleatorio (que no choca con uno real) y una foto genérica: no hace falta que la oferta exista. Pero solo aparecen si hay negociables publicadas: con 2, un código random pasa; con 0, no se inventa.</li>
       <li><b>Los reales descuentan.</b> Mockups del día = objetivo − reales del día. Si los hechos reales llegan al objetivo, no hay más mockups; los reales nunca se ocultan. Ya aplicado en la demo («Simular acción real»).</li>
       <li><b>Nunca mockups de ofertas.</b> Nuevas ofertas y rotación muestran solo inventario real.</li>
-      <li><b>Cuadran con los contadores.</b> Si sale «Usuario X ha enviado su propuesta», la oferta no puede seguir en «0 negociaciones» (ver choques).</li>
+      <li><b>No tocan los contadores.</b> Como el código es aleatorio, una propuesta mockup no suma a las negociaciones de ninguna oferta del feed: los contadores muestran solo datos reales y nada los desmiente.</li>
       <li><b>Se apagan por tipo.</b> Cuando Francis conecte las propuestas reales, los mockups de propuesta se apagan; igual con los registros.</li>
     </ol></div>
   </div>
@@ -165,8 +165,8 @@ const CLASHES = [
     "En producción, solo propuestas reales. La simulación queda para la demo hasta que Francis confirme la conexión.", "Julio · Francis"],
   ["Muchas propuestas reales", "El tope no oculta eventos reales. Si llegan 10 propuestas reales en una hora, el feed se llena de avisos iguales.",
     "Agrupar: «3 usuarios enviaron su propuesta a la OFERTA 67942 en la última hora» (una entrada que se actualiza).", "Julio"],
-  ["Misma oferta: rotación y propuesta", "Son hechos distintos (confirmado), pero si salen juntos parece que el feed repite.",
-    "Separarlos al menos 1 h. Ya aplicado: ninguna propuesta del plan queda a menos de 1 h de su oferta.", "Aplicado"],
+  ["Misma oferta: rotación y propuesta", "Son hechos distintos (confirmado), pero si salen juntos parece que el feed repite. Solo pasa con propuestas reales: las mockup usan un código aleatorio.",
+    "Con propuestas reales, separarlas al menos 1 h de cuando esa oferta salió en el feed.", "Julio"],
   ["Oferta nueva y rotación el mismo día", "Una oferta publicada hoy saldría como «nueva» y luego como «disponible».",
     "No rota el día en que se publica. Ya aplicado.", "Aplicado"],
   ["Cero en vivo (V = 0)", "La cabecera dice «En vivo · Actividad en tiempo real» aunque no haya subastas en vivo; las rotaciones son todas negociables.",
@@ -183,10 +183,10 @@ const CLASHES = [
     "Correcto con la fórmula: con N ≥ 5 hay 8 avisos al día (~cada 2 h) y como máximo 2 por oferta.", "Revisar"],
   ["Puros en vivo (N = 0)", "No hay avisos de propuesta (confirmado).",
     `Los espacios pasan al blog: +${BLOG_SIN_NEGOCIABLES} entradas de blog al día. Ya aplicado.`, "Aplicado"],
-  ["Contador con propuestas mockup", "En la demo cada propuesta mockup suma 1 a «negociaciones». En producción el contador real no subiría y el aviso quedaría desmentido por el propio número.",
-    "Mientras las propuestas sean mockup: (a) el contador suma reales + mockups del día, o (b) la negociable se muestra sin número («Recibe propuestas»).", "Julio"],
-  ["Pocas negociables con mockups", "Con N = 1 salen 2 propuestas mockup al día sobre la única oferta: parece muy disputada y nunca se cierra.",
-    "Aceptable con el tope de 2 por oferta. Alternativa: 1 por oferta al día cuando N ≤ 2 (N = 1 → 1, N = 2 → 2).", "Julio"],
+  ["Contador con propuestas mockup", "Si una propuesta mockup apuntara a una oferta del feed, su contador «negociaciones» (me gusta · negociaciones · compartir) no subiría y desmentiría el aviso.",
+    "Resuelto: la propuesta mockup lleva un código de oferta aleatorio, así que no apunta a ninguna oferta del feed y ningún contador la desmiente. Ya aplicado.", "Aplicado"],
+  ["Pocas negociables con mockups", "Con N = 1 salen 2 propuestas mockup al día con dos códigos distintos, aunque en la página haya una sola negociable.",
+    "Aceptable: nadie puede verificar el código. Alternativa más prudente: 1 por negociable al día cuando N ≤ 2 (N = 1 → 1, N = 2 → 2).", "Julio"],
   ["Registros mockup sin inventario", "Sin ofertas, «Usuario X se registró» cada pocas horas se ve fake: ¿a qué se registran?",
     "Registros mockup según T: 0 sin inventario, 1 + T/4 hasta 6. Ya aplicado.", "Aplicado"],
   ["Ráfagas de registros", "Muchos registros juntos llenarían el feed de «Usuario X se registró».",
@@ -204,7 +204,7 @@ const QUESTIONS = [
   "¿«En vivo» en la cabecera solo cuando hay ofertas en vivo o actividad real reciente?",
   "¿Agrupamos propuestas y registros reales cuando llegan varios en poco tiempo?",
   "¿Registros mockup según el inventario: 0 sin ofertas y 1 + T/4 al día, hasta 6?",
-  "Mientras las propuestas sean mockup, ¿el contador de negociaciones las cuenta o la oferta se muestra sin número?",
+  "En la propuesta mockup (código aleatorio), ¿foto genérica de vehículo o sin foto?",
   "Con 1–2 negociables, ¿1 propuesta mockup por oferta al día en vez de 2?",
 ];
 
@@ -284,7 +284,7 @@ tr { break-inside: avoid; }
 
   <h3>Fórmulas propuestas</h3>
   <div class="f"><div>Rotación R(T)</div><div><code>T = 0 → 0 · 1–5 → 3·T · 6–30 → T · más de 30 → 30</code><br>Repartidas parejo en W: una cada W / R.</div><div>Con 1–5 cada oferta sale 3 veces, a 5 h o más entre una y otra (con 5 ofertas, una por hora). Desde 6, cada oferta una vez al día. Se intercalan en vivo y negociables en proporción.</div></div>
-  <div class="f"><div>Propuestas P(N)</div><div><code>P = mín(2·N, tope) · tope = 5 (1–4) · 8 (5–11) · 12 (12+)</code><br>Una cada W / P.</div><div>Máximo 2 por oferta al día, a 4 h o más; a 1 h o más de cuando esa oferta salió en el feed; si es nueva, 1 h después de publicada. Por ahora son mockups: los reales descuentan mockups y no tienen tope.</div></div>
+  <div class="f"><div>Propuestas P(N)</div><div><code>P = mín(2·N, tope) · tope = 5 (1–4) · 8 (5–11) · 12 (12+)</code><br>Una cada W / P.</div><div>Por ahora son mockups: código de OFERTA aleatorio y foto genérica, solo si N &gt; 0. Los reales apuntan a su oferta, entran al momento, descuentan mockups y no tienen tope.</div></div>
   <div class="f"><div>Nuevas ofertas</div><div>Reales: entran cuando se publican.</div><div>No rotan el día en que se publican. En la demo: con T ≥ 6, una nueva en vivo (empresa) y una negociable (SubasCars).</div></div>
   <div class="f"><div>Registros Rm(T)</div><div><code>T = 0 → 0 · si no, 1 + T/4 (hacia abajo), hasta ${REGISTROS_MAX}</code></div><div>Por ahora son mockups y dependen del inventario, para que no parezcan fake. Solo el código del usuario. Los reales entran al momento; si hay varios en 30 min, se agrupan (propuesta).</div></div>
   <div class="f"><div>Publicidad + blog</div><div><code>Pr = C / 2 redondeado hacia arriba, entre ${PROMO_MIN} y ${PROMO_MAX}</code> (+${BLOG_SIN_NEGOCIABLES} de blog si N = 0)</div><div>Cerca de 1 de cada 3 entradas: depende de la actividad, no del inventario. Con poco inventario hay menos entradas, no más publicidad. 1/3 es blog; el resto alterna las dos publicidades. Nunca dos promocionales seguidas si hay actividad a menos de 30 min.</div></div>

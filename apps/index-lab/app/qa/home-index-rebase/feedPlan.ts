@@ -23,6 +23,8 @@ export type PlanEntry = {
   count?: number; user?: string; blog?: number;
   /** Mockup: hoy no hay un hecho real detrás (propuestas y registros, hasta conectarlos). */
   mock?: boolean;
+  /** Propuesta mockup: código de oferta aleatorio (no tiene que existir) y foto genérica. */
+  code?: number; imageSrc?: string;
 };
 /** Entradas que por ahora son mockups. Las demás muestran datos reales: ofertas publicadas, publicidad y blog de VMC. */
 export const MOCK_KINDS: readonly Kind[] = ["propuesta", "registro"];
@@ -161,28 +163,16 @@ export function planDay(V: number, N: number): PlanEntry[] {
     out.push({ key: `r${o.id}-${i}`, min, kind: "rotacion", offerId: o.id });
     mark(o.id, min);
   });
-  // Propuestas: a una negociable con menos de 2 en el día, ≥ 4 h desde su última propuesta, ≥ 1 h de cuando salió en el
-  // feed y, si es nueva, ≥ 1 h después de publicada. Si la hora del reparto no cumple, el aviso se corre a la primera que sí.
-  const negs = inv.filter((o) => o.mode === "negociable");
-  const props = new Map<number, number[]>();
-  const validFrom = (o: Offer, min: number): number => {
-    let t = min;
-    for (let moved = true, n = 0; moved && n < 12; n++) {
-      moved = false;
-      const pub = o.isNew ? seen.get(o.id)?.[0] : undefined;
-      if (pub != null && t < pub + 60) { t = pub + 60; moved = true; }
-      for (const p of props.get(o.id) ?? []) if (Math.abs(t - p) < 240) { t = p + 240; moved = true; }
-      for (const a of seen.get(o.id) ?? []) if (Math.abs(t - a) < 60) { t = a + 60; moved = true; }
-    }
-    return t;
-  };
+  // Propuestas mockup: nadie puede verificarlas, así que llevan un código de oferta aleatorio (que no choca con las reales)
+  // y una foto genérica. No apuntan a ninguna oferta del feed ni tocan sus contadores. Solo hay si hay negociables (N > 0)
+  // y su cantidad sigue a N: con 2 negociables, un código random pasa; sin ninguna, no se inventa de la nada.
+  const ids = new Set(inv.map((o) => o.id));
   spread(c.prop, 0.5).forEach((min, i) => {
-    const best = negs.filter((o) => (props.get(o.id)?.length ?? 0) < 2)
-      .map((o) => ({ o, t: validFrom(o, min) }))
-      .sort((x, y) => x.t - y.t || (props.get(x.o.id)?.length ?? 0) - (props.get(y.o.id)?.length ?? 0))[0];
-    if (!best || best.t > DAY_START + DAY_MIN - 10) return;
-    props.set(best.o.id, [...(props.get(best.o.id) ?? []), best.t]);
-    out.push({ key: `p${best.o.id}-${i}`, min: best.t, kind: "propuesta", offerId: best.o.id, user: USERS[(i * 5 + 3) % USERS.length], mock: true });
+    let code = 62000 + ((i * 7919 + N * 104729 + V * 31) % 18000);
+    while (ids.has(code)) code++;
+    ids.add(code);
+    out.push({ key: `p${code}`, min, kind: "propuesta", code, imageSrc: POOL[(i * 7 + N * 3) % 10].imageSrc,
+      user: USERS[(i * 5 + 3) % USERS.length], mock: true });
   });
   spread(c.reg, 0.3).forEach((min, i) => out.push({ key: `u${i}`, min, kind: "registro", user: USERS[(i * 7 + 1) % USERS.length], mock: true }));
   spread(c.ads, 0.18).forEach((min, i) => out.push({ key: `a${i}`, min, kind: i % 2 ? "ad-publica" : "ad-valoriza" }));
@@ -200,7 +190,8 @@ export function planDay(V: number, N: number): PlanEntry[] {
     const [e] = out.splice(j, 1);
     out.splice(i, 0, { ...e, min: at });
   }
-  // Contadores al momento de cada entrada: las propuestas suman negociaciones; los participantes crecen durante el día.
+  // Contadores al momento de cada entrada: solo las propuestas reales (con oferta) suman negociaciones; las mockup no tocan
+  // ningún contador. Los participantes crecen durante el día.
   const byId = new Map(inv.map((o) => [o.id, o]));
   const extra = new Map<number, number>();
   for (const e of out) {
@@ -216,7 +207,7 @@ export function planDay(V: number, N: number): PlanEntry[] {
 export function checkPlan(plan: PlanEntry[]): { promoRun: number; propNear: number } {
   let run = 0, promoRun = 0, propNear = Infinity;
   for (const e of plan) { run = isPromo(e.kind) ? run + 1 : 0; promoRun = Math.max(promoRun, run); }
-  for (const p of plan.filter((e) => e.kind === "propuesta"))
+  for (const p of plan.filter((e) => e.kind === "propuesta" && e.offerId != null))
     for (const e of plan) if (e !== p && e.offerId === p.offerId && e.kind !== "propuesta") propNear = Math.min(propNear, Math.abs(e.min - p.min));
   return { promoRun, propNear };
 }
@@ -244,8 +235,8 @@ export function describe(e: PlanEntry, inv: Offer[]): EntryText {
       return { author: o!.who, title: `Disponible ${o!.mode === "vivo" ? "en vivo" : "para negociar"}: ${o!.lot}`,
         detail: `OFERTA ${o!.id} · ${o!.city}${o!.price ? ` · Base ${o!.price}` : ""}`, pill: tag(o!.mode), color: COLORS[o!.mode], ...offer };
     case "propuesta":
-      return { author: "VMC", title: `Usuario ${e.user} ha enviado su propuesta a la OFERTA ${o!.id}`, detail: `${o!.lot} · Negociable`,
-        pill: "Propuesta enviada", color: COLORS.propuesta, imageSrc: o!.imageSrc };
+      return { author: "VMC", title: `Usuario ${e.user} ha enviado su propuesta a la OFERTA ${o?.id ?? e.code}`, detail: o ? `${o.lot} · Negociable` : "Negociable",
+        pill: "Propuesta enviada", color: COLORS.propuesta, imageSrc: o?.imageSrc ?? e.imageSrc };
     case "registro":
       return { author: "VMC", title: `Usuario ${e.user} se registró en VMC`, detail: "", pill: "Nuevo usuario", color: COLORS.registro };
     case "ad-valoriza":
