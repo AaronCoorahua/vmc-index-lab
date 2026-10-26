@@ -219,7 +219,7 @@ const CSS = `
 .va-post__head b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; color: #14112B; }
 .va-post__head span { flex: none; color: #8A879C; font-size: 12px; font-weight: 400; }
 .va-post__text { margin: 2px 0 0; font-size: 13px; line-height: 18px; color: #24203D; }
-.va-post__text em { font-style: normal; font-weight: 700; color: var(--k, #4A2CE0); }
+.va-post__text em { font-style: normal; font-weight: 700; color: #14112B; }
 .va-post__media { position: relative; display: block; margin-top: 10px; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 14px; background: #F3EFFD; }
 .va-post__media img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .va-post__media b { position: absolute; left: 10px; bottom: 10px; padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; color: #fff; background: rgba(16,0,48,0.62); }
@@ -258,8 +258,8 @@ const CSS = `
   background: none; color: #536471; cursor: pointer; }
 .va-x__more:hover { background: rgba(59,23,130,0.1); color: #3B1782; }
 .va-x__text { margin: 0; font-size: 15px; line-height: 20px; color: #0F1419; overflow-wrap: anywhere; }
-.va-x__text em { font-style: normal; font-weight: 700; color: var(--k, #4A2CE0); }
-.va-hl { font-weight: 700; color: var(--k, #4A2CE0); }
+.va-x__text em { font-style: normal; font-weight: 700; color: #0F1419; }
+.va-hl { font-weight: 700; color: inherit; }
 .va-x .va-post__media { margin-top: 12px; border: 1px solid #CFD9DE; border-radius: 16px; }
 .va-x__acts { display: flex; align-items: center; justify-content: space-between; margin: 4px 0 0 -8px; max-width: 425px; }
 .va-x__acts > span { display: flex; gap: 2px; }
@@ -483,7 +483,7 @@ function Ad({ t, d, x }: { t: EntryText; d: FeedDesign; x: boolean }): JSX.Eleme
 
 /** Texto de la entrada: insignia del tipo, título, detalle y, en las propuestas, la foto pequeña de la oferta (sin enlace). */
 // En el título de ofertas y propuestas, el tipo («en vivo», «para negociar», «negociable») y el número de OFERTA van en
-// negrita y del color del tipo.
+// negrita. El texto destacado va en negro; el color del tipo queda para íconos e insignias.
 const HL = /(en vivo|para negociar|negociable|OFERTA \d+)/;
 const highlight = (title: string, on: boolean) => (on
   ? title.split(HL).map((part, i) => (i % 2 ? <strong key={i} className="va-hl">{part}</strong> : part))
@@ -491,7 +491,7 @@ const highlight = (title: string, on: boolean) => (on
 
 /** Fotos: las ofertas (nuevas y en rotación) llevan siempre la suya; la propuesta, solo si es real; el blog, su portada. */
 function Body({ t, kind, d, x = false }: { t: EntryText; kind: PlanEntry["kind"]; d: FeedDesign; x?: boolean }): JSX.Element {
-  // El detalle va del color del tipo: en vivo naranja, negociable cian, el resto morado.
+  // El detalle va en negrita y en negro (el color del tipo queda en los íconos y las insignias).
   const text = <p className={x ? "va-x__text" : "va-post__text"} style={{ "--k": t.color } as CSSProperties}>
     {highlight(t.title, Boolean(t.mode) || kind === "propuesta")}.{t.detail ? <> <em>{t.detail}</em></> : null}</p>;
   if (t.ad) {

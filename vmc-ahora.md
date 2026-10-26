@@ -146,7 +146,7 @@ Naranja para en vivo, cian para negociable y propuestas, morado para lo demás. 
 
 Lo demás (registros, publicidad, blog) va en morado (`#7B5CE6`, `#3B1782`, `#4A2CE0`).
 
-La insignia y el detalle de cada entrada van del mismo color.
+El color va en las insignias y los íconos. En el texto, lo destacado (el tipo, el número de OFERTA, el detalle) va en negrita y en negro.
 
 ## Controles de QA
 
