@@ -255,7 +255,7 @@ tr.hl td { background: #FFF1E4 !important; font-weight: 700; }
 table.narrow { width: 820px; }
 table.rules td { padding: 12px 14px; font-size: 18px; vertical-align: top; }
 table.rules td:first-child { width: 26%; }
-table.rules.snug td { padding: 9px 14px; font-size: 17px; }
+table.rules.snug td { padding: 8px 14px; font-size: 17px; }
 table.clash td { padding: 12px 14px; font-size: 18px; }
 table.clash td:first-child { width: 22%; }
 table.clash td:last-child { width: 12%; }
