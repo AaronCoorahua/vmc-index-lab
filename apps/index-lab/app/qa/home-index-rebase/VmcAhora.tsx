@@ -26,7 +26,7 @@ export type AdBadge = "foto" | "pill" | "texto" | "sin";
 export type ViewsStyle = "ojo" | "completo" | "ojo-palabra" | "texto";
 export type ShareIcon = "nodos" | "caja" | "avion";
 export type FeedDesign = { ad: AdStyle; badge: AdBadge; views: ViewsStyle; share: ShareIcon };
-export const DEFAULT_DESIGN: FeedDesign = { ad: "banner", badge: "foto", views: "ojo", share: "nodos" };
+export const DEFAULT_DESIGN: FeedDesign = { ad: "tarjeta", badge: "sin", views: "ojo", share: "nodos" };
 
 const LOGO: Record<string, string | undefined> = {
   "VMC": "/assets/brand/logo-voyager.svg", "Blog VMC": "/assets/brand/logo-voyager.svg", "Pacífico": "/demo/empresas/pacifico.png",
@@ -306,14 +306,29 @@ const CSS = `
   background: linear-gradient(180deg, rgba(42,14,110,0) 0%, rgba(42,14,110,0.78) 48%, #2A0E6E 100%); }
 .va-ad--banner b { font-size: 15px; line-height: 1.2; font-weight: 800; text-wrap: balance; }
 .va-ad__veil span { font-size: 12px; line-height: 1.3; color: rgba(255,255,255,0.88); }
-.va-ad--banner .va-cta { margin: 6px 0 0; border-color: #fff; background: #fff; color: #3B1782; }
+.va-ad--banner .va-glass { margin-top: 8px; }
 .va-ad--card { border: 1px solid #E6E1F5; background: #fff; }
 .va-ad__media { position: relative; display: block; aspect-ratio: 16 / 9; background: #F3EFFD; }
 .va-ad__media img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .va-ad__body { display: grid; gap: 3px; justify-items: start; padding: 10px 12px 12px; }
 .va-ad--card b { font-size: 14px; line-height: 1.25; font-weight: 800; color: #14112B; }
 .va-ad__body span { font-size: 12px; line-height: 1.3; color: #5B5870; }
-.va-ad--card .va-cta { margin: 6px 0 0; }
+/* Botón de vidrio del banner principal (hib-glass del design system), en chico: blanco translúcido, blur y borde VYStrokes1.
+   Va siempre sobre la foto, donde se lee. */
+.va-glass { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 18px; border: 0;
+  border-radius: 100px; font: 600 13px/1 var(--vmc-font-display, 'Plus Jakarta Sans', -apple-system, sans-serif); color: #fff; white-space: nowrap; cursor: pointer;
+  background-color: transparent;
+  background-image: linear-gradient(180deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.08) 45%, rgba(255,255,255,0) 100%), linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.08) 45%, rgba(255,255,255,0.03) 100%);
+  -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px);
+  box-shadow: rgba(0,0,0,0.1) 0 8px 24px, inset 0 1px 6px rgba(255,255,255,0.45); text-shadow: rgba(0,0,0,0.25) 0 1px 3px;
+  transition: background-color 0.25s, box-shadow 0.25s, transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); }
+.va-glass::before { content: ""; position: absolute; inset: 0; padding: 1.5px; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(94deg, #FFFFFF 0%, #F4AC59 22.1%, #8460E5 74.5%, #FFFFFF 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
+.va-glass:hover { transform: translateY(-1px); background-color: rgba(255,255,255,0.1); box-shadow: rgba(0,0,0,0.16) 0 12px 28px, inset 0 1px 8px rgba(255,255,255,0.6); }
+.va-glass:active { transform: translateY(1px) scale(0.97); background-color: rgba(32,0,104,0.22); }
+.va-glass:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.va-ad__media .va-glass { position: absolute; left: 10px; bottom: 10px; z-index: 2; }
 .va-ad__badge { position: absolute; top: 8px; left: 8px; z-index: 3; padding: 3px 8px; border-radius: 999px; font-size: 10px; font-weight: 700;
   letter-spacing: 0.03em; color: #3B1782; background: rgba(255,255,255,0.92); box-shadow: rgba(16,0,48,0.18) 0 2px 6px; }
 .va-ad__when { font-weight: 600; color: #8A879C; }
@@ -411,23 +426,23 @@ function Acts({ t, d, x = false }: { t: EntryText; d: FeedDesign; x?: boolean })
   );
 }
 
-/** Publicidad con la foto de su banner (los de /banners/vmc). `banner`: foto a lo ancho con el texto encima, sobre un velo
- *  violeta; `tarjeta`: foto arriba y texto abajo, en una tarjeta con borde; `post`: como un post, con la foto debajo. */
+/** Publicidad con la foto de su banner (los de /banners/vmc) y el botón de vidrio del banner principal, siempre sobre la
+ *  foto. `tarjeta`: foto arriba y texto abajo, en una tarjeta con borde; `banner`: foto a lo ancho con el texto encima,
+ *  sobre un velo violeta; `post`: como un post, con la foto debajo. */
 function Ad({ t, d, x }: { t: EntryText; d: FeedDesign; x: boolean }): JSX.Element {
   const img = <img src={t.imageSrc} alt="" style={{ objectPosition: t.imagePos }} />;
   const badge = d.badge === "foto" ? <span className="va-ad__badge">Publicidad</span> : null;
-  const cta = <button type="button" className="va-cta">{t.cta}{Ico.go}</button>;
+  const cta = <button type="button" className="va-glass">{t.cta}{Ico.go}</button>;
   if (d.ad === "banner") {
     return <div className="va-ad va-ad--banner">{img}{badge}<div className="va-ad__veil"><b>{t.title}</b><span>{t.detail}</span>{cta}</div></div>;
   }
   if (d.ad === "tarjeta") {
-    return <div className="va-ad va-ad--card"><span className="va-ad__media">{img}{badge}</span><div className="va-ad__body"><b>{t.title}</b><span>{t.detail}</span>{cta}</div></div>;
+    return <div className="va-ad va-ad--card"><span className="va-ad__media">{img}{badge}{cta}</span><div className="va-ad__body"><b>{t.title}</b><span>{t.detail}</span></div></div>;
   }
   return (
     <>
       <p className={x ? "va-x__text" : "va-post__text"}>{t.title}. <em>{t.detail}</em></p>
-      <span className="va-post__media">{img}{badge}</span>
-      {cta}
+      <span className="va-post__media va-ad__media">{img}{badge}{cta}</span>
     </>
   );
 }

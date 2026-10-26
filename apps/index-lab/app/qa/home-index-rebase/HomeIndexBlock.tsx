@@ -1583,15 +1583,15 @@ const FEED_SPEEDS = [
 ];
 // Diseño de VMC ahora (no cuándo aparece cada entrada): cómo se ve la publicidad, su badge y las visualizaciones.
 const FEED_ADS: { id: AdStyle; label: string; hint: string }[] = [
-  { id: "banner", label: "Banner", hint: "Foto a lo ancho, texto encima" },
   { id: "tarjeta", label: "Tarjeta", hint: "Foto arriba, texto abajo" },
+  { id: "banner", label: "Banner", hint: "Foto a lo ancho, texto encima" },
   { id: "post", label: "Post", hint: "Texto y foto debajo" },
 ];
 const FEED_AD_BADGES: { id: AdBadge; label: string; hint: string }[] = [
+  { id: "sin", label: "Sin badge", hint: "Solo la foto y el botón" },
   { id: "foto", label: "Sobre la foto", hint: "Badge en la esquina" },
   { id: "pill", label: "Insignia", hint: "Como los demás tipos" },
   { id: "texto", label: "En la hora", hint: "Publicidad en vez de la hora" },
-  { id: "sin", label: "Sin badge", hint: "Solo la foto y el botón" },
 ];
 const FEED_VIEWS_STYLES: { id: ViewsStyle; label: string; hint: string }[] = [
   { id: "ojo", label: "Ojo", hint: "Ojito y 1,2 mil" },
