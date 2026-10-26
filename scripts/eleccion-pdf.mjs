@@ -1,11 +1,11 @@
-// Genera escenarios-short.pdf (raíz del repo): la versión corta de escenarios.pdf. Reglas en una línea, fórmulas escritas
+// Genera eleccion.pdf (raíz del repo): la versión corta de escenarios.pdf. Reglas en una línea, fórmulas escritas
 // como fórmulas y una tabla con todos los escenarios. Sale de las mismas fórmulas que el feed de la demo (feedPlan.ts).
-// Uso: node scripts/escenarios-short-pdf.mjs
+// Uso: node scripts/eleccion-pdf.mjs
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright-core";
 import { counts, GAP_S, PROMO_MAX, PROMO_MIN, REGISTROS_MAX, BLOG_SIN_NEGOCIABLES } from "../apps/index-lab/app/qa/home-index-rebase/feedPlan.ts";
 
-const OUT = fileURLToPath(new URL("../escenarios-short.pdf", import.meta.url));
+const OUT = fileURLToPath(new URL("../eleccion.pdf", import.meta.url));
 const SCENARIOS = [[0, 0], [1, 0], [0, 1], [3, 2], [0, 5], [6, 0], [8, 2], [0, 10], [10, 1], [6, 6], [0, 20], [15, 15], [40, 20]];
 
 const zero = (n) => (n ? n : `<span class="muted">0</span>`);
@@ -144,4 +144,4 @@ const over = await page.evaluate(() => [...document.querySelectorAll(".slide")].
 if (over.length) console.warn("Diapositivas que se pasan:", over);
 await page.pdf({ path: OUT, width: "1280px", height: "720px", printBackground: true, preferCSSPageSize: true });
 await browser.close();
-console.log(`escenarios-short.pdf → ${OUT}`);
+console.log(`eleccion.pdf → ${OUT}`);

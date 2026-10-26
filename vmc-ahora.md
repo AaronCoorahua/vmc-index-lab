@@ -2,7 +2,7 @@
 
 VMC ahora es el feed de novedades del Index (`/qa/home-index-rebase`). Muestra entradas cortas, parecidas a posts, que van apareciendo mientras la persona está en la página: ofertas publicadas, avisos de propuestas, nuevos usuarios, publicidad y artículos del blog. No son notificaciones push ni ventanas emergentes.
 
-Este documento explica cómo funciona hoy la demo y dónde está cada cosa en el código. Lo que todavía no está hecho va al final, en "Todavía no implementado". Las mismas reglas, en formato presentación, están en `escenarios.pdf` (completa) y `escenarios-short.pdf` (corta).
+Este documento explica cómo funciona hoy la demo y dónde está cada cosa en el código. Lo que todavía no está hecho va al final, en "Todavía no implementado". Las mismas reglas, en formato presentación, están en `escenarios.pdf` (completa) y `eleccion.pdf` (corta).
 
 Hoy las propuestas y los registros de usuarios son simulados: la demo los inventa hasta que se conecten los reales. Todo lo demás muestra contenido real o de VMC.
 
@@ -14,13 +14,13 @@ Hoy las propuestas y los registros de usuarios son simulados: la demo los invent
 | `apps/index-lab/app/qa/home-index-rebase/VmcAhora.tsx` | El feed: reloj de la demo, vistas (timeline, X en móvil, listado, franja) y panel de QA del reloj. |
 | `apps/index-lab/app/qa/home-index-rebase/HomeIndexBlock.tsx` | Controles de QA (`QA_CONTROLS`) que cambian el escenario, la velocidad y el diseño. |
 | `scripts/escenarios-pdf.mjs` | Genera `escenarios.pdf` con las mismas fórmulas de `feedPlan.ts`. |
-| `scripts/escenarios-short-pdf.mjs` | Genera `escenarios-short.pdf`. |
+| `scripts/eleccion-pdf.mjs` | Genera `eleccion.pdf`, la versión corta. |
 
 Si cambias una fórmula en `feedPlan.ts`, la demo y los PDF cambian juntos. Para regenerar los PDF:
 
 ```
 node scripts/escenarios-pdf.mjs
-node scripts/escenarios-short-pdf.mjs
+node scripts/eleccion-pdf.mjs
 ```
 
 ## Palabras que se usan
