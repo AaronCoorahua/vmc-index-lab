@@ -296,7 +296,7 @@ ${daySlides(0, 5)}
 </body></html>`;
 
 if (HTML) await writeFile(HTML, html);
-const browser = await chromium.launch({ channel: "msedge", headless: true });
+const browser = await chromium.launch({ channel: process.env.BROWSER_CHANNEL || "msedge", headless: true });
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 await page.setContent(html, { waitUntil: "networkidle" });
 await page.evaluate(() => document.fonts.ready);

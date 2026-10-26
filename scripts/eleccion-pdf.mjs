@@ -1,11 +1,17 @@
 // Genera eleccion.pdf (raíz del repo): la versión corta de escenarios.pdf. Reglas en una línea, fórmulas escritas
 // como fórmulas y una tabla con todos los escenarios. Sale de las mismas fórmulas que el feed de la demo (feedPlan.ts).
-// Uso: node scripts/eleccion-pdf.mjs
+// Las capturas salen de docs/vmc-ahora (scripts/vmc-ahora-docs.mjs). Uso: node scripts/eleccion-pdf.mjs
+import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright-core";
 import { counts, GAP_S, PROMO_MAX, PROMO_MIN, REGISTROS_MAX, BLOG_SIN_NEGOCIABLES } from "../apps/index-lab/app/qa/home-index-rebase/feedPlan.ts";
 
 const OUT = fileURLToPath(new URL("../eleccion.pdf", import.meta.url));
+const img = (name) => {
+  const file = new URL(`../docs/vmc-ahora/${name}`, import.meta.url);
+  const type = name.endsWith(".svg") ? "svg+xml" : name.endsWith(".jpg") ? "jpeg" : "png";
+  return `data:image/${type};base64,${readFileSync(file).toString("base64")}`;
+};
 const SCENARIOS = [[0, 0], [1, 0], [0, 1], [3, 2], [0, 5], [6, 0], [8, 2], [0, 10], [10, 1], [6, 6], [0, 20], [15, 15], [40, 20]];
 
 const zero = (n) => (n ? n : `<span class="muted">0</span>`);
@@ -28,19 +34,35 @@ const cover = `
   </table>
 </section>`;
 
+// Igual que la sección 5 de vmc-ahora.md. ok = confirmada por Julio; el resto funciona en la demo y espera su sí.
 const RULES = [
-  `Entra una entrada simulada cada ${GAP_S} segundos. Una real entra al momento y reinicia la cuenta.`,
-  "Al abrir la página, la primera entrada es una publicidad.",
-  "Sin negociables no hay avisos de propuesta.",
-  "Sin ofertas no se simula nada.",
-  "La rotación muestra la oferta como disponible. Una oferta nueva no rota el día en que se publica.",
-  "Los avisos de propuestas y registros no dicen quién fue.",
-  "La propuesta simulada usa un código de oferta al azar, no lleva foto y no cambia ningún contador. La real lleva la foto de su oferta.",
-  "Cada hecho real reemplaza a uno simulado del mismo tipo. Los reales no tienen tope.",
-  "Visitas, me gusta y participantes cuentan desde que sale la entrada y crecen con el tiempo.",
-  "Ofertas: me gusta, participantes o negociaciones, visitas y compartir. El resto: visitas y compartir.",
+  [true, `Una simulada cada ${GAP_S} s. Una real entra al momento y reinicia la cuenta.`],
+  [true, `Sin negociables no hay avisos de propuesta; +${BLOG_SIN_NEGOCIABLES} de blog.`],
+  [true, "Con 6 ofertas o más, cada oferta rota 1 vez al día."],
+  [false, "Con 1 a 5 ofertas, cada una rota 3 veces (≥ 5 h entre vueltas)."],
+  [false, "Tope de propuestas simuladas: 5, 8 y 12 según N."],
+  [false, "Sin ofertas no se simula nada: solo publicidad y blog."],
+  [false, "Al abrir la página, la primera entrada es una publicidad."],
+  [false, "Una oferta nueva no rota el día en que se publica."],
+  [false, "Propuestas y registros no dicen quién fue."],
+  [false, "La propuesta simulada: código al azar, sin foto, no toca contadores."],
+  [false, "Cada real reemplaza a una simulada del mismo tipo. Los reales no tienen tope."],
+  [false, "Nunca dos publicidades o blogs seguidos si hay actividad en 30 min."],
+  [false, "Ofertas con su foto; blog con su portada."],
+  [false, "Los contadores cuentan desde que sale la entrada."],
 ];
-const rules = slide("Reglas", `<ol class="steps">${RULES.map((r) => `<li>${r}</li>`).join("")}</ol>`);
+const rules = slide(`Reglas <span class="key"><b class="ok">✓ confirmada</b> <b class="prop">● propuesta</b></span>`,
+  `<ol class="steps two">${RULES.map(([ok, r]) => `<li class="${ok ? "ok" : "prop"}">${r}</li>`).join("")}</ol>`);
+const fig = (src, cap) => `<figure><img src="${img(src)}"><figcaption>${cap}</figcaption></figure>`;
+const entries = slide("Tipos de entrada", `<div class="kinds">
+  ${fig("entrada-nueva.png", "Nueva · real")}${fig("entrada-rotacion.png", "Rotación · real")}${fig("entrada-ad-valoriza.png", "Publicidad · Valoriza")}${fig("entrada-ad-publica.png", "Publicidad · Publica")}
+  ${fig("entrada-blog.png", "Blog")}${fig("entrada-propuesta.png", "Propuesta · simulada hoy")}${fig("entrada-registro.png", "Registro · simulado hoy")}
+</div>`);
+const day = slide("Un día con 8 en vivo + 2 negociables", `<img class="wide" src="${img("dia-8-2.svg")}">
+  <p class="note">26 entradas de 9:00 a 24:00. Los puntos claros son simulados y desaparecen a medida que llegan los reales.</p>`);
+const edges = slide("Casos borde", `<div class="shots edge">
+  ${fig("feed-0-ofertas.png", "0 ofertas: solo publicidad y blog")}${fig("feed-0-negociables.png", "0 negociables: sin avisos de propuesta")}${fig("feed-8-2.png", "8 + 2: el caso normal")}
+</div>`);
 
 const formulas = slide("Fórmulas", `<div class="grid">
   <div>
@@ -60,7 +82,8 @@ const formulas = slide("Fórmulas", `<div class="grid">
     <h3>Simuladas del día</h3>
     ${line("simuladas = máx(0, objetivo − reales)")}
     <h3>Contadores</h3>
-    ${line("visitas(<i>t</i>) = inicio + (tope − inicio)(1 − <i>e</i><sup>−<i>t</i> / 6 h</sup>)")}
+    ${line("visitas(<i>t</i>) = inicio + (tope − inicio)(1 − <i>e</i><sup>−<i>t</i> / τ</sup>)")}
+    ${line('<span class="muted">τ: ofertas 6 h, blog 5 h, publicidad 4 h, propuesta y registro 3 h</span>')}
     ${line('<span class="muted">inicio: oferta nueva 0, en rotación 30 a 60, publicidad 8 a 15</span>')}
     ${line("me gusta, participantes = 4 % a 8 % de visitas")}
     ${line('<span class="muted">tope de visitas: 120 a 500 (muy buenas: 600 a 800)</span>')}
@@ -76,11 +99,12 @@ const scenarios = slide("Escenarios", `<table class="data">
 </table>`);
 
 const PENDING = [
+  ["Más de 30 ofertas", "¿Cuáles 30 rotan? Hoy, las 30 primeras"],
+  ["Móvil", "Opción A (\"Ver más\") u Opción B (pestañas)"],
   ["Topes de propuestas", "5, 8 y 12 al día"],
   ["Vueltas con 1 a 5 ofertas", "3 al día (con 5 ofertas, una por hora)"],
   ["Sin ofertas", "Solo publicidad y blog, ocultar o \"Pronto nuevas ofertas\""],
   ["\"En vivo\" en la cabecera", "Solo si hay ofertas en vivo"],
-  ["Propuestas y registros reales", "Conectarlos (Francis)"],
   ["Palabras del contador", "Las mismas en la ficha y en VMC ahora"],
 ];
 const pending = slide("Por decidir con Julio", `<table class="data rules">
@@ -129,11 +153,30 @@ table.data tbody tr:nth-child(even) td { background: #FAF9FD; }
 table.data .l { text-align: left; }
 table.data.rules td { padding: 14px; font-size: 20px; }
 table.data.rules td:first-child { width: 38%; }
+h2 .key { float: right; margin-top: 12px; font-size: 16px; font-weight: 600; letter-spacing: 0; }
+.key b { margin-left: 18px; }
+.ok, .key .ok { color: #0F7B4A; }
+.prop, .key .prop { color: #B26A00; }
+ol.steps.two { grid-template-columns: 1fr 1fr; grid-template-rows: repeat(7, auto); grid-auto-flow: column; gap: 20px 40px; }
+ol.steps.two li { font-size: 20px; grid-template-columns: 34px 1fr; }
+ol.steps.two li::before { width: 30px; height: 30px; font-size: 13px; }
+ol.steps li.ok::before { background: #0F7B4A; }
+ol.steps li.prop::before { background: #D98A00; }
+.shots { display: flex; gap: 18px; align-items: flex-start; height: 100%; }
+.shots figure { flex: 1; min-width: 0; margin: 0; }
+.shots img { display: block; width: 100%; border: 1px solid #ECE8F6; border-radius: 12px; }
+.shots.edge figure img { max-height: 520px; object-fit: cover; object-position: top; }
+.kinds { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px 18px; align-items: start; }
+.kinds figure { margin: 0; }
+.kinds img { display: block; width: 100%; max-height: 236px; object-fit: contain; object-position: left top; border: 1px solid #ECE8F6; border-radius: 12px; }
+figcaption { margin-top: 8px; font-size: 15px; font-weight: 600; color: #4A4560; }
+img.wide { display: block; width: 100%; }
+.note { font-size: 19px; color: #4A4560; }
 </style></head><body>
-${cover}${rules}${formulas}${scenarios}${pending}
+${cover}${entries}${rules}${formulas}${day}${scenarios}${edges}${pending}
 </body></html>`;
 
-const browser = await chromium.launch({ channel: "msedge", headless: true });
+const browser = await chromium.launch({ channel: process.env.BROWSER_CHANNEL || "msedge", headless: true });
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 await page.setContent(html, { waitUntil: "networkidle" });
 await page.evaluate(() => document.fonts.ready);

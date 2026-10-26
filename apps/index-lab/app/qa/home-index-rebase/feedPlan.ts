@@ -170,7 +170,7 @@ export function planDay(V: number, N: number): PlanEntry[] {
     mark(o.id, min);
   });
   // Propuestas mockup: nadie puede verificarlas, así que llevan un código de oferta aleatorio (que no choca con las reales)
-  // y una foto genérica. No apuntan a ninguna oferta del feed ni tocan sus contadores. Solo hay si hay negociables (N > 0)
+  // y no llevan foto (su oferta no existe). No apuntan a ninguna oferta del feed ni tocan sus contadores. Solo hay si hay negociables (N > 0)
   // y su cantidad sigue a N: con 2 negociables, un código random pasa; sin ninguna, no se inventa de la nada.
   const ids = new Set(inv.map((o) => o.id));
   spread(c.prop, 0.5).forEach((min, i) => {

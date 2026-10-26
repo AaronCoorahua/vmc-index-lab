@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 360" font-family="system-ui, sans-serif" font-size="15" fill="#1D1B2C">
+<rect width="1200" height="360" fill="#fff"/>
+<text x="120" y="28" font-size="18" font-weight="700">Un día con 8 en vivo + 2 negociables (26 entradas simuladas; las claras son mockups)</text>
+<line x1="120" x2="120" y1="50" y2="320" stroke="#F4F3F8"/><text x="120" y="346" text-anchor="middle" fill="#6B6880" font-size="13">9:00</text>
+<line x1="187.33333333333331" x2="187.33333333333331" y1="50" y2="320" stroke="#F4F3F8"/><text x="187.33333333333331" y="346" text-anchor="middle" fill="#6B6880" font-size="13">10:00</text>
+<line x1="254.66666666666666" x2="254.66666666666666" y1="50" y2="320" stroke="#F4F3F8"/><text x="254.66666666666666" y="346" text-anchor="middle" fill="#6B6880" font-size="13">11:00</text>
+<line x1="322" x2="322" y1="50" y2="320" stroke="#F4F3F8"/><text x="322" y="346" text-anchor="middle" fill="#6B6880" font-size="13">12:00</text>
+<line x1="389.3333333333333" x2="389.3333333333333" y1="50" y2="320" stroke="#F4F3F8"/><text x="389.3333333333333" y="346" text-anchor="middle" fill="#6B6880" font-size="13">13:00</text>
+<line x1="456.66666666666663" x2="456.66666666666663" y1="50" y2="320" stroke="#F4F3F8"/><text x="456.66666666666663" y="346" text-anchor="middle" fill="#6B6880" font-size="13">14:00</text>
+<line x1="524" x2="524" y1="50" y2="320" stroke="#F4F3F8"/><text x="524" y="346" text-anchor="middle" fill="#6B6880" font-size="13">15:00</text>
+<line x1="591.3333333333333" x2="591.3333333333333" y1="50" y2="320" stroke="#F4F3F8"/><text x="591.3333333333333" y="346" text-anchor="middle" fill="#6B6880" font-size="13">16:00</text>
+<line x1="658.6666666666666" x2="658.6666666666666" y1="50" y2="320" stroke="#F4F3F8"/><text x="658.6666666666666" y="346" text-anchor="middle" fill="#6B6880" font-size="13">17:00</text>
+<line x1="726" x2="726" y1="50" y2="320" stroke="#F4F3F8"/><text x="726" y="346" text-anchor="middle" fill="#6B6880" font-size="13">18:00</text>
+<line x1="793.3333333333333" x2="793.3333333333333" y1="50" y2="320" stroke="#F4F3F8"/><text x="793.3333333333333" y="346" text-anchor="middle" fill="#6B6880" font-size="13">19:00</text>
+<line x1="860.6666666666666" x2="860.6666666666666" y1="50" y2="320" stroke="#F4F3F8"/><text x="860.6666666666666" y="346" text-anchor="middle" fill="#6B6880" font-size="13">20:00</text>
+<line x1="928" x2="928" y1="50" y2="320" stroke="#F4F3F8"/><text x="928" y="346" text-anchor="middle" fill="#6B6880" font-size="13">21:00</text>
+<line x1="995.3333333333334" x2="995.3333333333334" y1="50" y2="320" stroke="#F4F3F8"/><text x="995.3333333333334" y="346" text-anchor="middle" fill="#6B6880" font-size="13">22:00</text>
+<line x1="1062.6666666666665" x2="1062.6666666666665" y1="50" y2="320" stroke="#F4F3F8"/><text x="1062.6666666666665" y="346" text-anchor="middle" fill="#6B6880" font-size="13">23:00</text>
+<line x1="1130" x2="1130" y1="50" y2="320" stroke="#F4F3F8"/><text x="1130" y="346" text-anchor="middle" fill="#6B6880" font-size="13">0:00</text>
+<text x="106" y="83" text-anchor="end" font-weight="600">Nuevas</text>
+<text x="1142" y="83" fill="#6B6880">2</text>
+<line x1="120" x2="1130" y1="78" y2="78" stroke="#ECEAF3"/>
+<circle cx="232.2" cy="78" r="6" fill="#C2410C"/><circle cx="546.4" cy="78" r="6" fill="#C2410C"/>
+<text x="106" y="127" text-anchor="end" font-weight="600">Rotación</text>
+<text x="1142" y="127" fill="#6B6880">8</text>
+<line x1="120" x2="1130" y1="122" y2="122" stroke="#ECEAF3"/>
+<circle cx="122.5" cy="122" r="6" fill="#00777A"/><circle cx="248.8" cy="122" r="6" fill="#00777A"/><circle cx="345.6" cy="122" r="6" fill="#00777A"/><circle cx="429.7" cy="122" r="6" fill="#00777A"/><circle cx="627.5" cy="122" r="6" fill="#00777A"/><circle cx="753.8" cy="122" r="6" fill="#00777A"/><circle cx="880.0" cy="122" r="6" fill="#00777A"/><circle cx="1006.3" cy="122" r="6" fill="#00777A"/>
+<text x="106" y="171" text-anchor="end" font-weight="600">Propuestas</text>
+<text x="1142" y="171" fill="#6B6880">4</text>
+<line x1="120" x2="1130" y1="166" y2="166" stroke="#ECEAF3"/>
+<circle cx="246.3" cy="166" r="6" fill="#00777A" fill-opacity=".45"/><circle cx="498.8" cy="166" r="6" fill="#00777A" fill-opacity=".45"/><circle cx="751.3" cy="166" r="6" fill="#00777A" fill-opacity=".45"/><circle cx="1003.8" cy="166" r="6" fill="#00777A" fill-opacity=".45"/>
+<text x="106" y="215" text-anchor="end" font-weight="600">Registros</text>
+<text x="1142" y="215" fill="#6B6880">3</text>
+<line x1="120" x2="1130" y1="210" y2="210" stroke="#ECEAF3"/>
+<circle cx="221.0" cy="210" r="6" fill="#7B5CE6" fill-opacity=".45"/><circle cx="557.7" cy="210" r="6" fill="#7B5CE6" fill-opacity=".45"/><circle cx="894.3" cy="210" r="6" fill="#7B5CE6" fill-opacity=".45"/>
+<text x="106" y="259" text-anchor="end" font-weight="600">Publicidad</text>
+<text x="1142" y="259" fill="#6B6880">6</text>
+<line x1="120" x2="1130" y1="254" y2="254" stroke="#ECEAF3"/>
+<circle cx="150.3" cy="254" r="6" fill="#3B1782"/><circle cx="318.6" cy="254" r="6" fill="#3B1782"/><circle cx="487.0" cy="254" r="6" fill="#3B1782"/><circle cx="655.3" cy="254" r="6" fill="#3B1782"/><circle cx="823.6" cy="254" r="6" fill="#3B1782"/><circle cx="992.0" cy="254" r="6" fill="#3B1782"/>
+<text x="106" y="303" text-anchor="end" font-weight="600">Blog</text>
+<text x="1142" y="303" fill="#6B6880">3</text>
+<line x1="120" x2="1130" y1="298" y2="298" stroke="#ECEAF3"/>
+<circle cx="372.5" cy="298" r="6" fill="#4A2CE0"/><circle cx="709.2" cy="298" r="6" fill="#4A2CE0"/><circle cx="1045.8" cy="298" r="6" fill="#4A2CE0"/>
+</svg>

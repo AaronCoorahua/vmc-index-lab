@@ -1,207 +1,342 @@
-# VMC ahora
+# VMC ahora: guía para llevarlo a producción
 
-VMC ahora es el feed de novedades del Index (`/qa/home-index-rebase`). Muestra entradas cortas, parecidas a posts, que van apareciendo mientras la persona está en la página: ofertas publicadas, avisos de propuestas, nuevos usuarios, publicidad y artículos del blog. No son notificaciones push ni ventanas emergentes.
+Para: Francis (implementación). Dueño del producto: Julio. Demo y reglas: Aaron. Última revisión: 26/10/2026.
 
-Este documento explica cómo funciona hoy la demo y dónde está cada cosa en el código. Lo que todavía no está hecho va al final, en "Todavía no implementado". Las mismas reglas, en formato presentación, están en `escenarios.pdf` (completa) y `eleccion.pdf` (corta).
+## 1. Resumen en un minuto
 
-Hoy las propuestas y los registros de usuarios son simulados: la demo los inventa hasta que se conecten los reales. Todo lo demás muestra contenido real o de VMC.
+VMC ahora es el feed de novedades del Index. Mientras la persona está en la página, van entrando entradas cortas, como posts: ofertas publicadas, ofertas que vuelven a mostrarse, avisos de propuestas, nuevos usuarios, publicidad de VMC y artículos del blog. No son notificaciones push ni ventanas emergentes.
 
-## Dónde está el código
+Funciona así:
 
-| Archivo | Qué hace |
+- Lo **real** (una oferta nueva, una propuesta o un registro) entra apenas pasa.
+- Cuando no pasa nada real, entra **una entrada simulada cada 45 segundos** para que el feed no se vea muerto. Las simuladas salen de un plan del día que depende de cuántas ofertas hay publicadas.
+- Cada hecho real **reemplaza** a uno simulado del mismo tipo. Si hay mucha actividad real, las simuladas desaparecen solas.
+
+| Escritorio (columna derecha) | Móvil (debajo del banner) |
 |---|---|
-| `apps/index-lab/app/qa/home-index-rebase/feedPlan.ts` | Reglas y fórmulas. Módulo puro, sin React: arma el plan del día, los textos y los contadores. |
-| `apps/index-lab/app/qa/home-index-rebase/VmcAhora.tsx` | El feed: reloj de la demo, vistas (timeline, X en móvil, listado, franja) y panel de QA del reloj. |
-| `apps/index-lab/app/qa/home-index-rebase/HomeIndexBlock.tsx` | Controles de QA (`QA_CONTROLS`) que cambian el escenario, la velocidad y el diseño. |
-| `scripts/escenarios-pdf.mjs` | Genera `escenarios.pdf` con las mismas fórmulas de `feedPlan.ts`. |
-| `scripts/eleccion-pdf.mjs` | Genera `eleccion.pdf`, la versión corta. |
+| ![Index en escritorio con VMC ahora a la derecha](docs/vmc-ahora/indice-escritorio.jpg) | ![Index en móvil con VMC ahora bajo el banner](docs/vmc-ahora/indice-movil.jpg) |
 
-Si cambias una fórmula en `feedPlan.ts`, la demo y los PDF cambian juntos. Para regenerar los PDF:
+Lo que hay que hacer en producción es conectar los datos reales y llevar el reloj a la hora real. La parte visual ya está hecha en el lab y se copia de ahí. Ver la sección 3.
 
-```
-node scripts/escenarios-pdf.mjs
-node scripts/eleccion-pdf.mjs
-```
+## 2. Cómo verlo
 
-## Palabras que se usan
+- **Deploy:** https://vmc-index-lab-orpin.vercel.app/qa/home-index-rebase
+- **Local** (Node 24 y npm 11, desde la raíz del repo):
+
+  ```
+  npm ci
+  npm run dev --workspace @vmc/index-lab -- --port 3001
+  ```
+
+  Luego abrir http://localhost:3001/qa/home-index-rebase.
+
+- **Ver un día entero rápido:** en "Abrir controles" (abajo a la derecha):
+  - poner **VMC ahora · velocidad** en ×10, para que entre una entrada cada 4,5 s;
+  - en **VMC ahora · inventario**, elegir el escenario (0 ofertas, 10 en vivo, 8 + 2…).
+- **Panel "VMC ahora · reloj":** muestra cuánto falta para la próxima simulada, el plan del día y el botón "Simular acción real".
+- **Pausa:** con el puntero encima del feed, el reloj se detiene.
+
+## 3. Alcance
+
+**Le toca a producción:**
+
+- Leer el inventario real: ofertas en vivo y negociables publicadas.
+- Recibir los hechos reales: oferta nueva, propuesta enviada y usuario registrado.
+- Armar el plan de simuladas del día con las fórmulas de la sección 6.
+- Hacer correr el reloj a la hora real de Lima.
+- Mostrar los contadores reales de cada oferta.
+
+**No le toca a producción:**
+
+- **Los controles de QA** (vista, diseño, tono, escenario, velocidad). Solo sirven para que Julio elija. En producción va lo que esté por defecto (sección 10).
+- **El inventario de ejemplo** (`buildInventory`) y **los contadores inventados** (`entryViews`, `offerStats`). Son solo de la demo.
+- **Las ideas de "Todavía no implementado"** (sección 9), salvo que Julio las apruebe.
+
+## 4. Tipos de entrada
+
+| `kind` | Autor | Texto | Origen | Captura |
+|---|---|---|---|---|
+| `nueva` / `nueva-subascars` | La empresa o SubasCars | "Publicó una nueva oferta en vivo: Toyota Yaris 2022. OFERTA 51015 · Lima · Base US$ 2,799" | **Real** | ![nueva](docs/vmc-ahora/entrada-nueva.png) |
+| `rotacion` | Dueño de la oferta | "Disponible en vivo: Hyundai Tucson 2021…" o "Disponible para negociar: …" | **Real** (oferta que ya estaba publicada) | ![rotación](docs/vmc-ahora/entrada-rotacion.png) |
+| `propuesta` | VMC | "Se ha enviado una propuesta a la OFERTA 67942" | Simulada hoy, real después | ![propuesta](docs/vmc-ahora/entrada-propuesta.png) |
+| `registro` | VMC | "Se registró un nuevo usuario en VMC" | Simulado hoy, real después | ![registro](docs/vmc-ahora/entrada-registro.png) |
+| `ad-valoriza` | VMC | "Valoriza tu auto en VMC" + botón Valorizar | Publicidad fija | ![valoriza](docs/vmc-ahora/entrada-ad-valoriza.png) |
+| `ad-publica` | VMC | "Publica tu auto en VMC y recibe ofertas" + botón Publicar | Publicidad fija | ![publica](docs/vmc-ahora/entrada-ad-publica.png) |
+| `blog` | Blog VMC | Título del artículo + botón Leer | Artículo de VMC | ![blog](docs/vmc-ahora/entrada-blog.png) |
+
+Acciones de cada entrada:
+
+- **Ofertas:** me gusta, participantes (en vivo) o negociaciones (negociable), visitas y compartir.
+- **Todo lo demás:** visitas y compartir.
+
+El aviso de propuesta no tiene enlace. Dice que la propuesta **se envió**, no que se aceptó.
+
+### Palabras
 
 | Palabra | Qué significa |
 |---|---|
-| `V` | Cantidad de ofertas en vivo publicadas (subastas en vivo) |
-| `N` | Cantidad de ofertas negociables publicadas (las que reciben propuestas de compradores) |
-| `T` | `V + N`: todas las ofertas publicadas, de cualquier tipo de bien |
-| Día | De 9:00 a 24:00. Todo lo que sale en el feed se reparte en esas 15 horas |
-| Rotación | Volver a mostrar en el feed una oferta que ya estaba publicada, para que se siga viendo. Sale como "Disponible en vivo" o "Disponible para negociar", nunca como recién publicada |
-| Propuesta | Un comprador le envía una propuesta a una oferta negociable. El feed muestra el aviso "Se ha enviado una propuesta a la OFERTA 67942" |
-| Simulado | Una entrada que la demo inventa porque todavía no hay datos reales conectados (hoy: propuestas y registros) |
-| Actividad del día | Rotaciones + propuestas + registros + ofertas nuevas del día. Sirve para calcular cuánta publicidad sale |
+| `V` | Ofertas **en vivo** publicadas ahora |
+| `N` | Ofertas **negociables** publicadas ahora |
+| `T` | `V + N`. Las propuestas no cuentan: con 8 en vivo, 2 negociables y 20 propuestas, `T` es 10 |
+| Día | De 9:00 a 24:00, hora de Lima. Todo lo simulado se reparte en esas 15 horas |
+| Rotación | Volver a mostrar una oferta ya publicada. Sale como "Disponible…", nunca como nueva |
+| Simulada | Entrada que se inventa mientras no hay un hecho real de ese tipo (hoy: propuestas y registros) |
+| Actividad (`A`) | Rotaciones + propuestas + registros + nuevas del día. Sirve para calcular cuánta publicidad sale |
 
-Las propuestas de los compradores no cuentan como ofertas: si hay 8 en vivo y 2 negociables, `T` es 10 aunque haya 20 propuestas.
+## 5. Reglas
 
-## Tipos de entrada
+Estado de cada regla:
 
-| `kind` | Autor | Ejemplo de texto | Origen hoy | Acciones |
-|---|---|---|---|---|
-| `nueva` | La empresa | Publicó una nueva oferta en vivo: Toyota Yaris 2022 | Real | Me gusta, participantes, visitas, compartir |
-| `nueva-subascars` | SubasCars | Publicó una nueva oferta negociable: Toyota Hilux 2019 | Real | Me gusta, negociaciones, visitas, compartir |
-| `rotacion` | Dueño de la oferta | Disponible en vivo: Kia Rio 2020 | Real | Igual que la nueva, según su tipo |
-| `propuesta` | VMC | Se ha enviado una propuesta a la OFERTA 67942 | Simulada | Visitas, compartir |
-| `registro` | VMC | Se registró un nuevo usuario en VMC | Simulado | Visitas, compartir |
-| `ad-valoriza` | VMC | Valoriza tu auto en VMC | Publicidad de VMC | Botón Valorizar, visitas, compartir |
-| `ad-publica` | VMC | Publica tu auto en VMC y recibe ofertas | Publicidad de VMC | Botón Publicar, visitas, compartir |
-| `blog` | Blog VMC | Cómo funciona una subasta en VMC, paso a paso | Artículo de VMC | Portada, botón Leer, visitas, compartir |
+- **✅ Confirmada:** Julio la aprobó.
+- **🟡 Propuesta:** ya funciona en la demo, pero falta el sí de Julio. Se implementa igual. Si Julio la cambia, solo cambia un número o una condición.
 
-El aviso de propuesta no tiene enlace y dice que la propuesta se envió, no que se aceptó.
-
-## Reglas
-
-Todo esto ya funciona en la demo.
-
-1. Entra una entrada simulada cada 45 segundos (`GAP_S`). Una acción real entra al momento y la cuenta de 45 segundos empieza de nuevo desde ella. Ejemplo: entrada a las 10:00:00, acción real a las 10:00:30; la siguiente simulada puede salir desde las 10:01:15.
-2. Al abrir la página, la primera entrada es siempre una publicidad: la que ya estaba entre las últimas o, si no hay, la próxima del plan. Sale como "Ahora", sin el aviso de nuevo, y no cuenta para los 45 segundos.
-3. Sin negociables no hay avisos de propuesta. Ese espacio pasa al blog (2 entradas más al día).
-4. Sin ofertas publicadas no se simula nada: ni propuestas ni registros. Ese día el feed muestra solo publicidad y blog.
-5. Una oferta publicada hoy sale como nueva y no rota ese día, para que no aparezca primero como nueva y después como disponible.
-6. Por privacidad, los avisos de propuestas y registros no muestran quién fue.
-7. La propuesta simulada usa un código de oferta al azar (que no choca con uno real) y no lleva foto, porque esa oferta no existe. Como no apunta a ninguna oferta del feed, no cambia ningún contador. La propuesta real lleva la foto de su oferta. La regla vale para lo que traiga el backend: si la propuesta no tiene una oferta real detrás, va sin foto.
-8. Las ofertas (nuevas y en rotación) llevan siempre su foto. El blog lleva su portada.
-9. Cada hecho real reemplaza a uno simulado del mismo tipo: simulados del día = máx(0, objetivo − reales). Los reales no tienen tope y nunca se ocultan.
-10. Nunca salen dos entradas de publicidad o blog seguidas si hay actividad en los 30 minutos siguientes.
-11. Visitas, me gusta y participantes cuentan desde que la entrada sale en el feed, así que cuadran con su hora: una entrada de hace un minuto tiene pocas visitas. Ver "Contadores".
-
-## Cuántas entradas de cada tipo salen al día
-
-### Rotaciones: `R(T)`
-
-Cuántas veces al día se vuelve a mostrar una oferta que ya estaba publicada. Depende del total de ofertas.
-
-| Ofertas publicadas (`T`) | Rotaciones al día | Cada oferta sale |
+| # | Regla | Estado |
 |---|---|---|
-| 0 | 0 | |
-| 1 a 5 | 3 × `T` (con 5 ofertas: 15, una por hora) | 3 veces, con 5 horas o más entre una y otra |
+| R1 | Entra una entrada simulada cada **45 s** (`GAP_S`). Una real entra al momento y reinicia los 45 s | ✅ |
+| R2 | Sin negociables (`N = 0`) no hay avisos de propuesta. Ese espacio pasa al blog: +2 artículos al día | ✅ |
+| R3 | Con 6 ofertas o más, cada oferta rota **1 vez** al día | ✅ |
+| R4 | Con 1 a 5 ofertas, cada oferta rota **3 veces** al día, con 5 h o más entre una vuelta y otra | 🟡 |
+| R5 | Tope de propuestas simuladas al día: **5, 8 y 12** según `N` (sección 6) | 🟡 |
+| R6 | Sin ofertas (`T = 0`) no se simula nada. El feed muestra solo publicidad y blog | 🟡 |
+| R7 | Al abrir la página, la primera entrada es una publicidad. Sale como "Ahora" y no cuenta para los 45 s | 🟡 |
+| R8 | Una oferta publicada hoy sale como nueva y **no rota** ese día | 🟡 |
+| R9 | Los avisos de propuesta y de registro **no dicen quién fue** (privacidad) | 🟡 |
+| R10 | La propuesta simulada lleva un código de oferta al azar que no choca con uno real, **no lleva foto** y no cambia ningún contador. La real lleva la foto de su oferta | 🟡 |
+| R11 | Cada hecho real reemplaza a uno simulado del mismo tipo: `simuladas = máx(0, objetivo − reales)`. Los reales no tienen tope y nunca se ocultan | 🟡 |
+| R12 | Nunca salen dos entradas de publicidad o blog seguidas si hay actividad en los 30 minutos siguientes | 🟡 |
+| R13 | Las ofertas llevan siempre su foto y el blog su portada | 🟡 |
+| R14 | Los contadores cuentan desde que la entrada sale en el feed. Una entrada de hace un minuto tiene pocas visitas | 🟡 |
+
+### Ejemplos
+
+**R1, una acción real reinicia el reloj**
+- **Dado** que la última simulada salió a las 10:00:00,
+- **cuando** llega una propuesta real a las 10:00:30,
+- **entonces** la propuesta sale a las 10:00:30, la siguiente simulada no sale antes de las 10:01:15 y el plan del día tiene una propuesta simulada menos.
+
+**R2, sin negociables**
+- **Dado** 10 en vivo y 0 negociables,
+- **entonces** en todo el día no sale ningún "Se ha enviado una propuesta" y salen 2 artículos de blog más.
+
+![Feed con 10 en vivo y 0 negociables: ofertas, publicidad y blog](docs/vmc-ahora/feed-0-negociables.png)
+
+**R6, sin ofertas**
+- **Dado** 0 ofertas publicadas,
+- **entonces** el feed muestra solo "Valoriza tu auto", "Publica tu auto" y artículos del blog. No sale ninguna rotación, propuesta ni registro.
+
+![Feed con 0 ofertas: solo publicidad y blog](docs/vmc-ahora/feed-0-ofertas.png)
+
+**R8, oferta nueva**
+- **Dado** que la OFERTA 51015 se publicó hoy a las 10:40,
+- **entonces** sale "Publicó una nueva oferta…" y no vuelve a salir como "Disponible…" hasta mañana.
+
+**R11, los reales reemplazan a los simulados**
+- **Dado** que el plan del día tiene 4 propuestas simuladas,
+- **cuando** a las 15:00 ya llegaron 3 propuestas reales,
+- **entonces** queda 1 simulada para el resto del día. Si llega una cuarta real, ya no sale ninguna simulada. Si llegan 10 reales, salen las 10.
+
+**R12, publicidad separada**
+- **Dado** que en el plan quedan una publicidad a las 14:30 y un blog a las 14:31,
+- **y** hay una rotación a las 14:50,
+- **entonces** la rotación se adelanta entre las dos.
+
+## 6. Fórmulas
+
+Todas están en `feedPlan.ts`. La demo y los PDF salen de ese archivo, así que si cambia un número allí, cambian los tres.
+
+### Rotaciones al día: `R(T)`
+
+| `T` | Rotaciones al día | Cada oferta sale |
+|---|---|---|
+| 0 | 0 | — |
+| 1 a 5 | `3 × T` (con 5 ofertas: 15, una por hora) | 3 veces, con 5 h o más entre vueltas |
 | 6 a 30 | `T` | 1 vez |
-| Más de 30 | 30 | 1 vez las 30 primeras por prioridad; el resto, al día siguiente |
+| Más de 30 | 30 | 1 vez las 30 primeras; el resto no sale ese día (ver pregunta abierta P1) |
 
-### Avisos de propuesta: `P(N)`
+Las ofertas nuevas de hoy no rotan (R8), así que en el código queda:
 
-Cuántos avisos "Se ha enviado una propuesta" simulados salen al día. Depende de cuántas negociables hay publicadas. Los números 5, 8 y 12 son el máximo de avisos al día (el tope), no los rangos. El rango es la cantidad de negociables:
+`rotaciones = mín(R(T), vueltas × (T − nuevas))`
 
-| Negociables publicadas (`N`) | Tope de avisos al día |
+donde `vueltas` es 3 con `T` ≤ 5 y 1 desde 6.
+
+Las ofertas se intercalan en vivo y negociables en proporción, para que no salgan cinco seguidas del mismo tipo.
+
+### Avisos de propuesta simulados al día: `P(N)`
+
+`P(N) = mín(2N, tope)`, es decir, nunca más de 2 al día por cada negociable.
+
+| `N` | Tope |
 |---|---|
 | 0 | 0 |
 | 1 a 4 | 5 |
-| 5 a 11 | 8 (uno cada 2 horas, más o menos) |
+| 5 a 11 | 8 (uno cada 2 h, más o menos) |
 | 12 o más | 12 |
 
-Además, nunca más de 2 avisos al día por cada negociable: `P(N) = mín(2N, tope)`. Por eso con 1 negociable salen 2, con 2 salen 4 y con 3 o 4 ya se llega al tope de 5. El tope es solo para los simulados; las propuestas reales salen todas.
+Con 1 negociable salen 2; con 2, salen 4; con 3 o 4, ya se llega al tope de 5. El tope es solo para las simuladas: las propuestas reales salen todas.
 
 ### El resto
 
 | Entrada | Al día |
 |---|---|
-| Registros simulados `U(T)` | 0 sin ofertas; si no, `mín(6, 1 + ⌊T / 4⌋)`: 1 con 1 a 3 ofertas, 3 con 8, 6 con 20 o más |
-| Ofertas nuevas | Las que se publiquen. En la demo, con 6 ofertas o más: una en vivo a media mañana y una negociable a media tarde |
-| Publicidad + blog | La mitad de la actividad del día, entre 6 y 15: `mín(15, máx(6, ⌈A / 2⌉))`. Un tercio es blog; el resto alterna las dos publicidades. Con 0 negociables, 2 de blog más |
+| Registros simulados `U(T)` | 0 si `T = 0`; si no, `mín(6, 1 + ⌊T / 4⌋)` |
+| Ofertas nuevas | Las reales. La demo inventa 2 con `T` ≥ 6: una en vivo a media mañana y una negociable a media tarde |
+| Publicidad + blog | `mín(15, máx(6, ⌈A / 2⌉))`. Un tercio es blog; el resto alterna las dos publicidades. +2 de blog si `N = 0` |
 
-Cada tipo se reparte parejo entre las 9:00 y las 24:00: una rotación cada `900 / R` minutos, un aviso de propuesta cada `900 / P` minutos, y así.
+Cada tipo se reparte parejo entre las 9:00 y las 24:00: una rotación cada `900 / R` minutos, una propuesta cada `900 / P` minutos, y así con los demás.
 
-Ejemplo con 8 en vivo y 2 negociables (`T` = 10, `N` = 2): 8 rotaciones, 4 avisos de propuesta, 3 registros, 2 ofertas nuevas, 6 publicidades y 3 artículos del blog. En total, 26 entradas en el día.
+### Ejemplo: 8 en vivo + 2 negociables
 
-Funciones en `feedPlan.ts`: `rotationPerDay`, `rotationCap`, `proposalsPerDay`, `proposalMax`, `registrosPerDay`, `newPerDay`, `promoPerDay`, `counts`, `mockupsLeft`, `entryViews`, `offerStats`.
+8 rotaciones, 4 propuestas, 3 registros, 2 nuevas, 6 publicidades y 3 artículos de blog: **26 entradas** en el día. Los puntos claros son simulados:
 
-## Cómo se arma el día
+![Día con 8 en vivo + 2 negociables, por hora y tipo](docs/vmc-ahora/dia-8-2.svg)
 
-`planDay(V, N)` devuelve la lista de entradas del día ordenada por hora:
+En `eleccion.pdf` está la misma cuenta para 13 escenarios, desde 0 + 0 hasta 40 + 20.
 
-1. Las ofertas nuevas: la de la empresa a media mañana y la de SubasCars a media tarde.
-2. La rotación: ofertas que ya estaban publicadas, intercaladas en vivo y negociables en proporción, para que no salgan cinco seguidas del mismo tipo.
-3. Las propuestas simuladas, con código al azar.
-4. Los registros, la publicidad (alternando las dos) y el blog, cada tipo repartido parejo en el día.
-5. Se ordena por hora. Si quedan dos de publicidad o blog seguidas y hay actividad en los 30 minutos siguientes, esa actividad se adelanta entre las dos.
-6. Las negociaciones de cada oferta: las que ya tenía más las propuestas reales del día.
+### Contadores
 
-`checkPlan(plan)` revisa el resultado (lo usa el PDF).
+En producción se usan los contadores **reales** de la ficha de la oferta. Esta fórmula es solo para que la demo se vea creíble; sirve de referencia si se quieren contadores para publicidad y blog:
 
-## Reloj de la demo
-
-El estado vive en un store del módulo `VmcAhora.tsx` (`useSyncExternalStore`). Hay un solo reloj para toda la página, así todas las vistas muestran el mismo feed.
-
-- El tiempo es simulado y avanza `TICK_MS × velocidad`. A ×10, los 45 segundos se cumplen en 4,5 segundos reales y los "hace X min" también corren diez veces más rápido.
-- Al abrir la página ya hay 8 entradas (`BACKLOG`) y la publicidad va primero (regla 2).
-- Cada 45 segundos simulados entra la siguiente entrada del plan. El plan se repite cuando termina.
-- `simulateRealAction()` mete una acción real (una propuesta si hay negociables; si no, un registro), reinicia los 45 segundos y descuenta el siguiente simulado del mismo tipo.
-- Con el puntero encima del feed, el reloj se pausa.
-- `setFeedConfig(escenario, velocidad)` y `setFeedDesign(diseño)` los llama `HomeIndexBlock` desde los controles de QA.
-
-## Contadores
-
-`describe(entrada, inventario, minutosDesdeQueSalió)` calcula los textos y los contadores en el momento de mostrar la entrada, así que los números suben mientras la entrada está en pantalla.
-
-Las visitas cuentan desde que la entrada sale en el feed: arrancan en un valor de inicio y crecen hacia un tope, `visitas(t) = inicio + (tope − inicio) × (1 − e^(−t / τ))`.
+`visitas(t) = inicio + (tope − inicio) × (1 − e^(−t / τ))`
 
 | Entrada | Visitas al salir | Tope | τ |
 |---|---|---|---|
 | Oferta nueva | 0 | 120 a 500 (muy buenas: 600 a 800) | 6 h |
-| Oferta en rotación | 30 a 60 (la oferta ya era conocida) | igual | 6 h |
+| Oferta en rotación | 30 a 60 | igual | 6 h |
 | Publicidad | 8 a 15 | 120 a 300 | 4 h |
 | Blog | 5 a 12 | 80 a 200 | 5 h |
 | Propuesta y registro | 0 | 40 a 200 | 3 h |
 
-- Me gusta y participantes: entre el 4 % y el 8 % de las visitas de la oferta (`offerStats`).
-- Negociaciones: solo cuentan las propuestas reales. Las simuladas nunca suman.
-- En 0 se muestra solo el ícono, sin el número. Participantes en 0 dice "Sé el primero en participar"; negociaciones en 0, "Sin negociaciones aún".
+Cómo se muestran:
 
-## Colores y texto
+- **Me gusta y participantes:** del 4 % al 8 % de las visitas.
+- **Negociaciones:** solo cuentan las propuestas reales.
+- **Contador en 0:** se muestra solo el ícono. Excepciones: participantes en 0 dice "Sé el primero en participar"; negociaciones en 0 dice "Sin negociaciones aún".
 
-Cada tipo tiene un color: naranja para en vivo, cian para negociable y propuestas, morado para lo demás. Ese color solo se usa en las insignias del tipo (EN VIVO, NEGOCIABLE, BLOG…), que por defecto están apagadas. El texto destacado (el tipo, el número de OFERTA, el detalle) va en negrita y en negro, y el ícono de participantes y negociaciones también va en negro.
+## 7. Datos que necesita
 
-| Tono (control "tono de color") | En vivo | Negociable y propuestas |
+### Inventario: ofertas publicadas ahora
+
+| Campo | Para qué |
+|---|---|
+| `id` | "OFERTA 51015" y el enlace a la ficha |
+| `mode` | `vivo` o `negociable`. Define `V`, `N`, el texto y el contador |
+| `lot` | "Toyota Yaris 2022" |
+| `city` | "Lima" |
+| `price` | Base de la subasta. Si no hay precio, dice "Recibe propuestas" |
+| `who` + logo | Autor de la entrada: la empresa o SubasCars |
+| `imageSrc` | Foto principal (R13) |
+| `publishedAt` | Decide si es nueva hoy (R8) |
+| `closesAt` o estado | Una oferta cerrada deja de rotar |
+| visitas, me gusta, participantes, negociaciones | Contadores reales de la ficha |
+
+### Hechos reales: eventos
+
+| Evento | Datos mínimos | Qué hace el feed |
 |---|---|---|
-| Oscuro, por defecto (card de Tipo de oferta, `COLORS` en `feedPlan.ts`) | `#C2410C` | `#00777A` |
-| Medio | `#EF852E` | `#00AEB1` |
-| Design system | `#FF9639` | `#00D2D3` |
+| `offer.published` | La oferta completa | Entrada `nueva` al momento. Suma 1 a `T` |
+| `offer.closed` | `id` | Deja de rotar. Resta 1 a `T` |
+| `proposal.sent` | `offerId`, hora | Entrada `propuesta` con la foto de la oferta, **sin** el usuario. Descuenta una simulada |
+| `user.registered` | Hora | Entrada `registro`, **sin** nombre. Descuenta una simulada |
 
-Lo demás (registros, publicidad, blog) va en morado (`#7B5CE6`, `#3B1782`, `#4A2CE0`).
+### Dónde vive cada cosa (recomendación, no decisión)
 
-La publicidad y el blog usan las fotos de `apps/index-lab/public/banners/vmc` (fondo morado) y el botón de vidrio del banner principal (`va-glass`, copia de `hib-glass`), siempre sobre la foto y sin flecha. Ningún botón de VMC ahora usa otro estilo.
+- **Servidor:**
+  - arma el plan del día con `planDay(V, N)`;
+  - lleva cuántos reales hubo hoy por tipo;
+  - reparte los eventos.
+- **Cliente:**
+  - muestra las últimas 8 entradas;
+  - escucha eventos nuevos, por SSE, WebSocket o polling;
+  - pinta la siguiente simulada cuando toca.
+- **Por qué el plan va en el servidor:** así todos los visitantes ven el mismo feed a la misma hora.
+- **Qué guardar:** solo los contadores del día; con eso se calcula `simuladas = máx(0, objetivo − reales)`.
 
-## Controles de QA
+### Casos borde
 
-Están en "Abrir controles" (y en el panel de la vista móvil, que usa la misma lista `QA_CONTROLS`). Los de diseño solo cambian cómo se ve, no cuándo aparece cada entrada.
+Las tres últimas filas son recomendación (no están en la demo, que repite el plan sin hora real); confirmarlas con Julio.
 
-| Clave | Control | Por defecto | Otras opciones |
-|---|---|---|---|
-| `feedView` | VMC ahora | Timeline | Listado |
-| `feedScenario` | Inventario | 8 en vivo + 2 negociables | 0 ofertas, 1 negociable, 5 negociables, 3 + 2, 10 negociables, 10 en vivo, 6 + 6, 15 + 15 |
-| `feedSpeed` | Velocidad | ×1 (45 s reales) | ×10 (4,5 s) |
-| `feedAd` | Publicidad | Tarjeta | Post, Banner |
-| `feedAdBadge` | Badge de publicidad | Sin badge | Sobre la foto, Insignia, En la hora |
-| `feedViews` | Visualizaciones | Ojo (1,2 mil) | Ojo y número (1,234), Ojo y palabra, Texto |
-| `feedShare` | Compartir | Flecha y caja | Tres puntos, Avión |
-| `feedActs` | Fila de acciones | Palabra completa ("1,234 visualizaciones" cuando solo hay visitas y compartir) | Extremos, A la izquierda, A la derecha |
-| `feedScroll` | Scroll | Gris claro | Vidrio, Morado |
-| `feedTone` | Tono de color | Oscuro | Medio, Design system |
-| `feedTags` | Insignias | Sin insignia | Con insignia |
+| Caso | Qué pasa |
+|---|---|
+| `T = 0` | Solo publicidad y blog (R6). Captura en la sección 5 |
+| `N = 0` | Sin propuestas; +2 de blog (R2) |
+| `T > 30` | Rotan 30. Cuáles: pregunta abierta P1 |
+| Llega una propuesta a una oferta que ya cerró | Sale igual, con foto si la oferta todavía existe; sin foto si no (R10) |
+| Muchos reales seguidos | Salen todos, uno por evento. No hay agrupación (ver sección 9, idea 3) |
+| La persona abre la página a las 23:59 | Ve las últimas 8 del día. A las 24:00 empieza el plan del día siguiente |
+| Antes de las 9:00 | No hay simuladas. Los reales sí entran |
+| Cambia `T` durante el día | Se recalcula lo que queda del plan con el nuevo `T` |
 
-El panel "VMC ahora · reloj" muestra cuánto falta para la próxima entrada simulada, el plan del día y el botón "Simular acción real".
+## 8. Criterios de aceptación
 
-## Para producción
+Para dar por terminado el pase a producción:
 
-La demo inventa el inventario (`buildInventory`) y pasa un día completo en pocos minutos. En producción:
+- [ ] Con `T = 0` no sale ninguna rotación, propuesta ni registro en todo el día.
+- [ ] Con `N = 0` no sale ningún aviso de propuesta.
+- [ ] Una propuesta real aparece en el feed en segundos (meta sugerida: menos de 5 s), con la foto de su oferta y sin datos del usuario.
+- [ ] Después de un real, la siguiente simulada no sale antes de 45 s.
+- [ ] Con 3 propuestas reales en el día y un objetivo de 4, sale 1 simulada; con 4 o más reales, ninguna.
+- [ ] Una oferta publicada hoy no aparece como "Disponible…" ese día.
+- [ ] Una oferta cerrada no vuelve a rotar.
+- [ ] La primera entrada al abrir la página es una publicidad.
+- [ ] Nunca hay dos publicidades o blogs seguidos si hay actividad en los 30 minutos siguientes.
+- [ ] Los contadores de las ofertas coinciden con los de su ficha.
+- [ ] El conteo del día (rotaciones, propuestas, registros, publicidad) coincide con la tabla de `eleccion.pdf` para el mismo `V` y `N`.
+- [ ] Se ve como la demo con los controles por defecto, en escritorio (1440) y en móvil (393).
 
-1. El inventario (`V`, `N`, ofertas abiertas) viene de la API, no de `buildInventory`.
-2. Las nuevas ofertas, las propuestas y los registros reales entran cuando ocurren, desde un canal de eventos. Cada uno reinicia los 45 segundos y descuenta un simulado de su tipo.
-3. Visitas, me gusta, participantes y negociaciones son los reales de la ficha de la oferta. `entryViews` y `offerStats` son solo para la demo.
-4. El plan sigue la hora real: la rotación y lo simulado se reparten entre las 9:00 y las 24:00.
-5. Las ofertas que cierran dejan de rotar, y el plan que queda se recalcula cuando cambia `T`.
-6. Cuando se conecten las propuestas y los registros reales, se apagan sus simulados.
+## 9. Abierto
 
-## Todavía no implementado
+### Preguntas para Julio
 
-Ideas que salieron al definir el feed y que la demo todavía no hace:
+| # | Pregunta | Propuesta actual |
+|---|---|---|
+| P1 | Con más de 30 ofertas, ¿cuáles 30 rotan? | Sin definir: la demo toma las 30 primeras. Opciones posibles: las que cierran antes, las de menos visitas, o ir turnando día a día |
+| P2 | ¿Se aprueban los topes de propuestas 5, 8 y 12 (R5)? | Sí, como están |
+| P3 | ¿Se aprueban las 3 vueltas con 1 a 5 ofertas (R4)? | Sí, con 5 h o más entre vueltas |
+| P4 | Sin ofertas, ¿qué se muestra (R6)? | Solo publicidad y blog. Alternativas: ocultar VMC ahora o una entrada fija "Pronto nuevas ofertas" |
+| P5 | ¿"En vivo" en la cabecera solo si `V > 0`? | Sí; si no, decir "Actividad de hoy" |
+| P6 | ¿Qué palabras usa el contador? | La ficha dice "ofertas" y "propuestas"; VMC ahora dice "participantes" y "negociaciones". Elegir unas y usarlas en los dos lados |
+| P7 | En móvil, ¿Opción A o B? | Se ven las dos con los botones Opción A / B del lab |
 
-1. Alternar la publicidad en cada visita. Hoy la primera entrada siempre es una publicidad, pero sale la misma cada vez que se abre la página. La idea es alternar entre "Valoriza tu auto" y "Publica tu auto", para que la misma persona no vea siempre la misma.
-2. "En vivo" en la cabecera solo cuando hay ofertas en vivo. Hoy la cabecera del feed dice "En vivo" aunque no haya ninguna subasta en vivo. La idea es mostrarlo solo si `V` > 0 y, si no, "Actividad de hoy".
-3. Juntar avisos reales seguidos. Si llegan 3 propuestas reales seguidas a la misma oferta, en vez de 3 avisos iguales saldría uno: "Se enviaron 3 propuestas a la OFERTA 67942". Lo mismo con los registros: "5 personas se registraron en la última hora".
-4. Mismas palabras en el contador. La ficha de la oferta dice "X ofertas" (en vivo) y "X propuestas" (negociable); VMC ahora dice "participantes" y "negociaciones". Falta elegir unas y usarlas en los dos lados.
-5. Otras opciones sin ofertas publicadas. Hoy el feed muestra solo publicidad y blog. Las alternativas serían ocultar VMC ahora o mostrar una entrada fija "Pronto nuevas ofertas".
+### Todavía no implementado (ideas)
+
+1. **Alternar la primera publicidad en cada visita.** Hoy siempre sale la misma; la idea es alternar entre Valoriza y Publica.
+2. **"En vivo" en la cabecera solo con ofertas en vivo.** Ver P5.
+3. **Juntar reales seguidos.** Por ejemplo, "Se enviaron 3 propuestas a la OFERTA 67942" o "5 personas se registraron en la última hora".
+4. **Mismas palabras en el contador.** Ver P6.
+
+## 10. Diseño por defecto (lo que va a producción)
+
+| Qué | Valor |
+|---|---|
+| Vista | Timeline en escritorio. En móvil hay dos versiones: Opción A (tarjeta con "Ver más") y Opción B (pestañas arriba, estilo X). Ver P7 |
+| Publicidad | Tarjeta con la foto arriba y el botón de vidrio encima (`va-glass`, sin flecha) |
+| Badge de publicidad | Sin badge |
+| Visualizaciones | Ojo y número corto (1,2 mil); "1,234 visualizaciones" cuando solo hay visitas y compartir |
+| Compartir | Flecha y caja |
+| Insignias de tipo (EN VIVO, NEGOCIABLE…) | Apagadas |
+| Texto destacado | En negrita y en negro (tipo, número de OFERTA, detalle) |
+| Colores (tono oscuro) | En vivo `#C2410C`; negociable y propuestas `#00777A`; lo demás en morado (`#7B5CE6`, `#3B1782`, `#4A2CE0`) |
+| Scroll | Gris claro |
+
+Las fotos de la publicidad y del blog están en `apps/index-lab/public/banners/vmc`.
+
+## 11. Mapa del código
+
+| Archivo | Qué tiene |
+|---|---|
+| `apps/index-lab/app/qa/home-index-rebase/feedPlan.ts` | **Lo que se reutiliza.** Reglas y fórmulas, sin React: `counts`, `planDay`, `describe`, `rotationPerDay`, `proposalsPerDay`, `registrosPerDay`, `promoPerDay`, `mockupsLeft`, `checkPlan`, `COLORS`, `BLOG`. Solo de la demo: `buildInventory`, `entryViews`, `offerStats` |
+| `apps/index-lab/app/qa/home-index-rebase/VmcAhora.tsx` | El feed: store con un solo reloj por página (`useSyncExternalStore`, tic de 500 ms, 8 entradas al abrir, pausa al pasar el puntero), las vistas y `simulateRealAction()`, que es lo que en producción hará un evento real |
+| `apps/index-lab/app/qa/home-index-rebase/HomeIndexBlock.tsx` | Dónde va el feed en el Index y los controles de QA (`QA_CONTROLS`). Lo de QA no va a producción |
+| `scripts/eleccion-pdf.mjs` → `eleccion.pdf` | Resumen en diapositivas: reglas, fórmulas, escenarios y lo que falta decidir |
+| `scripts/escenarios-pdf.mjs` → `escenarios.pdf` | Versión larga, escenario por escenario |
+| `scripts/vmc-ahora-docs.mjs` → `docs/vmc-ahora/` | Regenera las imágenes de esta guía, con el lab corriendo en `:3001` |
+
+Para regenerar todo después de cambiar una fórmula:
+
+```
+node scripts/eleccion-pdf.mjs
+node scripts/escenarios-pdf.mjs
+node scripts/vmc-ahora-docs.mjs
+```
+
+Usan Edge por defecto. Con Chrome (Linux o macOS), anteponer `BROWSER_CHANNEL=chrome`.
