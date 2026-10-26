@@ -37,7 +37,7 @@ const RULES = [
   "Los avisos de propuestas y registros no dicen quién fue.",
   "La propuesta simulada usa un código de oferta al azar, no lleva foto y no cambia ningún contador. La real lleva la foto de su oferta.",
   "Cada hecho real reemplaza a uno simulado del mismo tipo. Los reales no tienen tope.",
-  "Visitas, me gusta y participantes empiezan en 0 y crecen con el tiempo.",
+  "Visitas, me gusta y participantes cuentan desde que sale la entrada y crecen con el tiempo.",
   "Ofertas: me gusta, participantes o negociaciones, visitas y compartir. El resto: visitas y compartir.",
 ];
 const rules = slide("Reglas", `<ol class="steps">${RULES.map((r) => `<li>${r}</li>`).join("")}</ol>`);
@@ -60,7 +60,8 @@ const formulas = slide("Fórmulas", `<div class="grid">
     <h3>Simuladas del día</h3>
     ${line("simuladas = máx(0, objetivo − reales)")}
     <h3>Contadores</h3>
-    ${line("visitas(<i>t</i>) = tope × (1 − <i>e</i><sup>−<i>t</i> / 6 h</sup>)")}
+    ${line("visitas(<i>t</i>) = inicio + (tope − inicio)(1 − <i>e</i><sup>−<i>t</i> / 6 h</sup>)")}
+    ${line('<span class="muted">inicio: oferta nueva 0, en rotación 30 a 60, publicidad 8 a 15</span>')}
     ${line("me gusta, participantes = 4 % a 8 % de visitas")}
     ${line('<span class="muted">tope de visitas: 120 a 500 (muy buenas: 600 a 800)</span>')}
   </div>

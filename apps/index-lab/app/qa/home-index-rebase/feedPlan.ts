@@ -13,8 +13,6 @@ export type Offer = {
   id: number; mode: Mode; who: string; lot: string; price?: string; city: string; imageSrc: string;
   /** Publicada hoy: sale como «nueva» y no entra a la rotación del día. */
   isNew: boolean;
-  /** Días desde que se publicó (0 si es de hoy). Visitas, me gusta y participantes crecen con el tiempo desde ahí. */
-  ageDays: number;
   /** Hasta cuántas visitas llega (120–500; las muy buenas, 600–800) y qué parte de ellas da me gusta o participa. */
   viewsCap: number; likeRate: number; partRate: number;
   /** Negociaciones que ya tenía al empezar el día (solo negociables publicadas antes de hoy). */
@@ -120,14 +118,14 @@ export function buildInventory(V: number, N: number): Offer[] {
   const vivo = Array.from({ length: V }, (_, i): Offer => {
     const isNew = hasNew(V + N, V) && i === 0;
     return { ...POOL[i % POOL.length], id: 51015 + i * 97, mode: "vivo", who: EMPRESAS[i % EMPRESAS.length], isNew,
-      ageDays: isNew ? 0 : 1 + ((i * 3) % 6), viewsCap: i % 6 === 2 ? 600 + ((i * 53) % 200) : 120 + ((i * 137) % 380),
+      viewsCap: i % 6 === 2 ? 600 + ((i * 53) % 200) : 120 + ((i * 137) % 380),
       likeRate: 0.04 + ((i * 7) % 5) / 100, partRate: 0.04 + ((i * 3) % 5) / 100, base: 0 };
   });
   const neg = Array.from({ length: N }, (_, j): Offer => {
     const p = POOL[(j + 5) % POOL.length];
     const isNew = hasNew(V + N, N) && j === 0;
     return { ...p, price: undefined, id: 67942 + j * 113, mode: "negociable", who: "SubasCars", isNew,
-      ageDays: isNew ? 0 : 1 + ((j * 5) % 6), viewsCap: j % 6 === 3 ? 600 + ((j * 71) % 200) : 100 + ((j * 151) % 360),
+      viewsCap: j % 6 === 3 ? 600 + ((j * 71) % 200) : 100 + ((j * 151) % 360),
       likeRate: 0.04 + ((j * 3) % 5) / 100, partRate: 0, base: isNew ? 0 : (j * 3) % 4 };
   });
   return [...vivo, ...neg];
@@ -237,30 +235,37 @@ export type EntryText = {
 export const COLORS = { vivo: "#C2410C", negociable: "#00777A", morado: "#7B5CE6", promo: "#3B1782", blog: "#4A2CE0" };
 
 // ─── Contadores en el tiempo ─────────────────────────────────────────────────────────────────────────────────────────
-// Todo empieza en 0 al publicarse y crece hacia su tope: tope × (1 − e^(−edad / τ)). Una oferta recién publicada no tiene
-// visitas, me gusta ni participantes; a las 6 h lleva cerca del 63 % de su tope (lo más visto es lo de las primeras horas).
+// Los números cuadran con la hora de la entrada: cuentan desde que sale en el feed. Arrancan en un valor de inicio y crecen
+// hacia su tope: visitas(t) = inicio + (tope − inicio) × (1 − e^(−t / τ)).
 const grow = (cap: number, min: number, tau: number) => Math.floor(cap * (1 - Math.exp(-Math.max(0, min) / tau)));
-/** Visitas, me gusta y participantes de una oferta con `ageMin` minutos de publicada. */
-export function offerStats(o: Offer, ageMin: number): { views: number; likes: number; participants: number } {
-  const views = grow(o.viewsCap, ageMin, 360);
-  return { views, likes: Math.floor(views * o.likeRate), participants: Math.floor(views * o.partRate) };
-}
 const hash = (key: string) => ([...key].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) % 100003, 7) * 7919) % 100003;
-/** Visitas de lo que no es oferta: publicidad y blog llevan días publicados (140–470); propuestas y registros empiezan en
- *  0 y suben hasta 40–200. */
-const entryViews = (e: PlanEntry, sinceMin: number) => (isPromo(e.kind)
-  ? grow(180 + (hash(e.key) % 420), 3 * 1440 + sinceMin, 2880)
-  : grow(40 + (hash(e.key) % 160), sinceMin, 180));
+/** Inicio, tope y τ (minutos) de las visitas de cada tipo de entrada. */
+function viewsModel(e: PlanEntry, o: Offer | undefined): [start: number, cap: number, tau: number] {
+  const h = hash(e.key);
+  if (e.kind === "rotacion" && o) return [30 + (h % 31), o.viewsCap, 360]; // la oferta ya era conocida: 30–60 al salir
+  if ((e.kind === "nueva" || e.kind === "nueva-subascars") && o) return [0, o.viewsCap, 360]; // recién publicada: 0
+  if (e.kind === "ad-valoriza" || e.kind === "ad-publica") return [8 + (h % 8), 120 + (h % 180), 240];
+  if (e.kind === "blog") return [5 + (h % 8), 80 + (h % 120), 300];
+  return [0, 40 + (h % 160), 180]; // propuestas y registros
+}
+/** Visitas de una entrada que salió hace `sinceMin` minutos. */
+export function entryViews(e: PlanEntry, o: Offer | undefined, sinceMin: number): number {
+  const [start, cap, tau] = viewsModel(e, o);
+  return start + grow(cap - start, sinceMin, tau);
+}
+/** Me gusta y participantes de una oferta: una parte (4–8 %) de sus visitas. */
+export function offerStats(o: Offer, views: number): { likes: number; participants: number } {
+  return { likes: Math.floor(views * o.likeRate), participants: Math.floor(views * o.partRate) };
+}
 
 /** Textos y contadores de una entrada que salió hace `sinceMin` minutos (en la demo, minutos simulados). */
 export function describe(e: PlanEntry, inv: Offer[], sinceMin = 0): EntryText {
   const t = describeEntry(e, inv);
   const o = inv.find((x) => x.id === e.offerId);
-  if (!t.mode || !o) return { ...t, views: entryViews(e, sinceMin) };
-  // Edad de la oferta: la nueva se publicó cuando salió su entrada; la que rota, hace `ageDays` días.
-  const age = o.isNew ? sinceMin : o.ageDays * 1440 + (e.min - DAY_START) + sinceMin;
-  const st = offerStats(o, age);
-  return { ...t, views: st.views, likes: st.likes, count: o.mode === "vivo" ? st.participants : e.count ?? o.base };
+  const views = entryViews(e, o, sinceMin);
+  if (!t.mode || !o) return { ...t, views };
+  const st = offerStats(o, views);
+  return { ...t, views, likes: st.likes, count: o.mode === "vivo" ? st.participants : e.count ?? o.base };
 }
 function describeEntry(e: PlanEntry, inv: Offer[]): Omit<EntryText, "views"> {
   const o = inv.find((x) => x.id === e.offerId);

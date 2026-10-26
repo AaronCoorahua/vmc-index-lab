@@ -90,7 +90,7 @@ me gusta, participantes      4 % a 8 % de las visitas
 
 Cada tipo se reparte parejo entre las 9:00 y las 24:00: una rotación cada `900 / R` minutos, una propuesta cada `900 / P` minutos, y así.
 
-Funciones en `feedPlan.ts`: `rotationPerDay`, `rotationCap`, `proposalsPerDay`, `proposalMax`, `registrosPerDay`, `newPerDay`, `promoPerDay`, `counts`, `mockupsLeft`, `offerStats`.
+Funciones en `feedPlan.ts`: `rotationPerDay`, `rotationCap`, `proposalsPerDay`, `proposalMax`, `registrosPerDay`, `newPerDay`, `promoPerDay`, `counts`, `mockupsLeft`, `entryViews`, `offerStats`.
 
 ## Cómo se arma el día
 
@@ -120,11 +120,17 @@ El estado vive en un store del módulo `VmcAhora.tsx` (`useSyncExternalStore`). 
 
 `describe(entrada, inventario, minutosDesdeQueSalió)` calcula los textos y los contadores en el momento de mostrar la entrada, así que los números suben mientras la entrada está en pantalla.
 
-- Oferta nueva: su edad es el tiempo desde que salió su entrada. Empieza en 0 visitas, 0 me gusta y 0 participantes.
-- Oferta en rotación: lleva `ageDays` días publicada, así que ya tiene visitas acumuladas.
-- Tope de visitas por oferta: 120 a 500. Las muy buenas, 600 a 800.
-- Publicidad y blog: llevan días publicados, entre 140 y 470 visitas.
-- Propuestas y registros: empiezan en 0 y suben hasta 40 a 200.
+Los números cuadran con la hora de la entrada: cuentan desde que sale en el feed. `visitas(t) = inicio + (tope − inicio) × (1 − e^(−t / τ))`.
+
+| Entrada | Visitas al salir | Tope | τ |
+|---|---|---|---|
+| Oferta nueva | 0 | 120 a 500 (muy buenas: 600 a 800) | 6 h |
+| Oferta en rotación | 30 a 60 (la oferta ya era conocida) | igual | 6 h |
+| Publicidad | 8 a 15 | 120 a 300 | 4 h |
+| Blog | 5 a 12 | 80 a 200 | 5 h |
+| Propuesta y registro | 0 | 40 a 200 | 3 h |
+
+- Me gusta y participantes: 4 % a 8 % de las visitas de la oferta (`offerStats`).
 - Negociaciones: solo cuentan las propuestas reales. Las simuladas nunca suman.
 - En 0 se muestra solo el ícono, sin el número. Participantes en 0 dice "Sé el primero en participar"; negociaciones en 0, "Sin negociaciones aún".
 

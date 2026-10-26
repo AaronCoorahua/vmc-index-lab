@@ -258,7 +258,8 @@ const CSS = `
   background: none; color: #536471; cursor: pointer; }
 .va-x__more:hover { background: rgba(59,23,130,0.1); color: #3B1782; }
 .va-x__text { margin: 0; font-size: 15px; line-height: 20px; color: #0F1419; overflow-wrap: anywhere; }
-.va-x__text em { font-style: normal; color: var(--k, #4A2CE0); }
+.va-x__text em { font-style: normal; font-weight: 700; color: var(--k, #4A2CE0); }
+.va-hl { font-weight: 700; color: var(--k, #4A2CE0); }
 .va-x .va-post__media { margin-top: 12px; border: 1px solid #CFD9DE; border-radius: 16px; }
 .va-x__acts { display: flex; align-items: center; justify-content: space-between; margin: 4px 0 0 -8px; max-width: 425px; }
 .va-x__acts > span { display: flex; gap: 2px; }
@@ -481,10 +482,18 @@ function Ad({ t, d, x }: { t: EntryText; d: FeedDesign; x: boolean }): JSX.Eleme
 }
 
 /** Texto de la entrada: insignia del tipo, título, detalle y, en las propuestas, la foto pequeña de la oferta (sin enlace). */
+// En el título de ofertas y propuestas, el tipo («en vivo», «para negociar», «negociable») y el número de OFERTA van en
+// negrita y del color del tipo.
+const HL = /(en vivo|para negociar|negociable|OFERTA \d+)/;
+const highlight = (title: string, on: boolean) => (on
+  ? title.split(HL).map((part, i) => (i % 2 ? <strong key={i} className="va-hl">{part}</strong> : part))
+  : title);
+
 /** Fotos: las ofertas (nuevas y en rotación) llevan siempre la suya; la propuesta, solo si es real; el blog, su portada. */
 function Body({ t, kind, d, x = false }: { t: EntryText; kind: PlanEntry["kind"]; d: FeedDesign; x?: boolean }): JSX.Element {
   // El detalle va del color del tipo: en vivo naranja, negociable cian, el resto morado.
-  const text = <p className={x ? "va-x__text" : "va-post__text"} style={{ "--k": t.color } as CSSProperties}>{t.title}.{t.detail ? <> <em>{t.detail}</em></> : null}</p>;
+  const text = <p className={x ? "va-x__text" : "va-post__text"} style={{ "--k": t.color } as CSSProperties}>
+    {highlight(t.title, Boolean(t.mode) || kind === "propuesta")}.{t.detail ? <> <em>{t.detail}</em></> : null}</p>;
   if (t.ad) {
     return (
       <>
