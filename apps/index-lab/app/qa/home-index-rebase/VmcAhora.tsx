@@ -37,7 +37,7 @@ export type ColorTone = "ds" | "medio" | "oscuro";
 export type FeedDesign = {
   ad: AdStyle; badge: AdBadge; views: ViewsStyle; share: ShareIcon; acts: ActsAlign; tags: TagsMode; scroll: ScrollStyle; tone: ColorTone;
 };
-export const DEFAULT_DESIGN: FeedDesign = { ad: "post", badge: "sin", views: "ojo", share: "caja", acts: "palabra", tags: "sin", scroll: "gris", tone: "oscuro" };
+export const DEFAULT_DESIGN: FeedDesign = { ad: "tarjeta", badge: "sin", views: "ojo", share: "caja", acts: "palabra", tags: "sin", scroll: "gris", tone: "oscuro" };
 // Naranja y cian del design system (BadgeStatus en vivo #FF9639 → #EF852E; cian #00D2D3 / #00AEB1 de Concorde).
 const TONES: Record<ColorTone, Record<string, string>> = {
   ds: { [COLORS.vivo]: "#FF9639", [COLORS.negociable]: "#00D2D3" },
@@ -453,7 +453,7 @@ function Acts({ t, d, x = false }: { t: EntryText; d: FeedDesign; x?: boolean })
     <div className={`${x ? "va-x__acts" : "va-acts"}${align}`}>
       <button type="button" style={{ "--k": "#F91880" } as CSSProperties} aria-pressed={liked} aria-label={`Me gusta · ${likes}`}
         onClick={stop(() => setLiked((v) => !v))}>{wrap(Ico.heart)}{likes || null}</button>
-      <span className="va-acts__count" style={{ "--k": t.color } as CSSProperties} title={countLabel(t)}>{wrap(Ico.people)}{countLabel(t)}</span>
+      <span className="va-acts__count" style={{ "--k": "#191C1C" } as CSSProperties} title={countLabel(t)}>{wrap(Ico.people)}{countLabel(t)}</span>
       {views}
       {share}
     </div>
