@@ -118,7 +118,7 @@ const MOCK_TYPES = [
   ["Rotación del inventario", "Real", "Real, nunca mockup", "T", "Solo ofertas publicadas y abiertas."],
   ["Publicidad y blog", "Contenido de VMC", "Real", "C", "No afirma ningún hecho; no es mockup."],
   ["Participantes (en vivo)", "Ejemplo", "Real (dato de la subasta)", "Oferta", "Si es 0: «Sé el primero en participar»."],
-  ["Negociaciones · me gusta", "Ejemplo", "Real", "Oferta", "Las propuestas mockup no las tocan (código aleatorio)."],
+  ["Me gusta · negociaciones · visitas", "Ejemplo", "Real (los de la detail card)", "Oferta", "Solo en publicaciones de ofertas. Las propuestas mockup no los tocan (código aleatorio)."],
 ];
 const mockTag = `<span class="tag" style="--k:#C2410C">Mockup</span>`;
 const mockRows = rows.map(({ id, name, c }) => {
@@ -189,6 +189,8 @@ const CLASHES = [
     "Aceptable: nadie puede verificar el código. Alternativa más prudente: 1 por negociable al día cuando N ≤ 2 (N = 1 → 1, N = 2 → 2).", "Julio"],
   ["Registros mockup sin inventario", "Sin ofertas, «Usuario X se registró» cada pocas horas se ve fake: ¿a qué se registran?",
     "Registros mockup según T: 0 sin inventario, 1 + T/4 hasta 6. Ya aplicado.", "Aplicado"],
+  ["Contador en la detail card y en el feed", "La detail card dice «X ofertas» (en vivo) y «X propuestas» (negociable); en el feed Julio pidió «participantes» y «negociaciones».",
+    "Usar las mismas palabras en ambos lados para que el número se lea igual en la card y en el feed.", "Julio"],
   ["Ráfagas de registros", "Muchos registros juntos llenarían el feed de «Usuario X se registró».",
     "Agrupar: «5 personas se registraron en la última hora». Mostrar solo el código, nunca el nombre.", "Julio"],
 ];
@@ -269,7 +271,7 @@ tr { break-inside: avoid; }
       <li>Con 0 negociables no hay avisos de propuesta; esos espacios, para publicidad o blog.</li>
       <li>La rotación presenta la oferta como inventario disponible, nunca como recién publicada.</li>
       <li>Con 6–11 ofertas, rotación sin repetir una oferta en el día, entre 9:00 y 24:00.</li>
-      <li>Acciones: en vivo → me gusta · participantes · compartir. Negociable → me gusta · negociaciones · compartir.</li>
+      <li>Acciones: solo la publicación de una oferta lleva los datos de la detail card: en vivo → me gusta · participantes · visitas · compartir; negociable → me gusta · negociaciones · visitas · compartir. Las demás entradas (propuestas, registros, publicidad, blog), solo compartir.</li>
       <li>En producción, los avisos de registros y propuestas deben ser hechos reales.</li>
     </ul></div>
     <div class="box pr"><h3 style="margin-top:0">Variables</h3><ul>

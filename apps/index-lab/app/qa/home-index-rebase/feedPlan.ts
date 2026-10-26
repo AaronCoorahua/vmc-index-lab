@@ -15,6 +15,8 @@ export type Offer = {
   isNew: boolean;
   /** Participantes (en vivo) o negociaciones (negociable) al empezar el día. */
   base: number; likes: number;
+  /** Visitas de la oferta (el ojito de la detail card). */
+  views: number;
 };
 export type Kind = "nueva" | "nueva-subascars" | "registro" | "ad-valoriza" | "ad-publica" | "propuesta" | "blog" | "rotacion";
 export type PlanEntry = {
@@ -115,12 +117,12 @@ export const BLOG = [
 export function buildInventory(V: number, N: number): Offer[] {
   const vivo = Array.from({ length: V }, (_, i): Offer => ({
     ...POOL[i % POOL.length], id: 51015 + i * 97, mode: "vivo", who: EMPRESAS[i % EMPRESAS.length],
-    isNew: hasNew(V + N, V) && i === 0, base: 8 + ((i * 13) % 30), likes: 12 + ((i * 17) % 50),
+    isNew: hasNew(V + N, V) && i === 0, base: 8 + ((i * 13) % 30), likes: 12 + ((i * 17) % 50), views: 140 + ((i * 211) % 900),
   }));
   const neg = Array.from({ length: N }, (_, j): Offer => {
     const p = POOL[(j + 5) % POOL.length];
     return { ...p, price: undefined, id: 67942 + j * 113, mode: "negociable", who: "SubasCars",
-      isNew: hasNew(V + N, N) && j === 0, base: (j * 3) % 5, likes: 9 + ((j * 11) % 40) };
+      isNew: hasNew(V + N, N) && j === 0, base: (j * 3) % 5, likes: 9 + ((j * 11) % 40), views: 95 + ((j * 173) % 700) };
   });
   return [...vivo, ...neg];
 }
@@ -215,8 +217,9 @@ export function checkPlan(plan: PlanEntry[]): { promoRun: number; propNear: numb
 // ─── Textos ──────────────────────────────────────────────────────────────────────────────────────────────────────────
 export type EntryText = {
   author: string; title: string; detail: string; pill: string; color: string; imageSrc?: string;
-  /** Oferta con acciones: «vivo» → me gusta · participantes · compartir; «negociable» → me gusta · negociaciones · compartir. */
-  mode?: Mode; likes?: number; count?: number;
+  /** Publicación de una oferta (nueva o rotación), con los datos de la detail card: «vivo» → me gusta · participantes ·
+   *  visitas · compartir; «negociable» → me gusta · negociaciones · visitas · compartir. Sin `mode`, solo compartir. */
+  mode?: Mode; likes?: number; count?: number; views?: number;
   /** Botón de la publicidad o del blog. Las propuestas y los registros no son clicables. */
   cta?: string;
 };
@@ -225,7 +228,7 @@ export const COLORS = { vivo: "#F2701D", negociable: "#00A8AB", nueva: "#8460E5"
 export function describe(e: PlanEntry, inv: Offer[]): EntryText {
   const o = inv.find((x) => x.id === e.offerId);
   const tag = (m: Mode) => (m === "vivo" ? "En vivo" : "Negociable");
-  const offer = o ? { imageSrc: o.imageSrc, mode: o.mode, likes: o.likes, count: e.count } : {};
+  const offer = o ? { imageSrc: o.imageSrc, mode: o.mode, likes: o.likes, count: e.count, views: o.views } : {};
   switch (e.kind) {
     case "nueva":
     case "nueva-subascars":

@@ -8,7 +8,8 @@
  * Contenido de ejemplo. Vistas:
  *  · timeline  estilo X/Twitter: avatar, verificado, texto, foto en la primera, acciones por tipo de oferta.
  *  · normal    listado: foto, insignia, lote, precio y una línea gris con autor · tiempo.
- * Acciones (Julio): en vivo → me gusta · participantes · compartir; negociable → me gusta · negociaciones · compartir.
+ * Acciones: solo las publicaciones de ofertas llevan los datos de la detail card (me gusta · participantes o negociaciones ·
+ * visitas) más compartir; el resto de entradas (propuestas, registros, publicidad, blog) solo compartir.
  * Los avisos de propuesta y de registro los firma VMC y no son clicables.
  */
 import { useSyncExternalStore, useState } from "react";
@@ -257,6 +258,17 @@ const CSS = `
 .va-acts button:last-child { margin-left: auto; }
 .va-acts svg { flex: none; width: 16px; height: 16px; }
 .va-acts__count { overflow: hidden; text-overflow: ellipsis; }
+.va-acts__views { flex: none; }
+/* Timeline (columna angosta): fila más compacta para que «38 participantes» / «4 negociaciones» entren completos. */
+.va-post .va-acts { gap: 0; margin-left: -3px; font-size: 11px; letter-spacing: -0.01em; }
+.va-post .va-acts button, .va-post .va-acts__count { gap: 3px; padding: 0 3px; }
+.va-post .va-acts svg { width: 14px; height: 14px; }
+/* Publicidad y blog: el botón y compartir en la misma fila. */
+.va-ctarow { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.va-ctarow > .va-acts, .va-ctarow > .va-x__acts { margin: 4px 0 0; }
+/* Solo compartir (propuestas, registros, publicidad, blog): el botón queda a la derecha, como en las ofertas. */
+.va-acts--share { justify-content: flex-end; margin-top: 2px; }
+.va-x__acts.va-acts--share { justify-content: flex-end; }
 .va-acts__count svg { color: var(--k); }
 .va-x__acts > .va-acts__count { display: inline-flex; align-items: center; gap: 2px; min-width: 0; height: 34px; padding-right: 8px; overflow: hidden; text-overflow: ellipsis;
   font: 400 13px/1 var(--vmc-font-display, 'Plus Jakarta Sans', sans-serif); color: #536471; white-space: nowrap; }
@@ -302,7 +314,7 @@ const Verified = () => (
 const Ico = {
   heart: <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden><path d="M12 20.5s-8-4.9-8-11a4.6 4.6 0 0 1 8-3 4.6 4.6 0 0 1 8 3c0 6.1-8 11-8 11z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" /></svg>,
   people: <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden><path d="M15.5 19v-1.4a3.6 3.6 0 0 0-3.6-3.6H7.1a3.6 3.6 0 0 0-3.6 3.6V19M9.5 11a3.4 3.4 0 1 0 0-6.8 3.4 3.4 0 0 0 0 6.8zM20.5 19v-1.3a3.3 3.3 0 0 0-2.5-3.2M15.3 4.4a3.4 3.4 0 0 1 0 6.4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>,
-  nego: <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden><path d="M4 8.5h14.5l-3.5-3.5M20 15.5H5.5L9 19" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>,
+  eye: <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" /><circle cx="12" cy="12" r="2.6" fill="none" stroke="currentColor" strokeWidth="1.8" /></svg>,
   share: <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden><path d="M21 3L10.5 13.5M21 3l-6.5 18-4-7.5L3 9.5z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" /></svg>,
   more: <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden><circle cx="5" cy="12" r="1.7" fill="currentColor" /><circle cx="12" cy="12" r="1.7" fill="currentColor" /><circle cx="19" cy="12" r="1.7" fill="currentColor" /></svg>,
   arrowUp: <svg width="11" height="11" viewBox="0 0 24 24" aria-hidden><path d="M12 19V5M6 11l6-6 6 6" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" /></svg>,
@@ -316,19 +328,24 @@ function countLabel(t: EntryText): string {
   return n ? `${n} negociaci${n === 1 ? "ón" : "ones"}` : "Sin negociaciones aún";
 }
 
-/** Acciones de una oferta (Julio): me gusta · participantes (en vivo) o negociaciones (negociable) · compartir. */
-function Acts({ t, x = false }: { t: EntryText; x?: boolean }): JSX.Element | null {
+const fmtViews = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(1).replace(".0", "").replace(".", ",")} mil` : String(n));
+
+/** Acciones. Publicación de una oferta: lo de la detail card (me gusta · participantes o negociaciones · visitas) y compartir.
+ *  Las demás entradas (propuestas, registros, publicidad, blog): solo compartir. */
+function Acts({ t, x = false }: { t: EntryText; x?: boolean }): JSX.Element {
   const [liked, setLiked] = useState(false);
-  if (!t.mode) return null;
   const likes = (t.likes ?? 0) + (liked ? 1 : 0);
   const stop = (fn?: () => void) => (ev: { stopPropagation: () => void }) => { ev.stopPropagation(); fn?.(); };
   const wrap = (icon: JSX.Element) => (x ? <i>{icon}</i> : icon);
+  const share = <button type="button" style={{ "--k": "#4A2CE0" } as CSSProperties} aria-label="Compartir" onClick={stop()}>{wrap(Ico.share)}</button>;
+  if (!t.mode) return <div className={x ? "va-x__acts va-acts--share" : "va-acts va-acts--share"}>{share}</div>;
   return (
     <div className={x ? "va-x__acts" : "va-acts"}>
       <button type="button" style={{ "--k": "#F91880" } as CSSProperties} aria-pressed={liked} aria-label={`Me gusta · ${likes}`}
         onClick={stop(() => setLiked((v) => !v))}>{wrap(Ico.heart)}{likes}</button>
-      <span className="va-acts__count" style={{ "--k": t.color } as CSSProperties}>{wrap(t.mode === "vivo" ? Ico.people : Ico.nego)}{countLabel(t)}</span>
-      <button type="button" style={{ "--k": "#4A2CE0" } as CSSProperties} aria-label="Compartir" onClick={stop()}>{wrap(Ico.share)}</button>
+      <span className="va-acts__count" style={{ "--k": t.color } as CSSProperties} title={countLabel(t)}>{wrap(Ico.people)}{countLabel(t)}</span>
+      <span className="va-acts__count va-acts__views" style={{ "--k": "#6B6880" } as CSSProperties} aria-label={`${t.views ?? 0} visitas`}>{wrap(Ico.eye)}{fmtViews(t.views ?? 0)}</span>
+      {share}
     </div>
   );
 }
@@ -341,8 +358,7 @@ function Body({ t, kind, big, x = false }: { t: EntryText; kind: PlanEntry["kind
       <span className="va-tag" style={{ "--k": t.color } as CSSProperties}>{t.pill}</span>
       {kind === "propuesta" ? <div className="va-prop">{text}{t.imageSrc ? <img src={t.imageSrc} alt="" /> : null}</div> : text}
       {big && kind !== "propuesta" && t.imageSrc ? <span className="va-post__media"><img src={t.imageSrc} alt="" /></span> : null}
-      {t.cta ? <button type="button" className="va-cta">{t.cta}{Ico.go}</button> : null}
-      <Acts t={t} x={x} />
+      {t.cta ? <div className="va-ctarow"><button type="button" className="va-cta">{t.cta}{Ico.go}</button><Acts t={t} x={x} /></div> : <Acts t={t} x={x} />}
     </>
   );
 }
