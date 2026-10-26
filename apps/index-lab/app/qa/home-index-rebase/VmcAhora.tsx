@@ -15,7 +15,7 @@
 import { useSyncExternalStore, useState } from "react";
 import type { CSSProperties, JSX } from "react";
 import {
-  buildInventory, counts, DEFAULT_SCENARIO, describe, GAP_S, planDay, SCENARIOS,
+  buildInventory, COLORS, counts, DEFAULT_SCENARIO, describe, GAP_S, planDay, SCENARIOS,
   type EntryText, type Offer, type PlanEntry,
 } from "./feedPlan";
 
@@ -32,8 +32,19 @@ export type ActsAlign = "palabra" | "extremos" | "izquierda" | "derecha";
 export type TagsMode = "con" | "sin";
 /** Barra de scroll del feed: gris claro, vidrio (blanco translúcido) o el morado de antes. */
 export type ScrollStyle = "gris" | "vidrio" | "morado";
-export type FeedDesign = { ad: AdStyle; badge: AdBadge; views: ViewsStyle; share: ShareIcon; acts: ActsAlign; tags: TagsMode; scroll: ScrollStyle };
-export const DEFAULT_DESIGN: FeedDesign = { ad: "post", badge: "sin", views: "ojo", share: "caja", acts: "palabra", tags: "sin", scroll: "gris" };
+/** Tono del naranja (en vivo) y el cian (negociable): el del design system, uno medio o el oscuro de la card de Tipo de oferta. */
+export type ColorTone = "ds" | "medio" | "oscuro";
+export type FeedDesign = {
+  ad: AdStyle; badge: AdBadge; views: ViewsStyle; share: ShareIcon; acts: ActsAlign; tags: TagsMode; scroll: ScrollStyle; tone: ColorTone;
+};
+export const DEFAULT_DESIGN: FeedDesign = { ad: "post", badge: "sin", views: "ojo", share: "caja", acts: "palabra", tags: "sin", scroll: "gris", tone: "ds" };
+// Naranja y cian del design system (BadgeStatus en vivo #FF9639 → #EF852E; cian #00D2D3 / #00AEB1 de Concorde).
+const TONES: Record<ColorTone, Record<string, string>> = {
+  ds: { [COLORS.vivo]: "#FF9639", [COLORS.negociable]: "#00D2D3" },
+  medio: { [COLORS.vivo]: "#EF852E", [COLORS.negociable]: "#00AEB1" },
+  oscuro: {},
+};
+const toned = (t: EntryText, d: FeedDesign): EntryText => ({ ...t, color: TONES[d.tone][t.color] ?? t.color });
 
 const LOGO: Record<string, string | undefined> = {
   "VMC": "/assets/brand/logo-voyager.svg", "Blog VMC": "/assets/brand/logo-voyager.svg", "Pacífico": "/demo/empresas/pacifico.png",
@@ -507,7 +518,7 @@ const when = (t: EntryText, d: FeedDesign, label: string) => (t.ad && d.badge ==
 export function VmcAhoraTicker({ onOpen }: { onOpen: () => void }): JSX.Element {
   const s = useFeed();
   const e = s.items[0];
-  const t = describe(e, s.inv, (s.now - e.at) / 60_000);
+  const t = toned(describe(e, s.inv, (s.now - e.at) / 60_000), s.design);
   return (
     <button type="button" className="va-ticker" onClick={onOpen} aria-label={`VMC ahora, en vivo: ${t.author}, ${t.title}. Abrir el feed`}>
       <span className="va-ticker__live"><i />En vivo</span>
@@ -562,7 +573,7 @@ export default function VmcAhora({ view, live = true, more = false, x = false, h
         ) : null}
         <ol className={`va-posts${page ? "" : ` va-scroll va-scroll--${s.design.scroll}`}`} aria-live="polite">
           {items.map((e, i) => {
-            const t = describe(e, s.inv, (s.now - e.at) / 60_000);
+            const t = toned(describe(e, s.inv, (s.now - e.at) / 60_000), s.design);
             return (
               <li key={e.uid} className={`va-x${enter(i)}`}>
                 <Avatar who={t.author} size={40} />
@@ -587,7 +598,7 @@ export default function VmcAhora({ view, live = true, more = false, x = false, h
         {fresh ? <span key={top.uid} className="va-newpill" aria-hidden>{Ico.arrowUp}Nuevo</span> : null}
         <ol className={`va-posts${more ? "" : ` va-scroll va-scroll--${s.design.scroll}`}`} aria-live="polite">
           {items.map((e, i) => {
-            const t = describe(e, s.inv, (s.now - e.at) / 60_000);
+            const t = toned(describe(e, s.inv, (s.now - e.at) / 60_000), s.design);
             return (
               <li key={e.uid} className={`va-post${enter(i)}`}>
                 <div className="va-post__rail"><Avatar who={t.author} size={32} /><span className="va-post__line" /></div>
@@ -613,7 +624,7 @@ export default function VmcAhora({ view, live = true, more = false, x = false, h
         {/* Fila tipo listado de eBay: la insignia cuenta el tipo de entrada, el título, un dato fuerte (el precio, si hay)
             y una línea gris con autor · tiempo · participantes o negociaciones. */}
         {items.map((e, i) => {
-          const t = describe(e, s.inv, (s.now - e.at) / 60_000);
+          const t = toned(describe(e, s.inv, (s.now - e.at) / 60_000), s.design);
           const o = s.inv.find((x) => x.id === e.offerId);
           return (
             <li key={e.uid} className={`va-item${enter(i)}`}>
