@@ -31,7 +31,8 @@ import {
   CompactCurveCard, EbayLotRow, FichaCard, FichaLegend, FichaPlus, FichaPro, GlassCard, ImmersiveCard, LotCardStyles, ReliefCard, SummaryCard,
   type FichaLayout, type LegendTier, type LotData, type ProTheme,
 } from "./LotCards";
-import VmcAhora, { VmcAhoraTicker, type FeedView } from "./VmcAhora";
+import VmcAhora, { setFeedConfig, VmcAhoraQa, VmcAhoraTicker, type FeedView } from "./VmcAhora";
+import { DEFAULT_SCENARIO, SCENARIOS } from "./feedPlan";
 // Íconos de vidrio esmerilado: skill .claude/skills/vidrio-esmerilado (Vidrio.tsx + vidrio.css copiados sin cambios).
 import { Vidrio, type Sec as VidrioName } from "./Vidrio";
 import LogoLoop from "./reactbits/LogoLoop";
@@ -1435,6 +1436,12 @@ const FEED_VIEWS: { id: FeedView; label: string; hint: string }[] = [
   { id: "timeline", label: "Timeline", hint: "Estilo X / Twitter" },
   { id: "normal", label: "Listado", hint: "Foto, lote y precio" },
 ];
+// Inventario de la demo (V en vivo + N negociables) y velocidad del reloj: ×1 son los 45 s reales entre entradas simuladas.
+const FEED_SCENARIOS = SCENARIOS.map(({ id, label, hint }) => ({ id, label, hint }));
+const FEED_SPEEDS = [
+  { id: "1", label: "×1", hint: "45 s entre entradas" },
+  { id: "10", label: "×10", hint: "4,5 s entre entradas" },
+];
 
 // Selector flotante de vistas, pegado a la derecha del bloque (fuera de los 798 del homepage). Solo QA.
 const SWITCH_CSS = `
@@ -1648,13 +1655,15 @@ function AdStrip(): JSX.Element {
 }
 
 // Todos los selectores de QA en una lista: el panel de la vista mobile los muestra igual que escritorio y los envía al teléfono.
-export type QaKey = "bannerNav" | "bannerFx" | "feedView" | "offerView" | "lotsView" | "cardStyle" | "lotsView2" | "cardStyle2"
+export type QaKey = "bannerNav" | "bannerFx" | "feedView" | "feedScenario" | "feedSpeed" | "offerView" | "lotsView" | "cardStyle" | "lotsView2" | "cardStyle2"
   | "categoriesView" | "bannerView" | "companiesView";
 type QaOption = { id: string; label: string; hint: string };
 export const QA_CONTROLS: { key: QaKey; title: string; options: QaOption[] }[] = [
   { key: "bannerNav", title: "Banner · indicador", options: BANNER_NAVS },
   { key: "bannerFx", title: "Banner · texto", options: BANNER_FXS },
   { key: "feedView", title: "VMC ahora · vista", options: FEED_VIEWS },
+  { key: "feedScenario", title: "VMC ahora · inventario", options: FEED_SCENARIOS },
+  { key: "feedSpeed", title: "VMC ahora · velocidad", options: FEED_SPEEDS },
   { key: "offerView", title: "Tipo de oferta · vista", options: OFFER_TYPE_VIEWS },
   { key: "lotsView", title: "Autoplan · lotes", options: LOTS_VIEWS },
   { key: "cardStyle", title: "Autoplan · detail card", options: CARD_STYLES },
@@ -1684,17 +1693,20 @@ export default function HomeIndexBlock({ hideFeed = false, feedSlot = false, onO
   const [companiesView, setCompaniesView] = useState<CompaniesView>(() => initQa("companiesView", OPTION_A.companiesView));
   const [feedView, setFeedView] = useState<FeedView>(() => initQa("feedView", OPTION_A.feedView));
   const [offerView, setOfferView] = useState<OfferTypeView>(() => initQa("offerView", OPTION_A.offerView));
+  const [feedScenario, setFeedScenario] = useState<string>(() => initQa("feedScenario", DEFAULT_SCENARIO));
+  const [feedSpeed, setFeedSpeed] = useState<string>(() => initQa("feedSpeed", "1"));
+  useEffect(() => setFeedConfig(feedScenario, Number(feedSpeed)), [feedScenario, feedSpeed]);
   const [heroH, setHeroH] = useState(OPTION_A.heroH); // alto del banner + VMC ahora (control QA)
   const [categoriesView, setCategoriesView] = useState<CategoriesView>(() => initQa("categoriesView", OPTION_A.categoriesView));
   const [bannerView, setBannerView] = useState<BannerView>(() => initQa("bannerView", "recorte"));
   const [controls, setControls] = useState(false);
   const [bannerNav, setBannerNav] = useState<BannerNav>(() => initQa("bannerNav", "plain"));
   const [bannerFx, setBannerFx] = useState<BannerFx>(() => initQa("bannerFx", "letters"));
-  const qa: Record<QaKey, string> = { bannerNav, bannerFx, feedView, offerView, lotsView, cardStyle, lotsView2, cardStyle2, categoriesView, bannerView, companiesView };
+  const qa: Record<QaKey, string> = { bannerNav, bannerFx, feedView, feedScenario, feedSpeed, offerView, lotsView, cardStyle, lotsView2, cardStyle2, categoriesView, bannerView, companiesView };
   const setQa = useCallback((key: QaKey, v: string) => {
     const set: Record<QaKey, (v: string) => void> = {
       bannerNav: (x) => setBannerNav(x as BannerNav), bannerFx: (x) => setBannerFx(x as BannerFx),
-      feedView: (x) => setFeedView(x as FeedView), offerView: (x) => setOfferView(x as OfferTypeView), lotsView: (x) => setLotsView(x as LotsView),
+      feedView: (x) => setFeedView(x as FeedView), feedScenario: setFeedScenario, feedSpeed: setFeedSpeed, offerView: (x) => setOfferView(x as OfferTypeView), lotsView: (x) => setLotsView(x as LotsView),
       cardStyle: (x) => setCardStyle(x as CardStyle), lotsView2: (x) => setLotsView2(x as LotsView), cardStyle2: (x) => setCardStyle2(x as CardStyle),
       categoriesView: (x) => setCategoriesView(x as CategoriesView), bannerView: (x) => setBannerView(x as BannerView), companiesView: (x) => setCompaniesView(x as CompaniesView),
     };
@@ -1779,6 +1791,9 @@ export default function HomeIndexBlock({ hideFeed = false, feedSlot = false, onO
           <ViewSwitch title="Banner · indicador" suffix="" options={BANNER_NAVS} value={bannerNav} onChange={setBannerNav} />
           <ViewSwitch title="Banner · texto" suffix="" options={BANNER_FXS} value={bannerFx} onChange={setBannerFx} />
           <ViewSwitch title="VMC ahora" options={FEED_VIEWS} value={feedView} onChange={setFeedView} />
+          <ViewSwitch title="VMC ahora · inventario" suffix="" options={FEED_SCENARIOS} value={feedScenario} onChange={setFeedScenario} />
+          <ViewSwitch title="VMC ahora · velocidad" suffix="" options={FEED_SPEEDS} value={feedSpeed} onChange={setFeedSpeed} />
+          <VmcAhoraQa />
           <HeightSlider value={heroH} onChange={setHeroH} />
           {/* El selector de Tipo de oferta va siempre aquí: es más alto que su sección y se montaba sobre el de Autoplan. */}
           <ViewSwitch title="Tipo de oferta" options={OFFER_TYPE_VIEWS} value={offerView} onChange={setOfferView} />

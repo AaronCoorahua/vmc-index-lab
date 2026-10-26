@@ -1,103 +1,94 @@
 "use client";
 
 /**
- * VmcAhora — feed «VMC ahora» (Secondary Banner, 236 × 388) con eventos que van pasando: cada 4,5 s entra
- * uno nuevo arriba y los tiempos se recorren («Ahora», «hace 1 min»…). Se pausa con el puntero encima.
- * Contenido de ejemplo. Tres vistas:
- *  · normal    el diseño aprobado: insignia + título + detalle + miniatura.
- *  · timeline  estilo X/Twitter: avatar de la empresa, verificado, texto, foto en la primera, acciones
- *              (me gusta · comentarios · compartir) y aviso «Nuevo» cuando entra una publicación.
- *  · pulso     «en directo» (claro): contador de personas pujando, historias de empresas con aro y una
- *              línea de tiempo con puntos que brillan.
+ * VmcAhora — feed «VMC ahora» (Secondary Banner, 236 × 388). Las entradas salen del plan del día de feedPlan.ts
+ * (rotación del inventario, propuestas enviadas, nuevas ofertas, registros, publicidad y blog, según V y N) y la demo
+ * lo reproduce en orden con 45 s entre entradas simuladas; una acción real entra al instante y reinicia los 45 s.
+ * Un solo reloj para toda la página (todas las vistas muestran el mismo feed); se pausa con el puntero encima.
+ * Contenido de ejemplo. Vistas:
+ *  · timeline  estilo X/Twitter: avatar, verificado, texto, foto en la primera, acciones por tipo de oferta.
+ *  · normal    listado: foto, insignia, lote, precio y una línea gris con autor · tiempo.
+ * Acciones (Julio): en vivo → me gusta · participantes · compartir; negociable → me gusta · negociaciones · compartir.
+ * Los avisos de propuesta y de registro los firma VMC y no son clicables.
  */
-import { useEffect, useState } from "react";
+import { useSyncExternalStore, useState } from "react";
 import type { CSSProperties, JSX } from "react";
+import {
+  buildInventory, counts, DEFAULT_SCENARIO, describe, GAP_S, planDay, SCENARIOS,
+  type EntryText, type Offer, type PlanEntry,
+} from "./feedPlan";
 
-export type FeedView = "normal" | "ebay" | "timeline" | "pulso";
-type Kind = "live" | "bid" | "sold" | "new" | "deal" | "next";
-type FeedEvent = {
-  id: string; kind: Kind; who: string; title: string; detail: string; imageSrc: string; likes: number; replies: number;
-  /** Para la vista Timeline (fila tipo eBay): el lote, su precio (si hay) y la ciudad. */
-  lot: string; price?: string; city: string;
-};
+export type FeedView = "normal" | "timeline";
 
 const LOGO: Record<string, string | undefined> = {
-  "SubasCars": "/assets/brand/logo-voyager.svg", "Pacífico": "/demo/empresas/pacifico.png", "Autoplan": "/demo/empresas/autoplan.png",
-  "Trupal S.A.": "/demo/empresas/trupal.svg", "Mapfre": "/demo/empresas/mapfre.png",
+  "VMC": "/assets/brand/logo-voyager.svg", "Blog VMC": "/assets/brand/logo-voyager.svg", "Pacífico": "/demo/empresas/pacifico.png",
+  "Autoplan": "/demo/empresas/autoplan.png", "Trupal S.A.": "/demo/empresas/trupal.svg", "Mapfre": "/demo/empresas/mapfre.png",
 };
 
-const EVENTS: FeedEvent[] = [
-  { id: "e1", kind: "live", who: "Empresa Industrial", title: "Subasta de vehículos en curso", detail: "32 participantes · Lote 12", imageSrc: "/demo/vehicles/autoplan-yaris.png", likes: 48, replies: 6,
-    lot: "Toyota Yaris 2022", price: "US$ 2,799", city: "Lima" },
-  { id: "e2", kind: "bid", who: "SubasCars", title: "Nueva puja en Kia Rio 2020", detail: "US$ 6,300 · +US$ 100", imageSrc: "/demo/vehicles/mapfre-rio.png", likes: 31, replies: 4,
-    lot: "Kia Rio 2020", price: "US$ 6,300", city: "Lima" },
-  { id: "e3", kind: "sold", who: "SubasCars", title: "Hyundai Grand i10 adjudicado", detail: "Cerró en US$ 2,450", imageSrc: "/demo/vehicles/autoplan-grand-i10.png", likes: 57, replies: 9,
-    lot: "Hyundai Grand i10 2021", price: "US$ 2,450", city: "Lima" },
-  { id: "e4", kind: "new", who: "Pacífico", title: "Excavadora Caterpillar 320 publicada", detail: "Lote 88 · Lima", imageSrc: "/demo/inventory-excavator-v1.png", likes: 22, replies: 3,
-    lot: "Caterpillar 320 2019", price: "US$ 45,000", city: "Lima" },
-  { id: "e5", kind: "deal", who: "Autoplan", title: "Propuesta aceptada en Toyota Agya", detail: "Negociable · Lima", imageSrc: "/demo/vehicles/autoplan-agya.png", likes: 19, replies: 2,
-    lot: "Toyota Agya 2023", city: "Lima" },
-  { id: "e6", kind: "next", who: "Trupal S.A.", title: "Equipos industriales empieza 10:00", detail: "14 lotes · Callao", imageSrc: "/demo/inventory-forklift-v1.png", likes: 15, replies: 1,
-    lot: "Montacargas Toyota 2018", city: "Callao" },
-  { id: "e7", kind: "bid", who: "Pacífico", title: "12 pujas en el último minuto", detail: "Hyundai Tucson · US$ 11,400", imageSrc: "/demo/vehicles/mapfre-tucson.png", likes: 64, replies: 11,
-    lot: "Hyundai Tucson 2021", price: "US$ 11,400", city: "Lima" },
-  { id: "e8", kind: "new", who: "Mapfre", title: "Toyota Hilux 2019 publicada", detail: "Negociable · Arequipa", imageSrc: "/demo/vehicles/mapfre-pickup.png", likes: 12, replies: 0,
-    lot: "Toyota Hilux 2019", city: "Arequipa" },
-];
-const AGO = ["Ahora", "hace 1 min", "hace 3 min", "hace 6 min", "hace 9 min"];
-// Tiempo de la posición i (con «Ver más» se muestran más de 5).
-const ago = (i: number) => AGO[i] ?? `hace ${(i - 2) * 4} min`;
-// Estilo X: tiempo corto y @usuario a partir del nombre de la empresa.
-const agoShort = (i: number) => (i === 0 ? "ahora" : ago(i).replace("hace ", ""));
-const handle = (who: string) => "@" + who.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Za-z0-9]/g, "").toLowerCase();
-const KIND: Record<Kind, { label: string; badge: "live" | "proxima"; color: string; verb: string }> = {
-  live: { label: "En vivo", badge: "live", color: "#F2701D", verb: "está en vivo" },
-  bid: { label: "Puja", badge: "live", color: "#F2701D", verb: "recibió una puja" },
-  sold: { label: "Vendido", badge: "proxima", color: "#7B5CE6", verb: "cerró una venta" },
-  new: { label: "Nuevo lote", badge: "proxima", color: "#8460E5", verb: "publicó un lote" },
-  deal: { label: "Aceptada", badge: "proxima", color: "#00A8AB", verb: "aceptó una propuesta" },
-  next: { label: "Próxima", badge: "proxima", color: "#9A7BF0", verb: "abre pronto" },
-};
-const INTERVAL_MS = 4500;
+// ─── Reloj de la demo ────────────────────────────────────────────────────────────────────────────────────────────────
+// El tiempo es simulado: a ×10 avanza diez veces más rápido (los 45 s se cumplen en 4,5 s y los «hace X min» también).
+type Shown = PlanEntry & { uid: string; at: number; real?: boolean };
+type FeedState = { scenario: string; speed: number; inv: Offer[]; plan: PlanEntry[]; items: Shown[]; next: number; now: number; lastAt: number; seq: number };
+const GAP_MS = GAP_S * 1000;
+const TICK_MS = 500;
+const BACKLOG = 8; // entradas que ya están al abrir la página
+const MAX_ITEMS = 24;
 
-/** Ventana de `size` eventos, el más nuevo primero; avanza cada INTERVAL_MS salvo en pausa. */
-function useLiveFeed(size: number, paused: boolean): { items: FeedEvent[]; tick: number } {
-  const [tick, setTick] = useState(0);
-  useEffect(() => {
-    if (paused) return;
-    const t = setInterval(() => setTick((n) => n + 1), INTERVAL_MS);
-    return () => clearInterval(t);
-  }, [paused]);
-  const items = Array.from({ length: size }, (_, i) => EVENTS[(((tick - i) % EVENTS.length) + EVENTS.length) % EVENTS.length]);
-  return { items, tick };
+function initState(scenario: string, speed: number): FeedState {
+  const s = SCENARIOS.find((x) => x.id === scenario) ?? SCENARIOS.find((x) => x.id === DEFAULT_SCENARIO)!;
+  const plan = planDay(s.V, s.N);
+  const k = Math.min(BACKLOG, plan.length);
+  const items = plan.slice(0, k).map((e, i): Shown => ({ ...e, uid: `${e.key}#0`, at: -(k - 1 - i) * GAP_MS })).reverse();
+  return { scenario: s.id, speed, inv: buildInventory(s.V, s.N), plan, items, next: plan.length ? k % plan.length : 0, now: 0, lastAt: 0, seq: 1 };
+}
+const INITIAL = initState(DEFAULT_SCENARIO, 1);
+let state = INITIAL;
+let paused = 0;
+let timer: ReturnType<typeof setInterval> | undefined;
+const listeners = new Set<() => void>();
+const emit = () => listeners.forEach((l) => l());
+const push = (s: FeedState, e: PlanEntry, real = false): FeedState => ({
+  ...s, items: [{ ...e, uid: `${e.key}#${s.seq}`, at: s.now, real }, ...s.items].slice(0, MAX_ITEMS), lastAt: s.now, seq: s.seq + 1,
+});
+function step() {
+  if (paused > 0) return;
+  let s: FeedState = { ...state, now: state.now + TICK_MS * state.speed };
+  if (s.plan.length && s.now - s.lastAt >= GAP_MS) s = { ...push(s, s.plan[s.next]), next: (s.next + 1) % s.plan.length };
+  state = s;
+  emit();
+}
+function subscribe(l: () => void): () => void {
+  listeners.add(l);
+  timer ??= setInterval(step, TICK_MS);
+  return () => {
+    listeners.delete(l);
+    if (!listeners.size && timer) { clearInterval(timer); timer = undefined; }
+  };
+}
+const useFeed = (): FeedState => useSyncExternalStore(subscribe, () => state, () => INITIAL);
+const hover = { onMouseEnter: () => { paused++; }, onMouseLeave: () => { paused = Math.max(0, paused - 1); } };
+
+/** Control de QA: escenario de inventario y velocidad (×1 = 45 s reales, ×10 = 4,5 s). */
+export function setFeedConfig(scenario: string, speed: number): void {
+  if (scenario === state.scenario && speed === state.speed) return;
+  state = scenario === state.scenario ? { ...state, speed } : initState(scenario, speed);
+  emit();
+}
+/** Control de QA: una acción real (propuesta si hay negociables, si no un registro) entra ya y reinicia los 45 s. */
+export function simulateRealAction(): void {
+  const negs = state.inv.filter((o) => o.mode === "negociable");
+  const o = negs[state.seq % Math.max(1, negs.length)];
+  const user = `${String.fromCharCode(65 + (state.seq % 26))}${String.fromCharCode(65 + ((state.seq * 7) % 26))}R${100 + ((state.seq * 37) % 900)}`;
+  const e: PlanEntry = o
+    ? { key: `real-p${o.id}`, min: 0, kind: "propuesta", offerId: o.id, user }
+    : { key: "real-u", min: 0, kind: "registro", user };
+  state = push(state, e, true);
+  emit();
 }
 
-function Avatar({ who, size = 32, ring }: { who: string; size?: number; ring?: string }): JSX.Element {
-  const logo = LOGO[who];
-  const vmc = who === "SubasCars";
-  const initials = who.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
-  return (
-    <span className="va-av" style={{ width: size, height: size, ...(ring ? { background: ring, padding: 2 } : {}) } as CSSProperties}>
-      <span className="va-av__in" style={{ background: vmc ? "#3B1782" : logo ? "#fff" : "#EEE8FF" }}>
-        {logo ? <img src={logo} alt="" /> : <b>{initials}</b>}
-      </span>
-    </span>
-  );
-}
-
-const Verified = () => (
-  <svg className="va-verified" width="12" height="12" viewBox="0 0 24 24" aria-label="Verificado"><path d="M12 1.8l2.6 1.9 3.2-.2 1 3 2.6 1.9-1 3.1 1 3-2.6 1.9-1 3.1-3.2-.2L12 22.2l-2.6-1.9-3.2.2-1-3.1L2.6 15.5l1-3-1-3.1 2.6-1.9 1-3 3.2.2z" fill="url(#va-vg)" /><defs><linearGradient id="va-vg" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#8460E5" /><stop offset="1" stopColor="#3B1782" /></linearGradient></defs><path d="M8 12.2l2.6 2.6L16.2 9" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-);
-const Ico = {
-  heart: <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden><path d="M12 20.5s-8-4.9-8-11a4.6 4.6 0 0 1 8-3 4.6 4.6 0 0 1 8 3c0 6.1-8 11-8 11z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" /></svg>,
-  reply: <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden><path d="M21 11.5a8.5 8.5 0 0 1-12.2 7.6L3.5 20.5l1.4-4.9A8.5 8.5 0 1 1 21 11.5z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" /></svg>,
-  repost: <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden><path d="M4 11V9a3 3 0 0 1 3-3h11M15 3l3 3-3 3M20 13v2a3 3 0 0 1-3 3H6M9 21l-3-3 3-3" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>,
-  share: <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden><path d="M21 3L10.5 13.5M21 3l-6.5 18-4-7.5L3 9.5z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" /></svg>,
-  views: <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden><path d="M5 20V11M10 20V6M15 20v-7M20 20V9" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>,
-  bookmark: <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden><path d="M6.5 3.5h11a1 1 0 0 1 1 1V21l-6.5-4.5L5.5 21V4.5a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" /></svg>,
-  more: <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden><circle cx="5" cy="12" r="1.7" fill="currentColor" /><circle cx="12" cy="12" r="1.7" fill="currentColor" /><circle cx="19" cy="12" r="1.7" fill="currentColor" /></svg>,
-  arrowUp: <svg width="11" height="11" viewBox="0 0 24 24" aria-hidden><path d="M12 19V5M6 11l6-6 6 6" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" /></svg>,
-};
+const ago = (ms: number) => (ms < 60_000 ? "Ahora" : ms < 3_600_000 ? `hace ${Math.floor(ms / 60_000)} min` : `hace ${Math.floor(ms / 3_600_000)} h`);
+const agoShort = (ms: number) => (ms < 60_000 ? "ahora" : ago(ms).replace("hace ", ""));
+const handle = (who: string) => "@" + who.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^A-Za-z0-9]/g, "").toLowerCase();
 
 const CSS = `
 @keyframes va-in { from { opacity: 0; transform: translateY(-10px); } }
@@ -159,10 +150,6 @@ const CSS = `
 .va-post__media { position: relative; display: block; margin-top: 10px; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 14px; background: #F3EFFD; }
 .va-post__media img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .va-post__media b { position: absolute; left: 10px; bottom: 10px; padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; color: #fff; background: rgba(16,0,48,0.62); }
-.va-acts { display: flex; gap: 16px; margin-top: 6px; margin-left: -6px; font-size: 12px; color: #6B6880; }
-.va-acts span { display: inline-flex; align-items: center; gap: 6px; padding: 5px 6px; border-radius: 999px; }
-.va-acts span:hover { background: #F3EFFD; color: #3B1782; }
-
 /* Timeline · fila tipo listado de eBay (escala de las cards chicas) */
 .va-item { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 12px; align-items: center; padding: 12px 18px 12px 20px; }
 .va-item + .va-item { border-top: 1px solid #EFEDF5; }
@@ -179,58 +166,6 @@ const CSS = `
 .va-item__who { flex: none; max-width: 84px; overflow: hidden; text-overflow: ellipsis; }
 .va-item__meta .va-verified { width: 10px; height: 10px; }
 
-/* eBay: listado completo (sin compactar) con me gusta y compartir */
-.va-eb { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 14px; align-items: start; padding: 16px 18px 16px 20px; }
-.va-eb + .va-eb { border-top: 1px solid #EFEDF5; }
-.va-eb.va-enter { animation: va-in 0.45s cubic-bezier(0.3,0,0,1), va-flash 2.4s ease; }
-.va-eb__thumb { display: block; width: 92px; height: 92px; overflow: hidden; border-radius: 14px; background: #F3EFFD; }
-.va-eb__thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.va-eb__main { display: grid; gap: 3px; min-width: 0; }
-.va-eb__pill { justify-self: start; display: inline-flex; align-items: center; height: 22px; padding: 0 10px; border-radius: 999px; border: 1.5px solid var(--k);
-  font-size: 11.5px; font-weight: 800; letter-spacing: 0.03em; text-transform: uppercase; color: var(--k); }
-.va-eb__title { margin: 4px 0 0; font-size: 15px; line-height: 1.22; font-weight: 800; color: #14112B; text-transform: uppercase; }
-.va-eb__who { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 600; color: #8A879C; }
-.va-eb__value { margin-top: 4px; font-size: 20px; line-height: 1.15; font-weight: 800; letter-spacing: -0.01em; color: #14112B; }
-.va-eb__rest { margin-top: 4px; font-size: 13px; font-weight: 600; color: #8A879C; }
-.va-eb__foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; white-space: nowrap; font-size: 13px; font-weight: 600; color: #8A879C; }
-.va-eb__acts { display: inline-flex; gap: 6px; }
-.va-eb__acts button { display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 50%; color: #3B1782; background: #F3EFFD; cursor: pointer; transition: background 0.2s, color 0.2s; }
-.va-eb__acts button:hover { background: #E6DEFF; }
-.va-eb__acts button[aria-pressed="true"] { color: #fff; background: linear-gradient(135deg, #8460E5, #3B1782); }
-.va-eb__acts svg { width: 16px; height: 16px; }
-
-/* Pulso (claro, en directo) */
-.va--pulso { color: #14112B;
-  background: radial-gradient(110% 55% at 100% 0%, rgba(166,139,255,0.30) 0%, transparent 62%), radial-gradient(90% 40% at 0% 100%, rgba(255,150,57,0.12) 0%, transparent 70%), #fff;
-  box-shadow: 0 14px 30px -14px rgba(59,23,130,0.35); }
-.va-pu__head { padding: 12px 12px 0; }
-.va-pu__title { display: flex; align-items: center; justify-content: space-between; }
-.va-pu__title h3 { margin: 0; font-size: 15px; font-weight: 800; letter-spacing: -0.01em; color: #3B1782; }
-.va-pu__count { margin: 4px 0 0; font-size: 12px; color: #5B5870; }
-.va-pu__count b { color: #E2531A; font-variant-numeric: tabular-nums; }
-.va-pu__live { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 999px; font-size: 12px; font-weight: 800; letter-spacing: 0.06em;
-  background: #FFF1E6; border: 1px solid rgba(255,150,57,0.45); color: #E2531A; }
-.va-pu__live i { width: 6px; height: 6px; border-radius: 50%; background: #FF7A1A; box-shadow: 0 0 8px 2px rgba(255,122,26,0.7); animation: va-pulse 1.4s ease-in-out infinite; }
-.va-stories { display: flex; justify-content: space-between; padding: 10px 12px 8px; border-bottom: 1px solid #EFEDF5; }
-.va-story { display: grid; justify-items: center; gap: 4px; width: 38px; font-size: 12px; color: #5B5870; white-space: nowrap; }
-.va-story__name { max-width: 42px; overflow: hidden; text-overflow: ellipsis; }
-.va-story__ring { position: relative; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; }
-.va-story__ring::before { content: ""; position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(#FF9639, #8460E5, #00DAE0, #FF9639); animation: va-ring 4s linear infinite; }
-.va-story__ring.is-idle::before { background: #E6E1F5; animation: none; }
-.va-story__ring > .va-av { position: relative; padding: 2px; background: #fff; }
-.va-tline { position: relative; flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; margin: 0; padding: 8px 12px 0 30px; list-style: none; }
-.va-tline::before { content: ""; position: absolute; top: 14px; bottom: 0; left: 17px; width: 2px; border-radius: 2px;
-  background: linear-gradient(180deg, rgba(255,150,57,0.9), rgba(132,96,229,0.6) 50%, rgba(132,96,229,0)); }
-.va-ev { position: relative; padding: 0 0 11px; }
-.va-ev::before { content: ""; position: absolute; top: 4px; left: -17px; width: 8px; height: 8px; border-radius: 50%; background: var(--c); box-shadow: 0 0 0 3px #fff, 0 0 10px 2px var(--c); }
-.va-ev:first-child::before { animation: va-pulse 1.4s ease-in-out infinite; }
-.va-ev__meta { display: flex; justify-content: space-between; gap: 6px; font-size: 12px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
-.va-ev__ago { font-weight: 600; letter-spacing: 0; text-transform: none; color: #8A879C; }
-.va-ev p { margin: 2px 0 0; font-size: 12px; font-weight: 700; line-height: 1.3; color: #14112B; }
-.va-ev small { display: block; margin-top: 1px; font-size: 12px; color: #5B5870; }
-.va-pu__foot { padding: 6px 12px 10px; text-align: right; }
-.va-pu__foot a { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: #3B1782; text-decoration: none; }
-.va-pu__foot a:hover { color: #E2531A; }
 
 /* Estilo X (feed a pantalla completa en móvil): la anatomía del post de X. Grises y separadores de X
    (#0F1419 texto, #536471 secundario, #EFF3F4 filete); el acento es el morado de VMC en vez del azul de X. */
@@ -280,12 +215,39 @@ const CSS = `
 .va-more:focus-visible { outline: 2px solid #8460E5; outline-offset: 2px; }
 .va-more svg { transition: transform 0.25s; }
 .va-more[data-less] svg { transform: rotate(180deg); }
-`;
 
-function LikeBtn({ n }: { n: number }): JSX.Element {
-  const [on, setOn] = useState(false);
-  return <button type="button" aria-pressed={on} aria-label={`Me gusta · ${n + (on ? 1 : 0)}`} onClick={() => setOn((v) => !v)}>{Ico.heart}</button>;
-}
+/* Insignia del tipo de entrada (nueva / disponible / propuesta / publicidad…), para no hacer pasar la rotación por nueva. */
+.va-tag { display: inline-flex; align-items: center; height: 18px; margin: 3px 0 3px; padding: 0 7px; border-radius: 999px; font-size: 9.5px; font-weight: 800;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--k); background: color-mix(in srgb, var(--k) 11%, #fff); }
+.va-x .va-tag { margin-top: 4px; }
+/* Propuesta enviada: texto + foto pequeña de la oferta, sin enlace. */
+.va-prop { display: grid; grid-template-columns: minmax(0, 1fr) 44px; gap: 10px; align-items: start; }
+.va-prop > img { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; background: #F3EFFD; }
+.va-cta { display: inline-flex; align-items: center; gap: 6px; height: 28px; margin: 8px 0 4px; padding: 0 12px; border: 1px solid #DCD2FB; border-radius: 999px;
+  background: #F8F6FF; color: #3B1782; font: 700 12px/1 var(--vmc-font-display, 'Plus Jakarta Sans', sans-serif); cursor: pointer; transition: background 0.2s, border-color 0.2s; }
+.va-cta:hover { background: #EFE9FF; border-color: #B9A8EF; }
+.va-cta:focus-visible { outline: 2px solid #8460E5; outline-offset: 2px; }
+/* Acciones de oferta en el timeline: me gusta · participantes o negociaciones · compartir. */
+.va-acts { display: flex; align-items: center; gap: 2px; margin: 6px 0 0 -6px; font-size: 12px; color: #6B6880; }
+.va-acts button, .va-acts__count { display: inline-flex; align-items: center; gap: 5px; min-width: 0; height: 28px; padding: 0 6px; border: 0; border-radius: 999px;
+  background: none; font: inherit; color: inherit; white-space: nowrap; }
+.va-acts button { flex: none; cursor: pointer; transition: background 0.2s, color 0.2s; }
+.va-acts button:hover { background: #F3EFFD; color: var(--k); }
+.va-acts button[aria-pressed="true"] { color: var(--k); }
+.va-acts button[aria-pressed="true"] svg path { fill: currentColor; }
+.va-acts button:focus-visible { outline: 2px solid #8460E5; outline-offset: 1px; }
+.va-acts button:last-child { margin-left: auto; }
+.va-acts svg { flex: none; width: 16px; height: 16px; }
+.va-acts__count { overflow: hidden; text-overflow: ellipsis; }
+.va-acts__count svg { color: var(--k); }
+.va-x__acts > .va-acts__count { display: inline-flex; align-items: center; gap: 2px; min-width: 0; height: 34px; padding-right: 8px; overflow: hidden; text-overflow: ellipsis;
+  font: 400 13px/1 var(--vmc-font-display, 'Plus Jakarta Sans', sans-serif); color: #536471; white-space: nowrap; }
+.va-x__acts > .va-acts__count i { display: grid; place-items: center; flex: none; width: 34px; height: 34px; color: var(--k); }
+/* Listado: títulos de hasta dos líneas (las propuestas y la publicidad no tienen lote) y avatar cuando no hay foto. */
+.va-item__title { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; white-space: normal; }
+.va-item__thumb--av { display: grid; place-items: center; background: #F8F6FF; }
+.va-item__thumb--av .va-av__in img { width: auto; height: auto; max-width: 72%; max-height: 72%; object-fit: contain; }
+`;
 
 // Franja de una línea (móvil, alternativa a la card): el último evento en vivo; al tocarla se abre el feed completo.
 const TICKER_CSS = `
@@ -302,48 +264,79 @@ const TICKER_CSS = `
 .va-ticker__go { color: #3B1782; }
 @media (prefers-reduced-motion: reduce) { .va-ticker__txt, .va-ticker__live i { animation: none; } }
 `;
-// Post estilo X: avatar, nombre + verificado + @usuario · tiempo, «···», texto, medio y la barra de acciones de X
-// (responder, repostear, me gusta, vistas · guardar, compartir). Repostear, me gusta y guardar se marcan al tocarlos.
-function XPost({ e, i, className }: { e: FeedEvent; i: number; className: string }): JSX.Element {
-  const [liked, setLiked] = useState(false);
-  const [reposted, setReposted] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const fmt = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(1).replace(".0", "").replace(".", ",")} mil` : String(n));
-  const views = e.likes * 37 + e.replies * 90;
-  const act = (k: string, label: string, icon: JSX.Element, count?: string, pressed?: boolean, on?: () => void) => (
-    <button type="button" style={{ "--k": k } as CSSProperties} aria-label={label} aria-pressed={pressed}
-      onClick={(ev) => { ev.stopPropagation(); on?.(); }}><i>{icon}</i>{count}</button>
-  );
+
+function Avatar({ who, size = 32 }: { who: string; size?: number }): JSX.Element {
+  const logo = LOGO[who];
+  const vmc = who === "VMC" || who === "Blog VMC";
+  const initials = who === "SubasCars" ? "SC" : who.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
   return (
-    <li className={className}>
-      <Avatar who={e.who} size={40} />
-      <div style={{ minWidth: 0 }}>
-        <div className="va-x__head"><b>{e.who}</b><Verified /><span>{handle(e.who)} · {agoShort(i)}</span></div>
-        <button type="button" className="va-x__more" aria-label="Más opciones">{Ico.more}</button>
-        <p className="va-x__text">{e.title}. <em>{e.detail}</em></p>
-        {i === 0 ? <span className="va-post__media"><img src={e.imageSrc} alt="" /><b>{KIND[e.kind].label}</b></span> : null}
-        <div className="va-x__acts">
-          {act("#4A2CE0", `Responder · ${e.replies}`, Ico.reply, e.replies ? String(e.replies) : "")}
-          {act("#00BA7C", "Repostear", Ico.repost, reposted ? "1" : "", reposted, () => setReposted((v) => !v))}
-          {act("#F91880", `Me gusta · ${e.likes + (liked ? 1 : 0)}`, Ico.heart, String(e.likes + (liked ? 1 : 0)), liked, () => setLiked((v) => !v))}
-          {act("#4A2CE0", `${fmt(views)} vistas`, Ico.views, fmt(views))}
-          <span>
-            {act("#4A2CE0", "Guardar", Ico.bookmark, undefined, saved, () => setSaved((v) => !v))}
-            {act("#4A2CE0", "Compartir", Ico.share)}
-          </span>
-        </div>
-      </div>
-    </li>
+    <span className="va-av" style={{ width: size, height: size }}>
+      <span className="va-av__in" style={{ background: vmc ? "#3B1782" : logo ? "#fff" : "#EEE8FF" }}>
+        {logo ? <img src={logo} alt="" /> : <b>{initials}</b>}
+      </span>
+    </span>
+  );
+}
+
+const Verified = () => (
+  <svg className="va-verified" width="12" height="12" viewBox="0 0 24 24" aria-label="Verificado"><path d="M12 1.8l2.6 1.9 3.2-.2 1 3 2.6 1.9-1 3.1 1 3-2.6 1.9-1 3.1-3.2-.2L12 22.2l-2.6-1.9-3.2.2-1-3.1L2.6 15.5l1-3-1-3.1 2.6-1.9 1-3 3.2.2z" fill="url(#va-vg)" /><defs><linearGradient id="va-vg" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#8460E5" /><stop offset="1" stopColor="#3B1782" /></linearGradient></defs><path d="M8 12.2l2.6 2.6L16.2 9" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+);
+const Ico = {
+  heart: <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden><path d="M12 20.5s-8-4.9-8-11a4.6 4.6 0 0 1 8-3 4.6 4.6 0 0 1 8 3c0 6.1-8 11-8 11z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" /></svg>,
+  people: <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden><path d="M15.5 19v-1.4a3.6 3.6 0 0 0-3.6-3.6H7.1a3.6 3.6 0 0 0-3.6 3.6V19M9.5 11a3.4 3.4 0 1 0 0-6.8 3.4 3.4 0 0 0 0 6.8zM20.5 19v-1.3a3.3 3.3 0 0 0-2.5-3.2M15.3 4.4a3.4 3.4 0 0 1 0 6.4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>,
+  nego: <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden><path d="M4 8.5h14.5l-3.5-3.5M20 15.5H5.5L9 19" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>,
+  share: <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden><path d="M21 3L10.5 13.5M21 3l-6.5 18-4-7.5L3 9.5z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" /></svg>,
+  more: <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden><circle cx="5" cy="12" r="1.7" fill="currentColor" /><circle cx="12" cy="12" r="1.7" fill="currentColor" /><circle cx="19" cy="12" r="1.7" fill="currentColor" /></svg>,
+  arrowUp: <svg width="11" height="11" viewBox="0 0 24 24" aria-hidden><path d="M12 19V5M6 11l6-6 6 6" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" /></svg>,
+  go: <svg width="12" height="12" viewBox="0 0 20 20" aria-hidden><path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>,
+};
+
+/** «32 participantes» / «4 negociaciones»; en 0 no se muestra un contador vacío. */
+function countLabel(t: EntryText): string {
+  const n = t.count ?? 0;
+  if (t.mode === "vivo") return n ? `${n} participante${n === 1 ? "" : "s"}` : "Sé el primero en participar";
+  return n ? `${n} negociaci${n === 1 ? "ón" : "ones"}` : "Sin negociaciones aún";
+}
+
+/** Acciones de una oferta (Julio): me gusta · participantes (en vivo) o negociaciones (negociable) · compartir. */
+function Acts({ t, x = false }: { t: EntryText; x?: boolean }): JSX.Element | null {
+  const [liked, setLiked] = useState(false);
+  if (!t.mode) return null;
+  const likes = (t.likes ?? 0) + (liked ? 1 : 0);
+  const stop = (fn?: () => void) => (ev: { stopPropagation: () => void }) => { ev.stopPropagation(); fn?.(); };
+  const wrap = (icon: JSX.Element) => (x ? <i>{icon}</i> : icon);
+  return (
+    <div className={x ? "va-x__acts" : "va-acts"}>
+      <button type="button" style={{ "--k": "#F91880" } as CSSProperties} aria-pressed={liked} aria-label={`Me gusta · ${likes}`}
+        onClick={stop(() => setLiked((v) => !v))}>{wrap(Ico.heart)}{likes}</button>
+      <span className="va-acts__count" style={{ "--k": t.color } as CSSProperties}>{wrap(t.mode === "vivo" ? Ico.people : Ico.nego)}{countLabel(t)}</span>
+      <button type="button" style={{ "--k": "#4A2CE0" } as CSSProperties} aria-label="Compartir" onClick={stop()}>{wrap(Ico.share)}</button>
+    </div>
+  );
+}
+
+/** Texto de la entrada: insignia del tipo, título, detalle y, en las propuestas, la foto pequeña de la oferta (sin enlace). */
+function Body({ t, kind, big, x = false }: { t: EntryText; kind: PlanEntry["kind"]; big: boolean; x?: boolean }): JSX.Element {
+  const text = <p className={x ? "va-x__text" : "va-post__text"}>{t.title}.{t.detail ? <> <em>{t.detail}</em></> : null}</p>;
+  return (
+    <>
+      <span className="va-tag" style={{ "--k": t.color } as CSSProperties}>{t.pill}</span>
+      {kind === "propuesta" ? <div className="va-prop">{text}{t.imageSrc ? <img src={t.imageSrc} alt="" /> : null}</div> : text}
+      {big && kind !== "propuesta" && t.imageSrc ? <span className="va-post__media"><img src={t.imageSrc} alt="" /></span> : null}
+      {t.cta ? <button type="button" className="va-cta">{t.cta}{Ico.go}</button> : null}
+      <Acts t={t} x={x} />
+    </>
   );
 }
 
 export function VmcAhoraTicker({ onOpen }: { onOpen: () => void }): JSX.Element {
-  const { items, tick } = useLiveFeed(1, false);
-  const e = items[0];
+  const s = useFeed();
+  const e = s.items[0];
+  const t = describe(e, s.inv);
   return (
-    <button type="button" className="va-ticker" onClick={onOpen} aria-label={`VMC ahora, en vivo: ${e.who}, ${e.title}. Abrir el feed`}>
+    <button type="button" className="va-ticker" onClick={onOpen} aria-label={`VMC ahora, en vivo: ${t.author}, ${t.title}. Abrir el feed`}>
       <span className="va-ticker__live"><i />En vivo</span>
-      <span key={tick} className="va-ticker__txt"><b>{e.who}</b> · {e.title}</span>
+      <span key={e.uid} className="va-ticker__txt"><b>{t.author}</b> · {t.title}</span>
       <svg className="va-ticker__go" width="16" height="16" viewBox="0 0 20 20" aria-hidden><path d="M7.5 5l5 5-5 5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
       <style>{TICKER_CSS}</style>
     </button>
@@ -366,10 +359,10 @@ function Head({ live }: { live: boolean }): JSX.Element {
 export default function VmcAhora({ view, live = true, more = false, x = false, head = true, page = false }: {
   view: FeedView; live?: boolean; more?: boolean; x?: boolean; head?: boolean; page?: boolean;
 }): JSX.Element {
-  const [paused, setPaused] = useState(false);
+  const s = useFeed();
   const [shown, setShown] = useState(2);
   const [revealFrom, setRevealFrom] = useState(Infinity);
-  const { items: all, tick } = useLiveFeed(view === "pulso" ? 4 : more || x ? EVENTS.length : 5, paused);
+  const all = more || x ? s.items : s.items.slice(0, 8);
   const items = more ? all.slice(0, shown) : all;
   const moreBtn = more ? (
     <button type="button" className="va-more" data-less={shown >= all.length || undefined}
@@ -378,48 +371,34 @@ export default function VmcAhora({ view, live = true, more = false, x = false, h
       <svg width="14" height="14" viewBox="0 0 20 20" aria-hidden><path d="M5 7.5l5 5 5-5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
     </button>
   ) : null;
-  const pause = { onMouseEnter: () => setPaused(true), onMouseLeave: () => setPaused(false) };
-  // El evento de arriba entra animado (su key cambia en cada avance; los demás conservan la suya).
+  // La entrada de arriba entra animada (su key es nueva en cada avance; las demás conservan la suya).
   const enter = (i: number) => (i === 0 ? " va-enter" : i >= revealFrom ? " va-reveal" : "");
-
-  if (view === "ebay") {
-    return (
-      <aside className="va va--timeline" aria-label="VMC ahora" {...pause}>
-        <Head live={live} />
-        {tick > 0 ? <span key={tick} className="va-newpill" aria-hidden>{Ico.arrowUp}Nuevo</span> : null}
-        <ol className="va-posts va-scroll" aria-live="polite">
-          {items.map((e, i) => (
-            <li key={e.id} className={`va-eb${enter(i)}`}>
-              <span className="va-eb__thumb"><img src={e.imageSrc} alt="" /></span>
-              <div className="va-eb__main">
-                <span className="va-eb__pill" style={{ "--k": KIND[e.kind].color } as CSSProperties}>{KIND[e.kind].label}</span>
-                <p className="va-eb__title">{e.lot}</p>
-                <span className="va-eb__who">{e.who}<Verified /></span>
-                <b className="va-eb__value">{e.price ?? "Negociable"}</b>
-                <span className="va-eb__rest">{e.detail}</span>
-                <span className="va-eb__foot"><span>{e.city} · {ago(i)}</span>
-                  <span className="va-eb__acts"><LikeBtn n={e.likes} /><button type="button" aria-label="Compartir">{Ico.share}</button></span>
-                </span>
-              </div>
-            </li>
-          ))}
-        </ol>
-        <style>{CSS}</style>
-      </aside>
-    );
-  }
+  const top = s.items[0];
+  const fresh = top && top.at > 0;
 
   if (view === "timeline" && x) {
     return (
-      <aside className={`va va--timeline va--x${page ? " va--page" : ""}`} aria-label="VMC ahora" {...pause}>
+      <aside className={`va va--timeline va--x${page ? " va--page" : ""}`} aria-label="VMC ahora" {...hover}>
         {head ? <Head live={live} /> : null}
-        {tick > 0 ? (
-          <span key={tick} className="va-newpill" aria-hidden>
-            {Ico.arrowUp}{items.slice(0, 3).map((e) => <Avatar key={e.id} who={e.who} size={20} />)}Ver nuevas
+        {fresh ? (
+          <span key={top.uid} className="va-newpill" aria-hidden>
+            {Ico.arrowUp}{items.slice(0, 3).map((e) => <Avatar key={e.uid} who={describe(e, s.inv).author} size={20} />)}Ver nuevas
           </span>
         ) : null}
         <ol className={`va-posts${page ? "" : " va-scroll"}`} aria-live="polite">
-          {items.map((e, i) => <XPost key={e.id} e={e} i={i} className={`va-x${enter(i)}`} />)}
+          {items.map((e, i) => {
+            const t = describe(e, s.inv);
+            return (
+              <li key={e.uid} className={`va-x${enter(i)}`}>
+                <Avatar who={t.author} size={40} />
+                <div style={{ minWidth: 0 }}>
+                  <div className="va-x__head"><b>{t.author}</b><Verified /><span>{handle(t.author)} · {agoShort(s.now - e.at)}</span></div>
+                  <button type="button" className="va-x__more" aria-label="Más opciones">{Ico.more}</button>
+                  <Body t={t} kind={e.kind} big={i === 0} x />
+                </div>
+              </li>
+            );
+          })}
         </ol>
         <style>{CSS}</style>
       </aside>
@@ -428,21 +407,22 @@ export default function VmcAhora({ view, live = true, more = false, x = false, h
 
   if (view === "timeline") {
     return (
-      <aside className={`va va--timeline${more ? " va--auto" : ""}`} aria-label="VMC ahora" {...pause}>
+      <aside className={`va va--timeline${more ? " va--auto" : ""}`} aria-label="VMC ahora" {...hover}>
         <Head live={live} />
-        {tick > 0 ? <span key={tick} className="va-newpill" aria-hidden>{Ico.arrowUp}Nuevo</span> : null}
+        {fresh ? <span key={top.uid} className="va-newpill" aria-hidden>{Ico.arrowUp}Nuevo</span> : null}
         <ol className={`va-posts${more ? "" : " va-scroll"}`} aria-live="polite">
-          {items.map((e, i) => (
-            <li key={e.id} className={`va-post${enter(i)}`}>
-              <div className="va-post__rail"><Avatar who={e.who} size={32} /><span className="va-post__line" /></div>
-              <div className="va-post__main">
-                <div className="va-post__head"><b>{e.who}</b><Verified /><span>{ago(i)}</span></div>
-                <p className="va-post__text">{e.title}. <em>{e.detail}</em></p>
-                {i === 0 ? <span className="va-post__media"><img src={e.imageSrc} alt="" /><b>{KIND[e.kind].label}</b></span> : null}
-                <div className="va-acts"><span>{Ico.heart}{e.likes}</span><span>{Ico.reply}{e.replies}</span><span>{Ico.repost}</span><span>{Ico.share}</span></div>
-              </div>
-            </li>
-          ))}
+          {items.map((e, i) => {
+            const t = describe(e, s.inv);
+            return (
+              <li key={e.uid} className={`va-post${enter(i)}`}>
+                <div className="va-post__rail"><Avatar who={t.author} size={32} /><span className="va-post__line" /></div>
+                <div className="va-post__main">
+                  <div className="va-post__head"><b>{t.author}</b><Verified /><span>{ago(s.now - e.at)}</span></div>
+                  <Body t={t} kind={e.kind} big={i === 0} />
+                </div>
+              </li>
+            );
+          })}
         </ol>
         {moreBtn}
         <style>{CSS}</style>
@@ -450,60 +430,65 @@ export default function VmcAhora({ view, live = true, more = false, x = false, h
     );
   }
 
-  if (view === "pulso") {
-    const bidders = 128 + ((tick * 7) % 23);
-    const stories = ["SubasCars", "Pacífico", "Autoplan", "Mapfre", "Trupal S.A."];
-    const liveWho = new Set(items.slice(0, 2).map((e) => e.who));
-    return (
-      <aside className="va va--pulso" aria-label="VMC ahora" {...pause}>
-        <header className="va-pu__head">
-          <div className="va-pu__title"><h3>VMC ahora</h3><span className="va-pu__live"><i />EN DIRECTO</span></div>
-          <p className="va-pu__count"><b>{bidders}</b> personas pujando ahora</p>
-        </header>
-        <div className="va-stories" aria-label="Empresas activas">
-          {stories.map((w) => (
-            <span key={w} className="va-story">
-              <span className={`va-story__ring${liveWho.has(w) ? "" : " is-idle"}`}><Avatar who={w} size={32} /></span>
-              <span className="va-story__name">{w.replace(" S.A.", "")}</span>
-            </span>
-          ))}
-        </div>
-        <ol className="va-tline" aria-live="polite">
-          {items.map((e, i) => (
-            <li key={e.id} className={`va-ev${enter(i)}`} style={{ "--c": KIND[e.kind].color } as CSSProperties}>
-              <div className="va-ev__meta"><span style={{ color: KIND[e.kind].color }}>{KIND[e.kind].label}</span><span className="va-ev__ago">{ago(i)}</span></div>
-              <p>{e.title}</p>
-              <small>{e.detail}</small>
-            </li>
-          ))}
-        </ol>
-        <div className="va-pu__foot"><a href="#">Ver toda la actividad<svg width="12" height="12" viewBox="0 0 20 20" aria-hidden><path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg></a></div>
-        <style>{CSS}</style>
-      </aside>
-    );
-  }
-
   return (
-    <aside className={`va va--normal${more ? " va--auto" : ""}`} aria-label="VMC ahora" {...pause}>
+    <aside className={`va va--normal${more ? " va--auto" : ""}`} aria-label="VMC ahora" {...hover}>
       <Head live={live} />
-      {tick > 0 ? <span key={tick} className="va-newpill" aria-hidden>{Ico.arrowUp}Nuevo</span> : null}
+      {fresh ? <span key={top.uid} className="va-newpill" aria-hidden>{Ico.arrowUp}Nuevo</span> : null}
       <ol className={`va-posts${more ? "" : " va-scroll"}`} aria-live="polite">
-        {/* Fila tipo listado de eBay, 4 líneas a la altura de la foto: la pill cuenta el evento, el título es el
-            lote, un solo dato fuerte (el precio, si hay) y una línea gris con empresa · ciudad · tiempo. */}
-        {items.map((e, i) => (
-          <li key={e.id} className={`va-item${enter(i)}`}>
-            <span className="va-item__thumb"><img src={e.imageSrc} alt="" /></span>
-            <div className="va-item__main">
-              <span className="va-item__pill" style={{ "--k": KIND[e.kind].color } as CSSProperties}>{KIND[e.kind].label}</span>
-              <p className="va-item__title">{e.lot}</p>
-              {e.price ? <b className="va-item__value">{e.price}</b> : null}
-              <span className="va-item__meta"><span className="va-item__who">{e.who}</span><Verified /><span>· {e.city} · {ago(i)}</span></span>
-            </div>
-          </li>
-        ))}
+        {/* Fila tipo listado de eBay: la insignia cuenta el tipo de entrada, el título, un dato fuerte (el precio, si hay)
+            y una línea gris con autor · tiempo · participantes o negociaciones. */}
+        {items.map((e, i) => {
+          const t = describe(e, s.inv);
+          const o = s.inv.find((x) => x.id === e.offerId);
+          return (
+            <li key={e.uid} className={`va-item${enter(i)}`}>
+              {t.imageSrc
+                ? <span className="va-item__thumb"><img src={t.imageSrc} alt="" /></span>
+                : <span className="va-item__thumb va-item__thumb--av"><Avatar who={t.author} size={40} /></span>}
+              <div className="va-item__main">
+                <span className="va-item__pill" style={{ "--k": t.color } as CSSProperties}>{t.pill}</span>
+                <p className="va-item__title">{t.mode && o ? o.lot : t.title}</p>
+                {t.mode && o?.price ? <b className="va-item__value">{o.price}</b> : null}
+                <span className="va-item__meta"><span className="va-item__who">{t.author}</span><Verified />
+                  <span>· {ago(s.now - e.at)}{t.mode ? ` · ${countLabel(t)}` : ""}</span></span>
+              </div>
+            </li>
+          );
+        })}
       </ol>
       {moreBtn}
       <style>{CSS}</style>
     </aside>
+  );
+}
+
+// Panel de QA del reloj: cuánto falta para la próxima entrada simulada, el plan del día y una acción real de prueba.
+const QA_CSS = `
+.va-qa p { margin: 0 2px 6px; font-size: 12px; line-height: 16px; color: #4A4560; }
+.va-qa p b { color: #3B1782; font-variant-numeric: tabular-nums; }
+.va-qa ul { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; margin: 0 2px 8px; padding: 0; list-style: none; font-size: 11.5px; color: #6B6880; }
+.va-qa ul b { text-align: right; color: #191C1C; font-variant-numeric: tabular-nums; }
+.va-qa small { display: block; margin: 6px 2px 0; font-size: 10.5px; color: #8a879c; }
+`;
+export function VmcAhoraQa(): JSX.Element {
+  const s = useFeed();
+  const left = Math.max(0, Math.ceil((GAP_MS - (s.now - s.lastAt)) / s.speed / 1000));
+  const sc = SCENARIOS.find((x) => x.id === s.scenario);
+  const c = counts(sc?.V ?? 0, sc?.N ?? 0);
+  const n = (k: PlanEntry["kind"][]) => s.plan.filter((e) => k.includes(e.kind)).length;
+  const rows: [string, number][] = [
+    ["Rotación del inventario", n(["rotacion"])], ["Propuestas enviadas", n(["propuesta"])], ["Nuevas ofertas", n(["nueva", "nueva-subascars"])],
+    ["Registros", n(["registro"])], ["Publicidad", n(["ad-valoriza", "ad-publica"])], ["Blog", n(["blog"])],
+  ];
+  return (
+    <div className="hib-switch va-qa" role="group" aria-label="VMC ahora · reloj">
+      <span>VMC ahora · reloj</span>
+      <p>{c.V} en vivo · {c.N} negociables · inventario {c.T}</p>
+      <p>Próxima entrada simulada en <b>{left} s</b>{s.speed > 1 ? ` (×${s.speed})` : ""}</p>
+      <ul aria-label={`Plan del día: ${s.plan.length} entradas`}>{rows.map(([k, v]) => <li key={k} style={{ display: "contents" }}><span>{k}</span><b>{v}</b></li>)}</ul>
+      <button type="button" onClick={simulateRealAction}><b>Simular acción real</b><small style={{ margin: 0 }}>Entra ya y reinicia los {GAP_S} s</small></button>
+      <small>Plan del día: {s.plan.length} entradas de 9:00 a 24:00, reproducidas cada {GAP_S} s. Ver escenarios.pdf.</small>
+      <style>{QA_CSS}</style>
+    </div>
   );
 }
