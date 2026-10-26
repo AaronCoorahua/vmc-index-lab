@@ -195,7 +195,7 @@ export default function DevicePreview(): JSX.Element {
       </div>
     </div>
   );
-  const bannerControls = QA_CONTROLS.filter((c) => c.key.startsWith("banner") && c.key !== "bannerView");
+  const bannerControls = QA_CONTROLS.filter((c) => c.key.startsWith("banner") && c.key !== "bannerView" && c.key !== "bannerCamp");
   const otherControls = QA_CONTROLS.filter((c) => !bannerControls.includes(c));
   const chooseMview = (v: MobileFeedView) => {
     setMview(v);
