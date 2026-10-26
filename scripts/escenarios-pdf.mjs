@@ -74,7 +74,7 @@ const confirmed = slide("Reglas confirmadas", table("<th class=\"l\">Tema</th><t
   ["De 6 a 11 ofertas", "Cada oferta rota una vez al día."],
   ["Acciones", "En vivo: me gusta, participantes y compartir. Negociable: me gusta, negociaciones y compartir."],
   ["Producción", "Los registros y las propuestas que se muestren tienen que ser reales."],
-]), "rules"));
+]), "rules snug"));
 
 const formulas = slide("Fórmulas", table("<th class=\"l\">Entrada</th><th class=\"l\">Depende de</th><th class=\"l\">Fórmula</th><th>Con 8 en vivo<br>y 2 negociables</th>", [
   ["Rotación", "Total de ofertas", "De 1 a 5 ofertas, 3 veces cada una. De 6 a 30, una vez cada una. Con más de 30, 30 al día.", G.rot],
@@ -255,6 +255,7 @@ tr.hl td { background: #FFF1E4 !important; font-weight: 700; }
 table.narrow { width: 820px; }
 table.rules td { padding: 12px 14px; font-size: 18px; vertical-align: top; }
 table.rules td:first-child { width: 26%; }
+table.rules.snug td { padding: 9px 14px; font-size: 17px; }
 table.clash td { padding: 12px 14px; font-size: 18px; }
 table.clash td:first-child { width: 22%; }
 table.clash td:last-child { width: 12%; }
