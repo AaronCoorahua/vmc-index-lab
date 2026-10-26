@@ -183,10 +183,12 @@ La demo inventa el inventario (`buildInventory`) y reproduce el día comprimido.
 
 ## Pendiente con Julio
 
-- Topes de propuestas: 5, 8 y 12 al día.
-- Vueltas con 1 a 5 ofertas: 3 al día (con 5 ofertas, una por hora). Desde 6, una vez, como pidió Julio, lo que da un salto de 15 a 6 rotaciones.
-- Qué mostrar sin ofertas: solo publicidad y blog, ocultar VMC ahora o poner "Pronto nuevas ofertas".
-- "En vivo" en la cabecera solo cuando hay ofertas en vivo.
-- Juntar propuestas y registros reales cuando llegan varios seguidos.
-- Mismas palabras en el contador de la ficha ("ofertas", "propuestas") y de VMC ahora ("participantes", "negociaciones").
-- Publicidad siempre primera al abrir, alternando las dos en cada visita.
+Cada punto dice de qué se trata, qué propone la demo y si ya está en la página.
+
+1. Topes de avisos de propuesta. 5, 8 y 12 no son rangos: son el máximo de avisos "Se ha enviado una propuesta" simulados al día. El rango es la cantidad de negociables publicadas: de 1 a 4 negociables, hasta 5 avisos; de 5 a 11, hasta 8 (uno cada 2 horas, más o menos); con 12 o más, hasta 12. Nunca más de 2 por negociable, así que con 1 negociable salen 2 y con 2 negociables, 4. Sin negociables, ninguno. Las propuestas reales no tienen tope. Ya funciona así; falta aprobarlo.
+2. Cuántas veces rota una oferta al día. Rotar es volver a mostrar en el feed una oferta que ya estaba publicada. Con 6 ofertas o más se aplica la regla de Julio: cada oferta una vez al día. Con 1 a 5 ofertas la demo propone 3 veces cada una (con 5 ofertas, una por hora). El problema: con 5 ofertas salen 15 rotaciones al día y con 6, solo 6. Opción: bajar a 2 veces con 1 a 5 ofertas. Ya funciona con 3; falta decidir.
+3. Qué mostrar sin ninguna oferta publicada. Hoy el feed queda solo con publicidad y blog (8 entradas al día). Opciones: dejarlo así, ocultar VMC ahora o mostrar "Pronto nuevas ofertas". Hoy está la primera; las otras dos no están hechas.
+4. "En vivo" en la cabecera del feed. Arriba dice "En vivo" aunque no haya ninguna subasta en vivo. Propuesta: mostrarlo solo si hay ofertas en vivo y, si no, "Actividad de hoy". No está hecho.
+5. Juntar avisos reales seguidos. Si llegan 3 propuestas reales seguidas a la misma oferta, en vez de 3 avisos iguales sale uno: "Se enviaron 3 propuestas a la OFERTA 67942". Igual con los registros: "5 personas se registraron en la última hora". No está hecho.
+6. Mismas palabras en el contador. La ficha de la oferta dice "X ofertas" (en vivo) y "X propuestas" (negociable); en VMC ahora se pidió "participantes" y "negociaciones". Propuesta: usar las mismas en los dos lados. Falta elegir cuáles; no está hecho.
+7. Publicidad al abrir la página. Lo primero que aparece en el feed es siempre una publicidad: eso ya funciona. Propuesta: alternar entre "Valoriza tu auto" y "Publica tu auto" en cada visita, para que la misma persona no vea siempre la misma. Lo de alternar no está hecho.
