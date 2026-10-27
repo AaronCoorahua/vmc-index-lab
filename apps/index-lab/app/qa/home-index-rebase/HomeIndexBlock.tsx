@@ -1371,6 +1371,8 @@ const LOTS: LotData[] = [
 //   · normal   → 4 OfferCard en fila, como la sección del Subastador.
 //   · gallery  → tipo «Oferta del día» de Mercado Libre: destacado alto a la izquierda + 2 filas de 3 «short».
 //   · featured → destacado más chico + 3 autos más grandes que las «short» (menos que el destacado).
+// Cuántos lotes tiene cada empresa (QA): 3–4 = destacada + lista en una columna; 1–2 = solo filas, la sección se encoge.
+const LOTS_COUNTS = Array.from({ length: 7 }, (_, i) => ({ id: `${i + 1}`, label: `${i + 1}`, hint: i ? `${i + 1} lotes` : "1 lote" })); // panel móvil; en escritorio es un slider
 type LotsView = "normal" | "gallery" | "featured" | "listado" | "listado-gallery";
 const LOTS_VIEWS: { id: LotsView; label: string; hint: string }[] = [
   { id: "gallery", label: "Card gallery", hint: "Destacada + 2 filas de 4" },
@@ -1419,6 +1421,8 @@ const CARD_STYLES: { id: CardStyle; label: string; hint: string }[] = [
 
 const GALLERY_HEIGHT = 2 * 170 + 12;
 
+const LOTS_BOX: CSSProperties = { boxSizing: "border-box", width: "100%", background: "#ffffff", borderRadius: 16,
+  boxShadow: SHADOW, padding: "0 0 16px", display: "flex", flexDirection: "column", gap: 16, fontFamily: FONT };
 const LOTS_CSS = `
 .hib-eblist { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 28px; }
 .hib-eblist--one { grid-template-columns: minmax(0, 1fr); }
@@ -1426,6 +1430,9 @@ const LOTS_CSS = `
 .hib-eblist--two > .lc-eb:nth-child(-n + 2) { padding-top: 0; }
 .hib-eblist--two > .lc-eb:nth-last-child(-n + 2) { border-bottom: 0; padding-bottom: 0; }
 .hib-eblist--one > .lc-eb:first-child { padding-top: 0; }
+/* Pocos lotes (control «Lotes · cantidad»): misma estructura que con muchos. 3–4 = filas normales en una columna, alineadas arriba. 1–2 = solo filas (sin destacada): la sección mide lo que su contenido. */
+.hib-few-list { display: flex; flex-direction: column; min-width: 0; }
+.hib-few-list > .lc-eb:first-child { padding-top: 0; }
 .hib-eblist--one > .lc-eb:last-child { border-bottom: 0; padding-bottom: 0; }
 /* Cards de Concorde dentro de grillas fluidas: ocupan su columna (el OfferCard las fija en px). */
 .hib-fluid > .pcard { width: 100%; }
@@ -1480,10 +1487,10 @@ function lotCard(lot: Lot, opts: { className?: string; size?: "short"; featured?
   );
 }
 
-function LotsSection({ view, card, store }: { view: LotsView; card: CardStyle; store: Store }): JSX.Element {
-  const LOTS = store.lots;
+function LotsSection({ view, card, store, max = 99 }: { view: LotsView; card: CardStyle; store: Store; max?: number }): JSX.Element {
+  const LOTS = store.lots.slice(0, max); // max: control QA «Lotes · cantidad» (cómo se ve con pocas ofertas)
   const [featured, ...rest] = LOTS;
-  const count = store.total;
+  const count = Math.min(store.total, max); // con «Pocos» el encabezado dice 3 oportunidades, no 9
   // Card «grande» según el estilo elegido (en Normal, el OfferCard de Concorde).
   const big = (lot: Lot, o: { featured?: boolean; width?: number | string; height?: number | string; fill?: boolean } = {}) =>
     card === "holo-curva" ? <FichaLegend key={lot.name} lot={lot} tier="holo" curve featured={o.featured} width={o.width} height={o.height} mediaFill={o.fill} />
@@ -1499,12 +1506,27 @@ function LotsSection({ view, card, store }: { view: LotsView; card: CardStyle; s
   if (view === "listado") {
     // Listado en 2 columnas: cada lote con la foto a la izquierda y el detalle a la derecha.
     body = <div className="hib-eblist">{LOTS.slice(0, 6).map((lot) => <EbayLotRow key={lot.name} lot={lot} store={store.name} />)}</div>;
+  } else if (view === "listado-gallery" && LOTS.length <= 2) {
+    // 1–2 lotes: sin destacada; filas en dos columnas y la sección se encoge (nada que rellenar).
+    body = <div className="hib-eblist hib-eblist--two">{LOTS.map((lot) => <EbayLotRow key={lot.name} lot={lot} store={store.name} />)}</div>;
+  } else if (view === "listado-gallery" && LOTS.length <= 4) {
+    // 3–4 lotes: la misma destacada + lista, pero en una columna de filas a su alto (sin estirar); «Ver todo el lote» ya está en la cabecera.
+    body = (
+      <div className="hib-listado-gallery" style={{ display: "grid", gridTemplateColumns: "292px minmax(0, 1fr)", gap: 20, alignItems: "stretch" }}>
+        <div style={{ display: "flex", minWidth: 0 }}>
+          <FichaLegend lot={featured} tier="holo" curve width="100%" height="100%" mediaFill />
+        </div>
+        <div className="hib-few-list">
+          {rest.map((lot) => <EbayLotRow key={lot.name} lot={lot} store={store.name} />)}
+        </div>
+      </div>
+    );
   } else if (view === "listado-gallery") {
     // Destacada vertical (Holo curva) a la izquierda y 6 lotes en listado (2 columnas × 3 filas); la destacada toma el alto de la lista.
     body = (
       <div className="hib-listado-gallery" style={{ display: "grid", gridTemplateColumns: "292px minmax(0, 1fr)", gap: 20, alignItems: "stretch" }}>
         <div style={{ display: "flex", minWidth: 0 }}>
-          <FichaLegend lot={featured} tier="holo" curve featured width="100%" height="100%" mediaFill />
+          <FichaLegend lot={featured} tier="holo" curve width="100%" height="100%" mediaFill />{/* sin badge «Destacado»: el tamaño ya la destaca */}
         </div>
         <div className="hib-eblist hib-eblist--two">{rest.slice(0, 6).map((lot) => <EbayLotRow key={lot.name} lot={lot} store={store.name} size="sm" />)}</div>
       </div>
@@ -1554,10 +1576,7 @@ function LotsSection({ view, card, store }: { view: LotsView; card: CardStyle; s
   return (
     <section
       aria-label={`Lotes de ${store.name}`}
-      style={{
-        boxSizing: "border-box", width: "100%", background: "#ffffff", borderRadius: 16,
-        boxShadow: SHADOW, padding: "0 0 16px", display: "flex", flexDirection: "column", gap: 16, fontFamily: FONT,
-      }}
+      style={LOTS_BOX}
     >
       {/* Cabecera de tienda (referencia): logo 56 × 44, nombre, oportunidades y «Ver todo el lote». */}
       <header className="hib-lots-head" style={{ boxSizing: "border-box", flex: "none", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, height: 68, padding: "0 24px", borderBottom: "1px solid #e8ddff" }}>
@@ -1567,7 +1586,7 @@ function LotsSection({ view, card, store }: { view: LotsView; card: CardStyle; s
           </span>
           <div style={{ display: "grid", gap: 2, minWidth: 0 }}>
             <h3 style={{ margin: 0, fontSize: 16, lineHeight: "20px", fontWeight: 700, letterSpacing: "-0.01em", color: "#3b1782", whiteSpace: "nowrap" }}>{store.name}</h3>
-            <p style={{ margin: 0, fontSize: 12, lineHeight: "16.8px", color: "#6B6878" }}>{count} oportunidades</p>
+            <p style={{ margin: 0, fontSize: 12, lineHeight: "16.8px", color: "#6B6878" }}>{count} {count === 1 ? "oportunidad" : "oportunidades"}</p>
           </div>
         </div>
         <div style={{ flex: "none" }}><ProfileButton className="hib-lots-cta" aria-label="Ver todo el lote"><span>Ver todo</span><span>el lote</span></ProfileButton></div>
@@ -1774,6 +1793,19 @@ function HeightSlider({ value, onChange }: { value: number; onChange: (v: number
   );
 }
 
+function LotsSlider({ value, onChange }: { value: number; onChange: (v: number) => void }): JSX.Element {
+  return (
+    <div className="hib-switch hib-slider" role="group" aria-label="Lotes por empresa">
+      <span>Lotes · cantidad<b>{value}</b></span>
+      <input type="range" min={1} max={7} step={1} value={value} aria-label="Cantidad de lotes por empresa"
+        onChange={(e) => onChange(Number(e.target.value))}
+        style={{ background: `linear-gradient(90deg, #8460E5 ${((value - 1) / 6) * 100}%, #E6E1F5 0)` }} />
+      <div className="hib-slider__foot"><small>1</small>
+        <button type="button" onClick={() => onChange(7)} disabled={value === 7}>Restablecer 7</button>
+        <small>7</small></div>
+    </div>
+  );
+}
 function Switches({ children, visible }: { children: ReactNode; visible: boolean }): JSX.Element | null {
   return visible ? <div className="hib-switches">{children}</div> : null;
 }
@@ -1847,7 +1879,7 @@ function AdStrip(): JSX.Element {
 
 // Todos los selectores de QA en una lista: el panel de la vista mobile los muestra igual que escritorio y los envía al teléfono.
 export type QaKey = "bannerNav" | "bannerFx" | "feedView" | "feedScenario" | "feedSpeed" | "feedAd" | "feedAdBadge" | "feedViews" | "feedShare" | "feedActs" | "feedTags" | "feedScroll" | "feedTone" | "offerView" | "lotsView" | "cardStyle" | "lotsView2" | "cardStyle2"
-  | "categoriesView" | "bannerView" | "bannerCamp" | "companiesView";
+  | "categoriesView" | "bannerView" | "bannerCamp" | "companiesView" | "lotsCount";
 type QaOption = { id: string; label: string; hint: string };
 export const QA_CONTROLS: { key: QaKey; title: string; options: QaOption[] }[] = [
   { key: "bannerNav", title: "Banner · indicador", options: BANNER_NAVS },
@@ -1868,6 +1900,7 @@ export const QA_CONTROLS: { key: QaKey; title: string; options: QaOption[] }[] =
   { key: "cardStyle", title: "Autoplan · detail card", options: CARD_STYLES },
   { key: "lotsView2", title: "Mapfre · lotes", options: LOTS_VIEWS },
   { key: "cardStyle2", title: "Mapfre · detail card", options: CARD_STYLES },
+  { key: "lotsCount", title: "Lotes · cantidad", options: LOTS_COUNTS },
   { key: "categoriesView", title: "Categorías · vista", options: CATEGORIES_VIEWS },
   { key: "bannerCamp", title: "Banner secundario · campaña", options: CAMPAIGNS },
   { key: "bannerView", title: "Banner secundario · vista", options: BANNER_VIEWS },
@@ -1911,10 +1944,11 @@ export default function HomeIndexBlock({ hideFeed = false, feedSlot = false, onO
   const [categoriesView, setCategoriesView] = useState<CategoriesView>(() => initQa("categoriesView", OPTION_A.categoriesView));
   const [bannerView, setBannerView] = useState<BannerView>(() => initQa("bannerView", "fondo"));
   const [bannerCamp, setBannerCamp] = useState<CampaignId>(() => initQa("bannerCamp", "valoriza"));
+  const [lotsCount, setLotsCount] = useState<string>(() => initQa("lotsCount", "7"));
   const [controls, setControls] = useState(false);
   const [bannerNav, setBannerNav] = useState<BannerNav>(() => initQa("bannerNav", "plain"));
   const [bannerFx, setBannerFx] = useState<BannerFx>(() => initQa("bannerFx", "letters"));
-  const qa: Record<QaKey, string> = { bannerNav, bannerFx, feedView, feedScenario, feedSpeed, feedAd, feedAdBadge, feedViews, feedShare, feedActs, feedTags, feedScroll, feedTone, offerView, lotsView, cardStyle, lotsView2, cardStyle2, categoriesView, bannerView, bannerCamp, companiesView };
+  const qa: Record<QaKey, string> = { bannerNav, bannerFx, feedView, feedScenario, feedSpeed, feedAd, feedAdBadge, feedViews, feedShare, feedActs, feedTags, feedScroll, feedTone, offerView, lotsView, cardStyle, lotsView2, cardStyle2, categoriesView, bannerView, bannerCamp, companiesView, lotsCount };
   const setQa = useCallback((key: QaKey, v: string) => {
     const set: Record<QaKey, (v: string) => void> = {
       bannerNav: (x) => setBannerNav(x as BannerNav), bannerFx: (x) => setBannerFx(x as BannerFx),
@@ -1923,7 +1957,7 @@ export default function HomeIndexBlock({ hideFeed = false, feedSlot = false, onO
       feedShare: (x) => setFeedShare(x as ShareIcon), feedActs: (x) => setFeedActs(x as ActsAlign), feedTags: (x) => setFeedTags(x as TagsMode),
       feedScroll: (x) => setFeedScroll(x as ScrollStyle), feedTone: (x) => setFeedTone(x as ColorTone), offerView: (x) => setOfferView(x as OfferTypeView), lotsView: (x) => setLotsView(x as LotsView),
       cardStyle: (x) => setCardStyle(x as CardStyle), lotsView2: (x) => setLotsView2(x as LotsView), cardStyle2: (x) => setCardStyle2(x as CardStyle),
-      categoriesView: (x) => setCategoriesView(x as CategoriesView), bannerView: (x) => setBannerView(x as BannerView), bannerCamp: (x) => setBannerCamp(x as CampaignId), companiesView: (x) => setCompaniesView(x as CompaniesView),
+      categoriesView: (x) => setCategoriesView(x as CategoriesView), bannerView: (x) => setBannerView(x as BannerView), bannerCamp: (x) => setBannerCamp(x as CampaignId), lotsCount: setLotsCount, companiesView: (x) => setCompaniesView(x as CompaniesView),
     };
     if (isQaValue(key, v)) set[key](v);
   }, []);
@@ -2023,15 +2057,16 @@ export default function HomeIndexBlock({ hideFeed = false, feedSlot = false, onO
         </Switches>
       </div>
       <div style={{ position: "relative", width: "100%" }}>
-        <LotsSection view={lotsView} card={cardStyle} store={STORES[0]} />
+        <LotsSection view={lotsView} card={cardStyle} store={STORES[0]} max={+lotsCount} />
         <Switches visible={controls}>
           <ViewSwitch title="Autoplan · lotes" suffix="" options={LOTS_VIEWS} value={lotsView} onChange={setLotsView} />
           <ViewSwitch title="Autoplan · detail card" suffix="" options={CARD_STYLES} value={cardStyle} onChange={setCardStyle} />
+          <LotsSlider value={+lotsCount} onChange={(n) => setLotsCount(`${n}`)} />
         </Switches>
       </div>
       <AdStrip />
       <div style={{ position: "relative", width: "100%" }}>
-        <LotsSection view={lotsView2} card={cardStyle2} store={STORES[1]} />
+        <LotsSection view={lotsView2} card={cardStyle2} store={STORES[1]} max={+lotsCount} />
         <Switches visible={controls}>
           <ViewSwitch title="Mapfre · lotes" suffix="" options={LOTS_VIEWS} value={lotsView2} onChange={setLotsView2} />
           <ViewSwitch title="Mapfre · detail card" suffix="" options={CARD_STYLES} value={cardStyle2} onChange={setCardStyle2} />
