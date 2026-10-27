@@ -59,6 +59,7 @@ type HeroSlide = {
 };
 // Slides con las campañas reales de VMC (pedido de Julio, 26/10): canal de WhatsApp, Publica y Negociable.
 // Cada slide alterna entre sus variaciones: al volver a una slide, trae la siguiente foto.
+// Publica C y D quedan fuera: su sujeto ocupa la zona del texto (27/10).
 // Fotos 2K generadas para el hero (persona + vehículo seminuevo a la derecha, izquierda libre para el texto). Copy provisional: Julio lo ajusta.
 const SLIDES: HeroSlide[] = [
   { label: "Entérate primero de las subastas por WhatsApp", pill: "whatsapp",
@@ -68,7 +69,7 @@ const SLIDES: HeroSlide[] = [
   { label: "Publica tu auto en VMC y recibe ofertas", pill: "seller",
     title: <>Publica tu auto<br />y <em>recibe ofertas</em></>, lead: <>Recibe propuestas y elige la que más te convenga.</>,
     cta: "Publicar mi auto", bg: "linear-gradient(100deg, #2A1670 0%, #3D2299 34%, #6B48DD 76%, #8460E5 100%)",
-    photo: { src: ["/banners/vmc/hero-publica.jpg", "/banners/vmc/hero-publica-c.jpg", "/banners/vmc/hero-publica-d.jpg"], side: "l", width: "100%", position: "30% 30%" }, copy: "right" },
+    photo: { src: ["/banners/vmc/hero-publica.jpg"], side: "l", width: "100%", position: "30% 30%" }, copy: "right" },
   { label: "Tú pones el precio, ellos te proponen", pill: "negotiable",
     title: <>Tú pones el precio<br />y <em>ellos te proponen</em></>, lead: <>Activa «Recibe ofertas» y negocia directo con los compradores.</>,
     cta: "Publicar con Recibe ofertas", bg: "linear-gradient(100deg, #2A1670 0%, #3D2299 35%, #00838C 78%, #00D2D3 100%)",
@@ -107,7 +108,7 @@ const HERO_CSS = `
 .hp-label--negotiable { background: linear-gradient(110deg, #00A9B0 0%, #3F7FD0 45%, #6A35D6 100%); box-shadow: rgba(80,70,210,0.45) 0 2px 10px; } /* = pill de las cards */
 .hp-h { margin: 0; font-size: var(--vmc-font-size-hero); line-height: var(--vmc-line-height-hero); font-weight: var(--vmc-font-weight-bold); letter-spacing: var(--vmc-letter-spacing-tight); }
 .hp-h em { font-style: normal; color: #FFE2C2; }
-.hp-p { margin: 0; font-size: var(--vmc-font-size-body); line-height: var(--vmc-line-height-body); font-weight: var(--vmc-font-weight-medium); max-width: 40ch; }
+.hp-p { margin: 0; font-size: var(--vmc-font-size-body); line-height: var(--vmc-line-height-body); font-weight: var(--vmc-font-weight-medium); max-width: 28ch; } /* 28ch (~300 px): el texto no llega al sujeto de las tomas */
 .hp-p b { font-weight: var(--vmc-font-weight-bold); }
 .hp-lot { position: absolute; right: 24px; bottom: 24px; width: 232px; padding: 14px 16px; border-radius: var(--vmc-radius-xl);
   background: var(--vmc-color-glass-dark); border: var(--vmc-border-glass); -webkit-backdrop-filter: var(--vmc-glass-blur); backdrop-filter: var(--vmc-glass-blur); }
