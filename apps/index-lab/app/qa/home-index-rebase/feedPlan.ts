@@ -105,12 +105,13 @@ const POOL: { lot: string; price: string; city: string; imageSrc: string }[] = [
 ];
 const EMPRESAS = ["Autoplan", "Mapfre", "Pacífico", "Trupal S.A."];
 // Artículos del blog, con una portada de los banners de VMC (fondo morado, para que el botón de vidrio se lea encima).
+// Regla (27/10): cada banner muestra una foto distinta; ni el blog ni los anuncios repiten las del hero ni las del banner secundario.
 export const BLOG = [
-  { title: "Cómo funciona una subasta en VMC, paso a paso", detail: "Guía", imageSrc: "/banners/vmc/hero-whatsapp.jpg", imagePos: "74% 45%" },
-  { title: "¿Qué es «Recibe ofertas» y cómo se envía una propuesta?", detail: "Guía", imageSrc: "/banners/vmc/hero-negociable.jpg", imagePos: "66% 30%" },
+  { title: "Cómo funciona una subasta en VMC, paso a paso", detail: "Guía", imageSrc: "/banners/vmc/hero-whatsapp-c.jpg", imagePos: "78% 30%" },
+  { title: "¿Qué es «Recibe ofertas» y cómo se envía una propuesta?", detail: "Guía", imageSrc: "/banners/vmc/hero-negociable-a.jpg", imagePos: "75% 30%" },
   { title: "5 cosas que revisar antes de ofertar por un auto usado", detail: "Consejos", imageSrc: "/banners/vmc/publica-moto.jpg", imagePos: "72% 22%" },
   { title: "Documentos para transferir un vehículo en Perú", detail: "Trámites", imageSrc: "/banners/vmc/subastop-flota.jpg", imagePos: "62% 40%" },
-  { title: "Cómo se fija el precio base de una subasta", detail: "Guía", imageSrc: "/banners/vmc/hero-publica.jpg", imagePos: "32% 30%" },
+  { title: "Cómo se fija el precio base de una subasta", detail: "Guía", imageSrc: "/banners/vmc/hero-publica-c.jpg", imagePos: "30% 30%" },
 ];
 
 /** V ofertas en vivo (de las empresas) y N negociables (de SubasCars), con datos estables para un mismo V y N. */
@@ -291,7 +292,7 @@ function describeEntry(e: PlanEntry, inv: Offer[]): Omit<EntryText, "views"> {
         color: COLORS.promo, imageSrc: "/banners/vmc/valoriza-auto.jpg", imagePos: "75% 30%", cta: "Valorizar", ad: true };
     case "ad-publica":
       return { author: "VMC", title: "Publica tu auto en VMC y recibe ofertas", detail: "Empresas y compradores verificados.", pill: "Publicidad",
-        color: COLORS.promo, imageSrc: "/banners/vmc/hero-publica.jpg", imagePos: "32% 30%", cta: "Publicar", ad: true };
+        color: COLORS.promo, imageSrc: "/banners/vmc/hero-publica-d.jpg", imagePos: "22% 55%", cta: "Publicar", ad: true };
     case "blog":
       return { author: "Blog VMC", ...BLOG[e.blog ?? 0], pill: "Blog", color: COLORS.blog, cta: "Leer" };
   }
