@@ -538,24 +538,24 @@ type Campaign = { id: "subastop" | "valoriza" | "moto"; label: string; hint: str
 const CAMPAIGNS: Campaign[] = [
   { id: "subastop", label: "Subastop", hint: "Venta para empresas", eyebrow: "Subastop · Venta para empresas", aria: "Vehículos parados, ponlos a la venta",
     title: <>¿Vehículos parados? <em>Ponlos</em> a la venta</>, lead: "Un vehículo o toda una flota: cuéntanos qué quieres vender.", cta: "Quiero vender mi flota",
-    img: "/banners/vmc/subastop-flota.jpg", pos: "62% 40%",
-    fondo: { pos: "55% 30%", bg: "linear-gradient(100deg, #2A1670 0%, #3D2299 45%, #6B48DD 80%, #C85A1E 100%)" }, points: [
+    img: "/banners/vmc/campana-flota.jpg", pos: "76% 40%",
+    fondo: { pos: "70% 38%", bg: "linear-gradient(100deg, #2A1670 0%, #3D2299 45%, #6B48DD 80%, #C85A1E 100%)" }, points: [
       { icon: "empresa", text: "Para empresas que liquidan activos sin uso" },
       { icon: "maquinaria", text: "Vehículos, maquinaria, tecnología y repuestos" },
       { icon: "crecimiento", text: "Convierte lo que no usas en liquidez" },
     ] },
   { id: "valoriza", label: "Valoriza tu auto", hint: "Valor estimado en VMC", eyebrow: "Valoriza en VMC", aria: "Cuánto vale tu auto",
     title: <>¿Cuánto <em>vale</em> tu auto?</>, lead: "Responde unas preguntas y conoce el valor estimado de tu auto.", cta: "Valoriza tu auto",
-    img: "/banners/vmc/valoriza-auto.jpg", pos: "75% 30%",
-    fondo: { pos: "70% 22%", bg: "linear-gradient(100deg, #2A1670 0%, #3D2299 45%, #403566 100%)" }, points: [
+    img: "/banners/vmc/campana-valor.jpg", pos: "68% 28%",
+    fondo: { pos: "65% 25%", bg: "linear-gradient(100deg, #2A1670 0%, #3D2299 45%, #403566 100%)" }, points: [
       { icon: "valorizaciones", text: "Valor estimado en minutos" },
       { icon: "auto", text: "Con datos reales del mercado de autos" },
       { icon: "publicar", text: "Guarda el resultado y publícalo cuando quieras" },
     ] },
   { id: "moto", label: "Publica tu moto", hint: "Recibe propuestas en VMC", eyebrow: "Publica en VMC", aria: "Vendes tu moto",
     title: <>¿Vendes tu moto? <em>Publícala</em> en VMC</>, lead: "Los compradores te hacen propuestas y tú decides cuál aceptar.", cta: "Publica tu moto",
-    img: "/banners/vmc/publica-moto.jpg", pos: "72% 22%",
-    fondo: { pos: "70% 24%", bg: "linear-gradient(100deg, #2A1670 0%, #3D2299 45%, #1B1442 100%)" }, points: [
+    img: "/banners/vmc/campana-moto.jpg", pos: "70% 22%",
+    fondo: { pos: "65% 18%", bg: "linear-gradient(100deg, #2A1670 0%, #3D2299 45%, #1B1442 100%)" }, points: [
       { icon: "publicar", text: "Publica en minutos desde tu celular" },
       { icon: "negociaciones", text: "Los compradores te hacen propuestas" },
       { icon: "precio", text: "Tú decides cuál aceptar" },
