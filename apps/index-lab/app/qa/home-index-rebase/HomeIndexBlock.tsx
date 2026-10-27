@@ -54,24 +54,25 @@ const SHADOW = "rgba(0,0,0,0.07) 0px 0px 16px 4px"; // sombra de las secciones d
 type HeroSlide = {
   label: string; pill: "live" | "seller" | "negotiable" | "whatsapp";
   title: JSX.Element; lead: JSX.Element; cta: string; bg: string;
-  photo: { src: string; side: "l" | "r"; width: string; position: string; flip?: boolean; alto?: boolean; style?: CSSProperties }; // alto: encaja por alto (tomas con el sujeto muy abierto)
+  photo: { src: string[]; side: "l" | "r"; width: string; position: string; flip?: boolean; alto?: boolean; style?: CSSProperties }; // alto: encaja por alto (tomas con el sujeto muy abierto)
   copy: "left" | "right"; lot?: boolean;
 };
 // Slides con las campañas reales de VMC (pedido de Julio, 26/10): canal de WhatsApp, Publica y Negociable.
+// Cada slide alterna entre sus variaciones: al volver a una slide, trae la siguiente foto.
 // Fotos 2K generadas para el hero (persona + vehículo seminuevo a la derecha, izquierda libre para el texto). Copy provisional: Julio lo ajusta.
 const SLIDES: HeroSlide[] = [
   { label: "Entérate primero de las subastas por WhatsApp", pill: "whatsapp",
     title: <>Entérate <em>primero</em><br />de las subastas</>, lead: <>Únete al canal de VMC y recibe los lotes nuevos antes que nadie.</>,
     cta: "Unirme al canal", bg: "linear-gradient(100deg, #2A1670 0%, #3D2299 34%, #0E7A5A 78%, #25D366 100%)",
-    photo: { src: "/banners/vmc/hero-whatsapp.jpg", side: "r", width: "100%", position: "70% 30%", alto: true }, copy: "left" },
+    photo: { src: ["/banners/vmc/hero-whatsapp.jpg", "/banners/vmc/hero-whatsapp-c.jpg"], side: "r", width: "100%", position: "70% 30%", alto: true }, copy: "left" },
   { label: "Publica tu auto en VMC y recibe ofertas", pill: "seller",
     title: <>Publica tu auto<br />y <em>recibe ofertas</em></>, lead: <>Recibe propuestas y elige la que más te convenga.</>,
     cta: "Publicar mi auto", bg: "linear-gradient(100deg, #2A1670 0%, #3D2299 34%, #6B48DD 76%, #8460E5 100%)",
-    photo: { src: "/banners/vmc/hero-publica.jpg", side: "l", width: "100%", position: "30% 30%" }, copy: "right" },
+    photo: { src: ["/banners/vmc/hero-publica.jpg", "/banners/vmc/hero-publica-c.jpg", "/banners/vmc/hero-publica-d.jpg"], side: "l", width: "100%", position: "30% 30%" }, copy: "right" },
   { label: "Tú pones el precio, ellos te proponen", pill: "negotiable",
     title: <>Tú pones el precio<br />y <em>ellos te proponen</em></>, lead: <>Activa «Recibe ofertas» y negocia directo con los compradores.</>,
     cta: "Publicar con Recibe ofertas", bg: "linear-gradient(100deg, #2A1670 0%, #3D2299 35%, #00838C 78%, #00D2D3 100%)",
-    photo: { src: "/banners/vmc/hero-negociable.jpg", side: "r", width: "100%", position: "70% 20%", alto: true }, copy: "left" },
+    photo: { src: ["/banners/vmc/hero-negociable.jpg", "/banners/vmc/hero-negociable-a.jpg"], side: "r", width: "100%", position: "70% 20%", alto: true }, copy: "left" },
 ];
 const AUTOPLAY_MS = 7000;
 
@@ -399,6 +400,15 @@ function PrincipalBanner({ nav = "plain", fx = "letters" }: { nav?: BannerNav; f
     const t = setTimeout(() => setIndex((i) => (i + 1) % SLIDES.length), AUTOPLAY_MS);
     return () => clearTimeout(t);
   }, [index, paused]);
+  const [ver, setVer] = useState(() => SLIDES.map(() => 0));
+  const prev = useRef(0);
+  useEffect(() => { // la slide que se va pasa a su siguiente variación, ya oculta (tras el fundido de .5 s de .hp-slide)
+    const p = prev.current; prev.current = index;
+    if (p === index) return;
+    const t = setTimeout(() => setVer((v) => v.map((x, i) => (i === p ? x + 1 : x))), 600);
+    return () => clearTimeout(t);
+  }, [index]);
+  const foto = (i: number) => SLIDES[i].photo.src[ver[i] % SLIDES[i].photo.src.length];
   return (
     <section className={`hp hp--${nav} hp--fx-${fx}${paused ? " paused" : ""}`} aria-roledescription="carrusel" aria-label="Destacados"
       onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}
@@ -409,7 +419,7 @@ function PrincipalBanner({ nav = "plain", fx = "letters" }: { nav?: BannerNav; f
           aria-label={`${i + 1} de ${SLIDES.length}: ${sl.label}`} aria-hidden={i !== index} inert={i !== index}>
           <div className="hp-bg" style={{ background: sl.bg }} />
           <div className={`hp-photo ${sl.photo.width === "100%" ? `full full--${sl.photo.side}${sl.photo.alto ? " full--alto" : ""}` : sl.photo.side}`} style={{ "--pw": sl.photo.width, ...sl.photo.style } as CSSProperties}>
-            <img src={sl.photo.src} alt="" style={{ objectPosition: sl.photo.position, ...(sl.photo.flip ? { "--fx": -1 } : {}) } as CSSProperties} />
+            <img src={foto(i)} alt="" style={{ objectPosition: sl.photo.position, ...(sl.photo.flip ? { "--fx": -1 } : {}) } as CSSProperties} />
           </div>
           <div className={`hp-copy ${sl.copy}`}>
             {sl.pill === "live" ? <BadgeStatus variant="live" />
@@ -495,7 +505,7 @@ function PrincipalBanner({ nav = "plain", fx = "letters" }: { nav?: BannerNav; f
       ) : nav === "next" ? (
         <button type="button" className="hp-next" aria-label={`Siguiente: ${SLIDES[(index + 1) % SLIDES.length].label}`} onClick={() => go(1)}
           style={{ "--dur": `${AUTOPLAY_MS}ms` } as CSSProperties}>
-          <span className="hp-next__thumb"><img src={SLIDES[(index + 1) % SLIDES.length].photo.src} alt="" /></span>
+          <span className="hp-next__thumb"><img src={foto((index + 1) % SLIDES.length)} alt="" /></span>
           <span className="hp-next__txt"><small>Siguiente</small><b>{SHORT[SLIDES[(index + 1) % SLIDES.length].pill]}</b></span>
           <span className="hp-next__go" aria-hidden>
             <svg className="ring" width="32" height="32" viewBox="0 0 32 32"><circle className="track" cx="16" cy="16" r="14" /><circle key={index} className="prog" cx="16" cy="16" r="14" /></svg>
