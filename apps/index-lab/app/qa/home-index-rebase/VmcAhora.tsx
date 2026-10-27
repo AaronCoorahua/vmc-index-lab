@@ -482,9 +482,9 @@ function Ad({ t, d, x }: { t: EntryText; d: FeedDesign; x: boolean }): JSX.Eleme
 }
 
 /** Texto de la entrada: insignia del tipo, título, detalle y, en las propuestas, la foto pequeña de la oferta (sin enlace). */
-// En el título de ofertas y propuestas, el tipo («en vivo», «para negociar», «negociable») y el número de OFERTA van en
+// En el título de ofertas y propuestas, el tipo («en vivo», «recibe ofertas») y el número de OFERTA van en
 // negrita. El texto destacado va en negro; el color del tipo queda para íconos e insignias.
-const HL = /(en vivo|para negociar|negociable|OFERTA \d+)/;
+const HL = /(en vivo|recibe ofertas|OFERTA \d+)/;
 const highlight = (title: string, on: boolean) => (on
   ? title.split(HL).map((part, i) => (i % 2 ? <strong key={i} className="va-hl">{part}</strong> : part))
   : title);
@@ -674,7 +674,7 @@ export function VmcAhoraQa(): JSX.Element {
   return (
     <div className="hib-switch va-qa" role="group" aria-label="VMC ahora · reloj">
       <span>VMC ahora · reloj</span>
-      <p>{c.V} en vivo · {c.N} negociables · inventario {c.T}</p>
+      <p>{c.V} en vivo · {c.N} recibe ofertas · inventario {c.T}</p>
       <p>Próxima entrada simulada en <b>{left} s</b>{s.speed > 1 ? ` (×${s.speed})` : ""}</p>
       <ul aria-label={`Plan del día: ${s.plan.length} entradas`}>{rows.map(([k, v]) => <li key={k} style={{ display: "contents" }}><span>{k}</span><b>{v}</b></li>)}</ul>
       <button type="button" onClick={simulateRealAction}><b>Simular acción real</b><small style={{ margin: 0 }}>Entra ya, reinicia los {GAP_S} s y descuenta un mockup</small></button>

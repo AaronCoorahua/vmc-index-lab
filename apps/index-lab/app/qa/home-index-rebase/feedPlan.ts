@@ -107,7 +107,7 @@ const EMPRESAS = ["Autoplan", "Mapfre", "Pacífico", "Trupal S.A."];
 // Artículos del blog, con una portada de los banners de VMC (fondo morado, para que el botón de vidrio se lea encima).
 export const BLOG = [
   { title: "Cómo funciona una subasta en VMC, paso a paso", detail: "Guía", imageSrc: "/banners/vmc/hero-whatsapp.jpg", imagePos: "74% 45%" },
-  { title: "¿Qué es una oferta negociable y cómo se envía una propuesta?", detail: "Guía", imageSrc: "/banners/vmc/hero-negociable.jpg", imagePos: "66% 30%" },
+  { title: "¿Qué es «Recibe ofertas» y cómo se envía una propuesta?", detail: "Guía", imageSrc: "/banners/vmc/hero-negociable.jpg", imagePos: "66% 30%" },
   { title: "5 cosas que revisar antes de ofertar por un auto usado", detail: "Consejos", imageSrc: "/banners/vmc/publica-moto.jpg", imagePos: "72% 22%" },
   { title: "Documentos para transferir un vehículo en Perú", detail: "Trámites", imageSrc: "/banners/vmc/subastop-flota.jpg", imagePos: "62% 40%" },
   { title: "Cómo se fija el precio base de una subasta", detail: "Guía", imageSrc: "/banners/vmc/hero-publica.jpg", imagePos: "32% 30%" },
@@ -269,20 +269,20 @@ export function describe(e: PlanEntry, inv: Offer[], sinceMin = 0): EntryText {
 }
 function describeEntry(e: PlanEntry, inv: Offer[]): Omit<EntryText, "views"> {
   const o = inv.find((x) => x.id === e.offerId);
-  const tag = (m: Mode) => (m === "vivo" ? "En vivo" : "Negociable");
+  const tag = (m: Mode) => (m === "vivo" ? "En vivo" : "Recibe ofertas");
   const offer = o ? { imageSrc: o.imageSrc, mode: o.mode } : {};
   switch (e.kind) {
     case "nueva":
     case "nueva-subascars":
-      return { author: o!.who, title: `Publicó una nueva oferta ${o!.mode === "vivo" ? "en vivo" : "negociable"}: ${o!.lot}`,
+      return { author: o!.who, title: `Publicó una nueva oferta ${o!.mode === "vivo" ? "en vivo" : "que recibe ofertas"}: ${o!.lot}`,
         detail: `OFERTA ${o!.id} · ${o!.city}${o!.price ? ` · Base ${o!.price}` : " · Recibe propuestas"}`, pill: `Nueva · ${tag(o!.mode)}`, color: COLORS[o!.mode], ...offer };
     case "rotacion":
-      return { author: o!.who, title: `Disponible ${o!.mode === "vivo" ? "en vivo" : "para negociar"}: ${o!.lot}`,
+      return { author: o!.who, title: `Disponible ${o!.mode === "vivo" ? "en vivo" : "y recibe ofertas"}: ${o!.lot}`,
         detail: `OFERTA ${o!.id} · ${o!.city}${o!.price ? ` · Base ${o!.price}` : ""}`, pill: tag(o!.mode), color: COLORS[o!.mode], ...offer };
     case "propuesta":
       // Por privacidad, sin el usuario que la envió. Foto solo si es real (apunta a una oferta que existe); la simulada no
       // lleva foto, porque su oferta no existe.
-      return { author: "VMC", title: `Se ha enviado una propuesta a la OFERTA ${o?.id ?? e.code}`, detail: o ? `${o.lot} · Negociable` : "Negociable",
+      return { author: "VMC", title: `Se ha enviado una propuesta a la OFERTA ${o?.id ?? e.code}`, detail: o ? `${o.lot} · Recibe ofertas` : "Recibe ofertas",
         pill: "Propuesta enviada", color: COLORS.negociable, imageSrc: o?.imageSrc };
     case "registro":
       return { author: "VMC", title: "Se registró un nuevo usuario en VMC", detail: "", pill: "Nuevo usuario", color: COLORS.morado };
@@ -302,12 +302,12 @@ export const fmtMin = (min: number): string => `${Math.floor(min / 60) % 24}:${S
 // ─── Escenarios para el control de QA ────────────────────────────────────────────────────────────────────────────────
 export const SCENARIOS: { id: string; V: number; N: number; label: string; hint: string }[] = [
   { id: "s0", V: 0, N: 0, label: "0 ofertas", hint: "Sin inventario" },
-  { id: "n1", V: 0, N: 1, label: "1 negociable", hint: "0 en vivo" },
-  { id: "n5", V: 0, N: 5, label: "5 negociables", hint: "Rotan cada hora" },
-  { id: "v3n2", V: 3, N: 2, label: "3 + 2", hint: "En vivo + negociables" },
+  { id: "n1", V: 0, N: 1, label: "1 Recibe ofertas", hint: "0 en vivo" },
+  { id: "n5", V: 0, N: 5, label: "5 Recibe ofertas", hint: "Rotan cada hora" },
+  { id: "v3n2", V: 3, N: 2, label: "3 + 2", hint: "En vivo + Recibe ofertas" },
   { id: "v8n2", V: 8, N: 2, label: "8 + 2", hint: "Ejemplo del documento" },
-  { id: "n10", V: 0, N: 10, label: "10 negociables", hint: "Puros negociables" },
-  { id: "v10", V: 10, N: 0, label: "10 en vivo", hint: "Sin negociables" },
+  { id: "n10", V: 0, N: 10, label: "10 Recibe ofertas", hint: "Solo Recibe ofertas" },
+  { id: "v10", V: 10, N: 0, label: "10 en vivo", hint: "Sin Recibe ofertas" },
   { id: "v6n6", V: 6, N: 6, label: "6 + 6", hint: "12 ofertas" },
   { id: "v15n15", V: 15, N: 15, label: "15 + 15", hint: "30 ofertas" },
 ];

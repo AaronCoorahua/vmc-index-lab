@@ -69,8 +69,8 @@ const SLIDES: HeroSlide[] = [
     cta: "Publicar mi auto", bg: "linear-gradient(100deg, #2A1670 0%, #3D2299 34%, #6B48DD 76%, #8460E5 100%)",
     photo: { src: "/banners/vmc/hero-publica.jpg", side: "l", width: "100%", position: "30% 30%" }, copy: "right" },
   { label: "Tú pones el precio, ellos te proponen", pill: "negotiable",
-    title: <>Tú pones el precio<br />y <em>ellos te proponen</em></>, lead: <>Publica como Negociable y negocia directo con los compradores.</>,
-    cta: "Publicar como negociable", bg: "linear-gradient(100deg, #2A1670 0%, #3D2299 35%, #00838C 78%, #00D2D3 100%)",
+    title: <>Tú pones el precio<br />y <em>ellos te proponen</em></>, lead: <>Activa «Recibe ofertas» y negocia directo con los compradores.</>,
+    cta: "Publicar con Recibe ofertas", bg: "linear-gradient(100deg, #2A1670 0%, #3D2299 35%, #00838C 78%, #00D2D3 100%)",
     photo: { src: "/banners/vmc/hero-negociable.jpg", side: "r", width: "100%", position: "70% 20%", alto: true }, copy: "left" },
 ];
 const AUTOPLAY_MS = 7000;
@@ -103,7 +103,7 @@ const HERO_CSS = `
 .hp-label svg { flex: none; width: 10px; height: 10px; }
 .hp-label--seller { background: linear-gradient(135deg, #8460E5 0%, #3B1782 100%); box-shadow: rgba(32,0,104,0.45) 0 2px 10px; }
 .hp-label--whatsapp { background: linear-gradient(135deg, #25D366 0%, #0E7A5A 100%); box-shadow: rgba(14,122,90,0.45) 0 2px 10px; }
-.hp-label--negotiable { background: linear-gradient(135deg, #00DAE0 0%, #008688 100%); box-shadow: rgba(0,168,171,0.45) 0 2px 10px; }
+.hp-label--negotiable { background: linear-gradient(110deg, #00A9B0 0%, #3F7FD0 45%, #6A35D6 100%); box-shadow: rgba(80,70,210,0.45) 0 2px 10px; } /* = pill de las cards */
 .hp-h { margin: 0; font-size: var(--vmc-font-size-hero); line-height: var(--vmc-line-height-hero); font-weight: var(--vmc-font-weight-bold); letter-spacing: var(--vmc-letter-spacing-tight); }
 .hp-h em { font-style: normal; color: #FFE2C2; }
 .hp-p { margin: 0; font-size: var(--vmc-font-size-body); line-height: var(--vmc-line-height-body); font-weight: var(--vmc-font-weight-medium); max-width: 40ch; }
@@ -382,9 +382,9 @@ const plain = (node: ReactNode): string =>
   typeof node === "string" ? node : Array.isArray(node) ? node.map(plain).join("")
     : isValidElement<{ children?: ReactNode }>(node) ? (node.type === "br" ? " " : plain(node.props.children)) : "";
 // Nombre corto de cada diapositiva (pestañas y vista previa).
-const SHORT: Record<HeroSlide["pill"], string> = { live: "En vivo", seller: "Vende", negotiable: "Negocia", whatsapp: "Entérate" };
+const SHORT: Record<HeroSlide["pill"], string> = { live: "En vivo", seller: "Vende", negotiable: "Recibe ofertas", whatsapp: "Entérate" };
 
-const PILL: Record<HeroSlide["pill"], string> = { live: "En vivo", seller: "Publica en VMC", negotiable: "Negociable", whatsapp: "Canal de WhatsApp" };
+const PILL: Record<HeroSlide["pill"], string> = { live: "En vivo", seller: "Publica en VMC", negotiable: "Recibe ofertas", whatsapp: "Canal de WhatsApp" };
 const WhatsAppGlyph = () => (
   <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.3-.5.1-1 .1-3.2-.7-2.7-1.1-4.4-3.8-4.5-4s-1.1-1.5-1.1-2.8 .7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.4.6-.4.4c-.1.2-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.3.2.5.1.6 0l.9-1c.2-.3.4-.2.6-.1l1.9.9c.3.1.4.2.5.3.1.2.1.7-.1 1.4Z" /></svg>
 );
@@ -1070,9 +1070,9 @@ const COMPANIES_VIEWS: { id: CompaniesView; label: string; hint: string }[] = [
 // holográfico y reflejo que siguen al puntero (con inclinación 3D), ícono en baldosa con degradado y brillo,
 // conteo en vivo, enlace con chevron (ProfileButton) y una franja inferior con luz que corre.
 const OFFER_TYPES = [
-  { id: "negotiable", kicker: "Modalidad", title: "Negociable", text: "Haz tu propuesta y cierra el precio directo con el vendedor.",
-    count: 12, unit: "lotes negociables", cta: "Ver negociables",
-    a: "#00DAE0", b: "#008688", ink: "#00777A", soft: "rgba(0,218,224,0.16)", glow: "rgba(0,168,171,0.35)" },
+  { id: "negotiable", kicker: "Modalidad", title: "Recibe ofertas", text: "Haz tu propuesta y cierra el precio directo con el vendedor.",
+    count: 12, unit: "lotes reciben ofertas", cta: "Ver lotes",
+    a: "#00A9B0", b: "#6A35D6", ink: "#00777A", soft: "rgba(0,218,224,0.16)", glow: "rgba(80,70,210,0.35)" },
   { id: "live", kicker: "Modalidad", title: "En vivo", text: "Puja en tiempo real y llévate el lote al cierre de la subasta.",
     count: 21, unit: "subastas activas", cta: "Ver subastas",
     a: "#FF9639", b: "#BE3D00", ink: "#C2410C", soft: "rgba(255,150,57,0.16)", glow: "rgba(239,133,46,0.35)" },
@@ -1196,9 +1196,10 @@ const OFFER_GRAD_CSS = `
   box-shadow: rgba(0,0,0,0.12) 0 2px 6px, inset 0 2px 8px rgba(32,0,104,0.4); }
 `;
 const OFFER_GRAD = [
-  { id: "negotiable" as const, title: "Negociable", text: "Encuentra vehículos con precio conversable", cta: "Ver negociables", photo: "/demo/vehicles/autoplan-agya.png", ink: "#00777A",
-    shade: "linear-gradient(90deg, rgba(0,150,155,0.96) 0%, rgba(0,170,175,0.82) 34%, rgba(0,190,195,0.25) 68%, rgba(0,190,195,0.05) 100%)",
-    bg: "linear-gradient(135deg, #2EF0F2 0%, #00C9CD 30%, #00A3A7 65%, #00787B 100%)", glow: "rgba(0,190,195,0.45)" },
+  { id: "negotiable" as const, title: "Recibe ofertas", text: "Encuentra vehículos con precio conversable", cta: "Ver lotes", photo: "/demo/vehicles/autoplan-agya.png", ink: "#00777A",
+    // Recibe ofertas: cian → morado, como su pill (feature nuevo).
+    shade: "linear-gradient(90deg, rgba(0,150,160,0.96) 0%, rgba(40,120,205,0.82) 34%, rgba(95,60,215,0.25) 68%, rgba(95,60,215,0.05) 100%)",
+    bg: "linear-gradient(135deg, #12C6CF 0%, #2F8FD4 35%, #5A3FD8 70%, #3B1FA8 100%)", glow: "rgba(90,70,215,0.45)" },
   { id: "live" as const, title: "En vivo", text: "Participa en subastas en tiempo real", cta: "Ver subastas", photo: "/demo/vehicles/autoplan-yaris.png", ink: "#C2410C",
     shade: "linear-gradient(90deg, rgba(225,95,20,0.96) 0%, rgba(240,120,40,0.82) 34%, rgba(255,140,50,0.25) 68%, rgba(255,140,50,0.05) 100%)",
     bg: "linear-gradient(135deg, #FFB25E 0%, #FF8F2E 30%, #EF6A1C 65%, #B83A00 100%)", glow: "rgba(255,130,40,0.45)" },
@@ -1257,7 +1258,7 @@ const OFFER_SEG_CSS = `
 .hib-seg__opt:hover .hib-seg__go { transform: translateX(3px); color: #fff; border-color: transparent; background: linear-gradient(135deg, var(--a), var(--b)); }
 `;
 const OFFER_SEG = [
-  { id: "negotiable", n: 12, label: "Negociables", note: "Disponibles", a: "#00DAE0", b: "#008688", ring: "rgba(0,218,224,0.45)" },
+  { id: "negotiable", n: 12, label: "Recibe ofertas", note: "Disponibles", a: "#00A9B0", b: "#6A35D6", ring: "rgba(80,70,210,0.45)" },
   { id: "live", n: 21, label: "En vivo", note: "Activas ahora", a: "#FF9639", b: "#BE3D00", ring: "rgba(255,150,57,0.45)" },
 ];
 function OfferTypeSegmented(): JSX.Element {
@@ -1618,7 +1619,7 @@ const FEED_ACTS: { id: ActsAlign; label: string; hint: string }[] = [
 ];
 const FEED_TAGS: { id: TagsMode; label: string; hint: string }[] = [
   { id: "sin", label: "Sin insignia", hint: "Solo autor, texto y foto" },
-  { id: "con", label: "Con insignia", hint: "En vivo, Negociable, Blog…" },
+  { id: "con", label: "Con insignia", hint: "En vivo, Recibe ofertas, Blog…" },
 ];
 const FEED_SCROLLS: { id: ScrollStyle; label: string; hint: string }[] = [
   { id: "gris", label: "Gris claro", hint: "Fino, sin sombra" },

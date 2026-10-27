@@ -42,7 +42,7 @@ const DEFAULT_PRIMARY: SidebarNavItem[] = [
     id: "oferta",    icon: (s) => <OfferIcon         size={22} state={s} />, label: "Tipo de oferta",  count: 2,
     subitems: [
       { id: "en-vivo",    label: "En Vivo",    count: 38 },
-      { id: "negociable", label: "Negociable" },
+      { id: "negociable", label: "Recibe ofertas" },
     ],
   },
   { id: "categoria", icon: (s) => <CategoryIcon      size={22} state={s} />, label: "Categoría",       count: 2 },

@@ -47,7 +47,8 @@ const CSS = `
 .lc-pill svg { flex: none; width: 10px; height: 10px; }
 .lc-pill--live { background: linear-gradient(135deg, #ff9639 0%, #ef852e 40%, #be3d00 100%); }
 .lc-pill--live i { width: 6px; height: 6px; border-radius: 50%; background: #fff; }
-.lc-pill--negotiable { background: linear-gradient(135deg, #00DAE0 0%, #008688 100%); }
+/* Recibe ofertas (feature nuevo): cian → morado de marca, en vez del turquesa plano de «Negociable». */
+.lc-pill--negotiable { background: linear-gradient(110deg, #00A9B0 0%, #3F7FD0 45%, #6A35D6 100%); }
 .lc-pill--featured { background: linear-gradient(135deg, #8460e5 0%, #3b1782 100%); }
 .lc-like { position: absolute; top: 8px; right: 8px; z-index: 2; display: grid; place-items: center; width: 28px; height: 28px; padding: 0;
   border: 0; border-radius: 50%; color: #6b3fe0; background: #fff; box-shadow: rgba(32,0,104,0.18) 0 2px 8px; cursor: pointer; }
@@ -382,9 +383,9 @@ const CSS = `
 /* Listado compacto (Listado gallery): 4 filas junto a la destacada */
 .lc-eb--sm { grid-template-columns: 84px minmax(0, 1fr); gap: 12px; padding: 10px 0; }
 .lc-eb--sm .lc-eb__thumb { width: 84px; height: 84px; border-radius: 12px; }
-/* Fila chica (Listado gallery): el favorito va en la esquina de la foto, como en las cards, y el texto usa todo el ancho. */
-.lc-eb--sm .lc-eb__main { padding-right: 0; }
-.lc-eb--sm .lc-eb__like { top: 14px; left: 54px; right: auto; }
+/* Fila chica (Listado gallery): favorito arriba a la derecha de la fila, igual que la fila grande. */
+.lc-eb--sm .lc-eb__main { padding-right: 32px; }
+.lc-eb--sm .lc-eb__like { top: 10px; }
 .lc-eb--sm .lc-eb__main { gap: 2px; }
 .lc-eb--sm .lc-eb__who { display: none; }
 .lc-eb--sm .lc-eb__price svg { width: 16px; height: 17px; }
@@ -393,7 +394,6 @@ const CSS = `
   .lc-eb--sm .lc-eb__thumb { width: 76px; height: 76px; }
   .lc-eb__title, .lc-eb__rest { overflow: visible; text-overflow: clip; white-space: normal; }
   .lc-eb__like { top: 10px; }
-  .lc-eb--sm .lc-eb__like { top: 14px; left: 46px; }
 }
 @media (prefers-reduced-motion: reduce) { .lc { transition: none; }  }
 `;
@@ -453,7 +453,7 @@ function Pills({ lot, featured }: { lot: LotData; featured?: boolean }): JSX.Ele
       {featured ? <span className="lc-pill lc-pill--featured">Destacado</span> : null}
       {lot.variant === "live"
         ? (lot.live ? <span className="lc-pill lc-pill--live"><i />En vivo</span> : null)
-        : <span className="lc-pill lc-pill--negotiable">{I.tag}Negociable</span>}
+        : <span className="lc-pill lc-pill--negotiable">{I.tag}Recibe ofertas</span>}
     </span>
   );
 }
@@ -587,7 +587,7 @@ export function FichaPro({ lot, theme, featured, width, height, mediaFill }: {
         <span className="lc-pills">
           {featured ? <span className="lc-pill lc-pill--featured">{PI.star}Destacado</span> : null}
           {live ? (lot.live ? <span className="lc-pill lc-pill--live">{PI.live}En vivo</span> : null)
-            : <span className="lc-pill lc-pill--negotiable">{I.tag}Negociable</span>}
+            : <span className="lc-pill lc-pill--negotiable">{I.tag}Recibe ofertas</span>}
         </span>
         <Like name={lot.name} />
         {theme === "clasica" ? <>
@@ -666,7 +666,7 @@ export function FichaLegend({ lot, tier, featured, width, height, mediaFill, cur
     <span className="lc-pills">
       {featured ? <span className="lc-pill lc-pill--featured">{PI.star}Destacado</span> : null}
       {live ? (lot.live ? <span className="lc-pill lc-pill--live">{PI.live}En vivo</span> : null)
-        : <span className="lc-pill lc-pill--negotiable">{I.tag}Negociable</span>}
+        : <span className="lc-pill lc-pill--negotiable">{I.tag}Recibe ofertas</span>}
     </span>
   );
   const time = live ? <span className="lc-time">{I.clock}Empieza en {lot.remaining ?? "02:10:00"}</span> : null;
@@ -782,7 +782,7 @@ export function EbayLotRow({ lot, store, size = "md" }: { lot: LotData; store: s
         {/* Pills de las cards (mismo componente visual que la destacada): solo En vivo o Negociable. */}
         <span className="lc-eb__pill">{live
           ? <span className="lc-pill lc-pill--live">{PI.live}En vivo</span>
-          : <span className="lc-pill lc-pill--negotiable">{I.tag}Negociable</span>}</span>
+          : <span className="lc-pill lc-pill--negotiable">{I.tag}Recibe ofertas</span>}</span>
         <p className="lc-eb__title">{lot.name} {lot.year}</p>
         <span className="lc-eb__who">{store}<svg width="12" height="12" viewBox="0 0 24 24" aria-label="Verificado"><path d="M12 1.8l2.6 1.9 3.2-.2 1 3 2.6 1.9-1 3.1 1 3-2.6 1.9-1 3.1-3.2-.2L12 22.2l-2.6-1.9-3.2.2-1-3.1L2.6 15.5l1-3-1-3.1 2.6-1.9 1-3 3.2.2z" fill="#6B48DD" /><path d="M8 12.2l2.6 2.6L16.2 9" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg></span>
         {lot.price ? <b className="lc-eb__price"><SubasCoin size={17} />{lot.price}</b> : <b className="lc-eb__offer">Haz tu oferta</b>}
@@ -807,7 +807,7 @@ export function CompactCurveCard({ lot }: { lot: LotData }): JSX.Element {
         <p className="lc-compact-curve__name">{lot.name}</p>
         <span className="lc-compact-curve__meta"><span>{lot.year}</span><i /><span>{lot.kind}</span></span>
         <div className="lc-compact-curve__footer">
-          {lot.price ? <span className="lc-compact-curve__base-price"><SubasCoin size={16} /><span>{lot.price}</span></span> : <span>Negociable</span>}
+          {lot.price ? <span className="lc-compact-curve__base-price"><SubasCoin size={16} /><span>{lot.price}</span></span> : <span>Recibe ofertas</span>}
         </div>
       </div>
     </article>

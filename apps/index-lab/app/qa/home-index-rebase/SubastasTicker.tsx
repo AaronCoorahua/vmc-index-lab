@@ -15,7 +15,7 @@ const TICKS: Tick[] = [
   { text: "En vivo · Subasta de vehículos · Lote 12", dot: "live" },
   { text: "Hoy · 21 subastas activas" },
   { text: "Toyota Yaris 2022 · Empieza en 01:24:36", dot: "next" },
-  { text: "Negociables · 12 lotes", dot: "negotiable" },
+  { text: "Recibe ofertas · 12 lotes", dot: "negotiable" },
   { text: "Caterpillar 320 · US$ 45,000", dot: "live" },
   { text: "Próxima 10:00 · Equipos industriales", dot: "next" },
   { text: "Maquinaria · 2 lotes" },
