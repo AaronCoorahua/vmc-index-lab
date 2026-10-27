@@ -924,10 +924,8 @@ const SELL_CSS = `
 .hib-sell__choice { display: grid; grid-template-columns: 132px minmax(0, 1fr); min-height: 142px; overflow: hidden; border: 1px solid #DEDCE4; border-radius: 14px; background: #fff; text-decoration: none; color: inherit; transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
 .hib-sell__choice:hover { transform: translateY(-2px); border-color: #B7A5E9; box-shadow: rgb(32 0 104 / 14%) 0 12px 24px -16px; }
 .hib-sell__photo { position: relative; overflow: hidden; background: #E8E5FF; }
-.hib-sell__photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.hib-sell__photo img { display: block; width: 100%; height: 100%; object-fit: cover; } /* tomas light (27/10): estudio claro para la card blanca */
 .hib-sell__photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent 56%, rgb(255 255 255 / 92%) 100%); pointer-events: none; }
-.hib-sell__choice--fleet .hib-sell__photo { background: #D9F0EE; }
-.hib-sell__choice--fleet .hib-sell__photo img { object-position: 50% 45%; }
 .hib-sell__copy { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; min-width: 0; padding: 14px 16px; }
 .hib-sell__copy h3 { margin: 0; color: #191C1C; font-size: 14px; line-height: 18px; font-weight: 700; letter-spacing: -.01em; }
 .hib-sell__copy p { margin: 4px 0 10px; color: #6B6878; font-size: 12px; line-height: 16.8px; }
@@ -950,12 +948,12 @@ function SellSection(): JSX.Element {
       <div className="hib-sell__layout">
         <div className="hib-sell__choices">
           <article className="hib-sell__choice">
-            <div className="hib-sell__photo"><img src="/demo/inventory-suv-v1.png" alt="" /></div>
+            <div className="hib-sell__photo"><img src="/banners/vmc/vende-auto.jpg" alt="" /></div>
             <div className="hib-sell__copy"><h3>¿Vendes tu vehículo?</h3><p>Registra tu publicación en minutos y deja que VMC filtre las ofertas por ti.</p>
               <ProfileButton href="https://www.vmcsubastas.com/landing-subascars">Publica tu auto</ProfileButton></div>
           </article>
           <article className="hib-sell__choice hib-sell__choice--fleet">
-            <div className="hib-sell__photo"><img src="/demo/inventory-mosaic-v1.png" alt="" /></div>
+            <div className="hib-sell__photo"><img src="/banners/vmc/vende-flota.jpg" alt="" /></div>
             <div className="hib-sell__copy"><h3>¿Vendes varios vehículos?</h3><p>Una alternativa para propietarios, empresas y concesionarios que buscan vender sus vehículos seminuevos.</p>
               <ProfileButton href="https://www.subastop.com/cita#vende">Agenda tu consultoría gratis hoy</ProfileButton></div>
           </article>
