@@ -26,11 +26,14 @@ const FeedIcon = ({ on }: { on: boolean }) => (
 type MobileFeedView = "card" | "more" | "tabs" | "slot" | "ticker";
 const isMobileFeedView = (v: unknown): v is MobileFeedView => ["card", "more", "tabs", "slot", "ticker"].includes(v as string);
 
-// Publicidad de Subastop (skill banners-subastop): la pieza 200 × 264 va en el hueco del banner del sidebar, como en Mi Garaje.
-// La plantilla vive en public/banners; el enlace (con UTM) está dentro del iframe.
-const SIDE_AD_SRC = "/banners/venta-empresa.html?v=01-general&f=side264";
-// Misma pieza (Barra lateral 200 × 264, 01-general) en escritorio y en el menú del celular.
-const SIDE_AD_TITLE = "Venta para empresas: ¿Tu empresa necesita liquidez?";
+// Banner lateral (200 × 264, en escritorio y en el menú del celular): piezas de VMC Laptop (publica-vmc.html en estilo estudio y max-vmc.html con el Max real).
+// Regla de los banners (27/10): hero, banner de abajo y lateral nunca muestran la misma campaña (ni la de la card «Un solo pago» de Vende tu vehículo).
+//   Hero = WhatsApp, Publica y Recibe ofertas · Abajo = Valoriza tu auto y Publica tu moto · Lateral = 0% comisión y Max.
+// Cada carga de la página trae una pieza lateral distinta.
+const SIDE_ADS = [
+  { src: "/banners/publica-vmc.html?v=06-cero&f=side264&e=personaje", title: "Publica en VMC: vende tu auto sin comisión" },
+  { src: "/banners/max-vmc.html?t=oscuro&f=side264", title: "Max, el asistente AI de VMC" },
+];
 
 // En móvil, Opción A / B también eligen la versión de VMC ahora: A = card con «Ver más», B = pestañas arriba (estilo X).
 const PRESET_MVIEW: Record<string, MobileFeedView> = { a: "more", b: "tabs" };
@@ -53,6 +56,8 @@ export default function HomeIndexRebase() {
   const [tab, setTab] = useState<"home" | "feed">("home");
   // Huecos del banner del sidebar (escritorio y menú del celular), donde se monta la publicidad.
   const [adSlots, setAdSlots] = useState<Element[]>([]);
+  const [sideAd, setSideAd] = useState(SIDE_ADS[0]);
+  useEffect(() => setSideAd(SIDE_ADS[Math.floor(Math.random() * SIDE_ADS.length)]), []); // en el efecto: sin desajuste de hidratación
   useEffect(() => { setAdSlots([...document.querySelectorAll('[data-slot="sidebar-banner"]')]); }, [menuOpen, collapsed]);
   // Variante de VMC ahora en el móvil sin modo Feed (control «VMC ahora · móvil» de la vista celular).
   const [mview, setMview] = useState<MobileFeedView>("more");
@@ -151,7 +156,7 @@ export default function HomeIndexRebase() {
       </div>
 
       {adSlots.map((el, i) => createPortal(
-        <div className={styles.sideAd} aria-label="Publicidad"><iframe src={SIDE_AD_SRC} title={SIDE_AD_TITLE} loading="lazy" /></div>, el, `side-ad-${i}`))}
+        <div className={styles.sideAd} aria-label="Publicidad"><iframe src={sideAd.src} title={sideAd.title} loading="lazy" /></div>, el, `side-ad-${i}`))}
       {/* Móvil y tablet: drawer de Concorde con hamburguesa + logo en el header y el mismo bloque en una columna. */}
       <div className={styles.mobileShell} data-feedmode={feedMode || undefined} data-xbar={xbar || undefined} data-xhide={(xbar && barHidden) || undefined}>
         <SidebarMobile open={menuOpen} onOpenChange={setMenuOpen}>

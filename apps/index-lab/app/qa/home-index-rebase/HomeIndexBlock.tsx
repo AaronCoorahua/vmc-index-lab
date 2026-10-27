@@ -1181,7 +1181,7 @@ const OFFER_GRAD_CSS = `
 .hib-otg--photo .hib-otg__card:hover .hib-otg__bgimg, .hib-otg--photo .hib-otg__card:focus-visible .hib-otg__bgimg { filter: blur(6px); }
 .hib-otg__bgimg { transition: filter 0.35s; }
 /* Pill como la de las cards (ícono + texto en mayúsculas), en blanco para que resalte sobre el degradado. */
-.hib-otg__pill { justify-self: start; display: inline-flex; align-items: center; gap: 5px; height: 18px; padding: 0 8px 0 6px; border-radius: 999px; font-size: 9px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink); background: #fff; box-shadow: rgba(0,0,0,0.16) 0 3px 8px; }
+.hib-otg__pill { justify-self: start; display: inline-flex; align-items: center; gap: 5px; height: 18px; padding: 0 8px 0 6px; border-radius: 999px; font-size: 9px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; white-space: nowrap; color: var(--ink); background: #fff; box-shadow: rgba(0,0,0,0.16) 0 3px 8px; }
 .hib-otg__txt { display: grid; gap: 4px; }
 .hib-otg__pill svg { flex: none; width: 10px; height: 10px; }
 .hib-otg--photo .hib-otg__txt { gap: 8px; }
@@ -1721,8 +1721,9 @@ const MOBILE_CSS = `
   .hib-ot__grid { grid-template-columns: minmax(0, 1fr) !important; gap: 12px !important; }
   .hib-otg { grid-template-columns: minmax(0, 1fr) !important; gap: 12px !important; }
   .hib-otg--photo .hib-otg__card { min-height: 128px; }
-  .hp-copy, .hp-copy.right { left: 20px; right: auto; width: calc(100% - 40px); }
-  .hp-p { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+  /* Solo slides sin toma a lo ancho: en las «full» el texto se queda en su columna (si no, pisa a las personas, p. ej. Recibe ofertas). */
+  .hp-slide:not(:has(.hp-photo.full)) .hp-copy { left: 20px; right: auto; width: calc(100% - 40px); }
+  .hp-slide:not(:has(.hp-photo.full)) .hp-p { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
   .hib-sell__layout { grid-template-columns: minmax(0, 1fr) !important; }
   .hib-sell__benefit { min-height: 270px; }
   .hib-home section[aria-label="Explora por categoría"] > ul { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }

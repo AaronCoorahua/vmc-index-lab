@@ -368,8 +368,8 @@ const CSS = `
 .lc-eb__thumb img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; }
 .lc-eb:hover .lc-eb__thumb img { transform: scale(1.05); }
 /* Columna 0–1fr: el texto respeta el ancho de la fila y corta con «…» (si no, la grilla crece al ancho del texto y se sale).
-   El padding deja libre el favorito de arriba a la derecha. */
-.lc-eb__main { display: grid; grid-template-columns: minmax(0, 1fr); gap: 3px; min-width: 0; padding-right: 36px; }
+   El favorito va sobre la foto: la columna queda libre para el pill «Recibe ofertas», que no entraba junto al corazón. */
+.lc-eb__main { display: grid; grid-template-columns: minmax(0, 1fr); gap: 3px; min-width: 0; }
 .lc-eb__pill { justify-self: start; display: inline-flex; }
 .lc-eb__title { margin: 3px 0 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; line-height: 1.2; font-weight: 800; color: #14112B; } /* como el nombre de las cards chicas */
 .lc-eb__who { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; color: #8A879C; }
@@ -378,14 +378,13 @@ const CSS = `
 .lc-eb__rest { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; font-weight: 600; color: #8A879C; }
 .lc-eb__foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; white-space: nowrap; font-size: 11px; font-weight: 600; color: #8A879C; }
 .lc-eb__foot > span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-/* Favorito de las filas de listado: siempre arriba a la derecha, lejos del pill de estado. */
-.lc-eb__like { position: absolute; top: 14px; right: 0; z-index: 2; display: grid; place-items: center; }
+/* Favorito de las filas de listado: en la esquina superior derecha de la foto (como en la destacada), lejos del pill de estado. */
+.lc-eb__like { position: absolute; top: 20px; left: calc(112px - 36px); z-index: 2; display: grid; place-items: center; }
 /* Listado compacto (Listado gallery): 4 filas junto a la destacada */
 .lc-eb--sm { grid-template-columns: 84px minmax(0, 1fr); gap: 12px; padding: 10px 0; }
 .lc-eb--sm .lc-eb__thumb { width: 84px; height: 84px; border-radius: 12px; }
-/* Fila chica (Listado gallery): favorito arriba a la derecha de la fila, igual que la fila grande. */
-.lc-eb--sm .lc-eb__main { padding-right: 32px; }
-.lc-eb--sm .lc-eb__like { top: 10px; }
+/* Fila chica (Listado gallery): favorito sobre la foto, igual que la fila grande. */
+.lc-eb--sm .lc-eb__like { top: 14px; left: calc(84px - 30px); }
 .lc-eb--sm .lc-eb__main { gap: 2px; }
 .lc-eb--sm .lc-eb__who { display: none; }
 .lc-eb--sm .lc-eb__price svg { width: 16px; height: 17px; }
@@ -394,6 +393,7 @@ const CSS = `
   .lc-eb--sm .lc-eb__thumb { width: 76px; height: 76px; }
   .lc-eb__title, .lc-eb__rest { overflow: visible; text-overflow: clip; white-space: normal; }
   .lc-eb__like { top: 10px; }
+  .lc-eb--sm .lc-eb__like { top: 6px; left: calc(76px - 32px); }
 }
 @media (prefers-reduced-motion: reduce) { .lc { transition: none; }  }
 `;
