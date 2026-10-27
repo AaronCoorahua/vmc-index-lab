@@ -58,14 +58,14 @@ type HeroSlide = {
   copy: "left" | "right"; lot?: boolean;
 };
 // Slides con las campañas reales de VMC (pedido de Julio, 26/10): canal de WhatsApp, Publica y Negociable.
-// Cada slide alterna entre sus variaciones: al volver a una slide, trae la siguiente foto.
+// Cada slide alterna entre sus variaciones: al volver a una slide, trae la siguiente foto. La versión nueva va primero (27/10).
 // Publica C y D quedan fuera: su sujeto ocupa la zona del texto (27/10).
 // Fotos 2K generadas para el hero (persona + vehículo seminuevo a la derecha, izquierda libre para el texto). Copy provisional: Julio lo ajusta.
 const SLIDES: HeroSlide[] = [
   { label: "Entérate primero de las subastas por WhatsApp", pill: "whatsapp",
     title: <>Entérate <em>primero</em><br />de las subastas</>, lead: <>Únete al canal de VMC y recibe los lotes nuevos antes que nadie.</>,
     cta: "Unirme al canal", bg: "linear-gradient(100deg, #2A1670 0%, #3D2299 34%, #0E7A5A 78%, #25D366 100%)",
-    photo: { src: ["/banners/vmc/hero-whatsapp.jpg", "/banners/vmc/hero-whatsapp-c.jpg"], side: "r", width: "100%", position: "70% 30%", alto: true }, copy: "left" },
+    photo: { src: ["/banners/vmc/hero-whatsapp-c.jpg", "/banners/vmc/hero-whatsapp.jpg"], side: "r", width: "100%", position: "70% 30%", alto: true }, copy: "left" },
   { label: "Publica tu auto en VMC y recibe ofertas", pill: "seller",
     title: <>Publica tu auto<br />y <em>recibe ofertas</em></>, lead: <>Recibe propuestas y elige la que más te convenga.</>,
     cta: "Publicar mi auto", bg: "linear-gradient(100deg, #2A1670 0%, #3D2299 34%, #6B48DD 76%, #8460E5 100%)",
@@ -73,7 +73,7 @@ const SLIDES: HeroSlide[] = [
   { label: "Tú pones el precio, ellos te proponen", pill: "negotiable",
     title: <>Tú pones el precio<br />y <em>ellos te proponen</em></>, lead: <>Activa «Recibe ofertas» y negocia directo con los compradores.</>,
     cta: "Publicar con Recibe ofertas", bg: "linear-gradient(100deg, #2A1670 0%, #3D2299 35%, #00838C 78%, #00D2D3 100%)",
-    photo: { src: ["/banners/vmc/hero-negociable.jpg", "/banners/vmc/hero-negociable-a.jpg"], side: "r", width: "100%", position: "70% 20%", alto: true }, copy: "left" },
+    photo: { src: ["/banners/vmc/hero-negociable-a.jpg", "/banners/vmc/hero-negociable.jpg"], side: "r", width: "100%", position: "70% 20%", alto: true }, copy: "left" },
 ];
 const AUTOPLAY_MS = 7000;
 
@@ -542,19 +542,11 @@ function PrincipalBanner({ nav = "plain", fx = "letters" }: { nav?: BannerNav; f
 // Banner de campaña 766 × 168 (el del bloque es 100 de alto; aquí crece para que entre el contenido).
 const BANNER_HEIGHT = 204; // con aire arriba y abajo: el copy y el panel de beneficios no tocan los bordes
 // Íconos de vidrio (set de mi-garaje-lab): sólido detrás, vidrio delante y detalle en blanco.
-// Campañas del banner secundario (pedido de Julio, 26/10): Subastop «Venta para empresas» y Valoriza tu auto, en lugar de la maquinaria.
+// Campañas del banner secundario (pedido de Julio, 26/10): Valoriza tu auto y Publica tu moto (Subastop «Venta para empresas» retirada, 27/10).
 // Copy de las plantillas venta-empresa.html y publica-vmc.html (VMC-Laptop); `cut` = PNG recortado, si no la foto va en panel.
-type Campaign = { id: "subastop" | "valoriza" | "moto"; label: string; hint: string; eyebrow: string; title: JSX.Element; aria: string; lead: string; cta: string;
+type Campaign = { id: "valoriza" | "moto"; label: string; hint: string; eyebrow: string; title: JSX.Element; aria: string; lead: string; cta: string;
   img: string; pos?: string; fondo: { pos: string; bg: string }; cut?: boolean; points: { icon: VidrioName; text: string }[] };
 const CAMPAIGNS: Campaign[] = [
-  { id: "subastop", label: "Subastop", hint: "Venta para empresas", eyebrow: "Subastop · Venta para empresas", aria: "Vehículos parados, ponlos a la venta",
-    title: <>¿Vehículos parados? <em>Ponlos</em> a la venta</>, lead: "Un vehículo o toda una flota: cuéntanos qué quieres vender.", cta: "Quiero vender mi flota",
-    img: "/banners/vmc/campana-flota.jpg", pos: "76% 40%",
-    fondo: { pos: "70% 38%", bg: "linear-gradient(100deg, #2A1670 0%, #3D2299 45%, #6B48DD 80%, #C85A1E 100%)" }, points: [
-      { icon: "empresa", text: "Para empresas que liquidan activos sin uso" },
-      { icon: "maquinaria", text: "Vehículos, maquinaria, tecnología y repuestos" },
-      { icon: "crecimiento", text: "Convierte lo que no usas en liquidez" },
-    ] },
   { id: "valoriza", label: "Valoriza tu auto", hint: "Valor estimado en VMC", eyebrow: "Valoriza en VMC", aria: "Cuánto vale tu auto",
     title: <>¿Cuánto <em>vale</em> tu auto?</>, lead: "Responde unas preguntas y conoce el valor estimado de tu auto.", cta: "Valoriza tu auto",
     img: "/banners/vmc/campana-valor.jpg", pos: "68% 28%",
@@ -719,7 +711,7 @@ const BANNER_VIEWS: { id: BannerView; label: string; hint: string }[] = [
   { id: "claro", label: "E · Vidrio claro", hint: "Foto en la mitad derecha, vidrio sobre el corte" },
 ];
 
-function CampaignBanner({ view, camp = "subastop" }: { view: BannerView; camp?: CampaignId }): JSX.Element {
+function CampaignBanner({ view, camp = "valoriza" }: { view: BannerView; camp?: CampaignId }): JSX.Element {
   const c = CAMPAIGNS.find((x) => x.id === camp) ?? CAMPAIGNS[0];
   const points = (
     <ul>
@@ -1919,7 +1911,7 @@ export default function HomeIndexBlock({ hideFeed = false, feedSlot = false, onO
   const [heroH, setHeroH] = useState(OPTION_A.heroH); // alto del banner + VMC ahora (control QA)
   const [categoriesView, setCategoriesView] = useState<CategoriesView>(() => initQa("categoriesView", OPTION_A.categoriesView));
   const [bannerView, setBannerView] = useState<BannerView>(() => initQa("bannerView", "fondo"));
-  const [bannerCamp, setBannerCamp] = useState<CampaignId>(() => initQa("bannerCamp", "subastop"));
+  const [bannerCamp, setBannerCamp] = useState<CampaignId>(() => initQa("bannerCamp", "valoriza"));
   const [controls, setControls] = useState(false);
   const [bannerNav, setBannerNav] = useState<BannerNav>(() => initQa("bannerNav", "plain"));
   const [bannerFx, setBannerFx] = useState<BannerFx>(() => initQa("bannerFx", "letters"));
