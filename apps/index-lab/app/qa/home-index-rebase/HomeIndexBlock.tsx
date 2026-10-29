@@ -860,10 +860,11 @@ const CATEGORY_CSS = `
 .hib-cats--plain .hib-cat__icon { border: 0; background: none; box-shadow: none; }
 `;
 // Distribución de las 6 cards (29/10). Las que ocupan media fila o más pasan a horizontal: foto a la izquierda, texto a la derecha.
-type CategoriesLayout = "fila" | "film" | "d222" | "d33" | "d42" | "d51" | "carrusel";
+type CategoriesLayout = "fila" | "s5" | "f5" | "d222" | "d33" | "d42" | "d51" | "carrusel";
 const CATEGORY_LAYOUTS: { id: CategoriesLayout; label: string; hint: string }[] = [
   { id: "fila", label: "Fila de 6", hint: "Las 6 en una sola fila" },
-  { id: "film", label: "Filmstrip", hint: "Fila de 6 unida como tira de película; la que señalas se ensancha" },
+  { id: "s5", label: "5 + scroll", hint: "Se ven 5; la sexta aparece con la barra de scroll" },
+  { id: "f5", label: "5 + flecha", hint: "Se ven 5; una flecha a la derecha trae la sexta" },
   { id: "d33", label: "3 · 3", hint: "Dos filas de 3" },
   { id: "d222", label: "2 · 2 · 2", hint: "Tres filas de 2, cards horizontales" },
   { id: "d42", label: "4 · 2 largas", hint: "4 arriba y las 2 últimas más largas" },
@@ -888,19 +889,23 @@ const CATEGORY_LAYOUT_CSS = `
 .hib-cats-l--carrusel::-webkit-scrollbar { height: 6px; }
 .hib-cats-l--carrusel::-webkit-scrollbar-track { border-radius: 999px; background: #F3EFFD; }
 .hib-cats-l--carrusel::-webkit-scrollbar-thumb { border-radius: 999px; background: #B9A6F2; }
-/* Filmstrip (29/10): las 6 en una tira continua (un solo borde redondeado, 3 px entre cuadros), foto a todo el alto y el
-   texto en una placa de vidrio blanco encima. La que señalas o enfocas se ensancha y su foto se acerca. */
-.hib-cats-l--film { display: flex; gap: 3px; padding: 0; margin: 0 0 6px; overflow: hidden; border-radius: 12px; background: #fff; box-shadow: rgba(0,0,0,0.07) 0 0 16px 4px; }
-.hib-cats-l--film > li { flex: 1 1 0; transition: flex-grow 300ms cubic-bezier(0.3,0,0,1); }
-.hib-cats-l--film > li:hover, .hib-cats-l--film > li:focus-within { flex-grow: 1.3; }
-.hib-cats-l--film .hib-cat, .hib-cats-l--film .hib-pcat { position: relative; width: 100%; border: 0; border-radius: 0; box-shadow: none; transform: none !important; }
-.hib-cats-l--film .hib-cat > img { height: 160px; transition: transform 400ms ease; }
-.hib-cats-l--film .hib-cat:hover > img { transform: scale(1.05); }
-.hib-cats-l--film .hib-cat__foot { position: absolute; left: 6px; right: 6px; bottom: 6px; padding: 6px 6px 6px 7px; border-radius: 8px;
-  background: rgba(255,255,255,0.88); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); box-shadow: rgba(32,0,104,0.12) 0 4px 12px; }
-.hib-cats-l--film .hib-cat:focus-visible { outline-offset: -3px; }
-.hib-cats-l--film .hib-pcat__media { height: 150px; margin: 0; border-radius: 0; }
-@media (prefers-reduced-motion: reduce) { .hib-cats-l--film > li, .hib-cats-l--film .hib-cat > img { transition: none; } }
+/* 5 visibles (29/10): cada card mide un quinto de la fila; la sexta queda fuera y se trae con la barra (s5) o con la flecha (f5). */
+.hib-cats-l--s5, .hib-cats-l--f5 { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; padding: 4px 2px 10px; margin: -4px -2px 0; }
+.hib-cats-l--s5 > li, .hib-cats-l--f5 > li { flex: 0 0 calc((100% - 40px) / 5); scroll-snap-align: start; }
+.hib-cats-l--s5 { scrollbar-width: thin; scrollbar-color: #B9A6F2 #F3EFFD; }
+.hib-cats-l--s5::-webkit-scrollbar { height: 6px; }
+.hib-cats-l--s5::-webkit-scrollbar-track { border-radius: 999px; background: #F3EFFD; }
+.hib-cats-l--s5::-webkit-scrollbar-thumb { border-radius: 999px; background: #B9A6F2; }
+.hib-cats-l--f5 { scrollbar-width: none; } .hib-cats-l--f5::-webkit-scrollbar { display: none; }
+.hib-cats-nav { position: relative; }
+.hib-cats-nav__btn { position: absolute; top: calc(50% - 20px); z-index: 2; display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 1px solid #E0D4FF; border-radius: 50%;
+  color: #3B1782; background: #fff; box-shadow: rgba(32,0,104,0.18) 0 4px 14px; cursor: pointer; transition: transform 150ms, background 150ms, opacity 150ms; }
+.hib-cats-nav__btn--next { right: -12px; } .hib-cats-nav__btn--prev { left: -12px; }
+.hib-cats-nav__btn--prev svg { transform: scaleX(-1); }
+.hib-cats-nav__btn:hover { transform: scale(1.08); background: #F8F5FF; }
+.hib-cats-nav__btn:focus-visible { outline: 2px solid #8460E5; outline-offset: 2px; }
+.hib-cats-nav__btn[hidden] { display: none; }
+@media (prefers-reduced-motion: reduce) { .hib-cats-l--s5, .hib-cats-l--f5 { scroll-behavior: auto; } .hib-cats-nav__btn { transition: none; } }
 /* Cards largas: horizontales, foto a la izquierda de alto fijo (en la de ancho completo, un 30 % del ancho). */
 ${wide(".hib-cat")}, ${wide(".hib-pcat")} { flex-direction: row; }
 ${wide(".hib-cat > img")} { width: 46%; height: 104px; }
@@ -1022,6 +1027,32 @@ function SellSection(): JSX.Element {
   );
 }
 
+// Lista de categorías; con «5 + flecha» suma los botones que deslizan la fila (el de la izquierda aparece al avanzar).
+function CategoryList({ className, layout, children }: { className: string; layout: CategoriesLayout; children: ReactNode }): JSX.Element {
+  const ref = useRef<HTMLUListElement>(null);
+  const [edge, setEdge] = useState({ start: true, end: false });
+  const arrows = layout === "f5";
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || !arrows) return;
+    const sync = () => setEdge({ start: el.scrollLeft <= 2, end: el.scrollLeft + el.clientWidth >= el.scrollWidth - 2 });
+    sync();
+    el.addEventListener("scroll", sync, { passive: true });
+    const ro = new ResizeObserver(sync); ro.observe(el);
+    return () => { el.removeEventListener("scroll", sync); ro.disconnect(); };
+  }, [arrows]);
+  const go = (dir: 1 | -1) => { const el = ref.current; if (el) el.scrollBy({ left: dir * (el.clientWidth + 10) / 5 }); };
+  const list = <ul ref={ref} className={className}>{children}</ul>;
+  if (!arrows) return list;
+  return (
+    <div className="hib-cats-nav">
+      {list}
+      <button type="button" className="hib-cats-nav__btn hib-cats-nav__btn--prev" aria-label="Categorías anteriores" hidden={edge.start} onClick={() => go(-1)}>{ARROW}</button>
+      <button type="button" className="hib-cats-nav__btn hib-cats-nav__btn--next" aria-label="Más categorías" hidden={edge.end} onClick={() => go(1)}>{ARROW}</button>
+    </div>
+  );
+}
+
 function CategoryRail({ view, layout }: { view: CategoriesView; layout: CategoriesLayout }): JSX.Element {
   if (view === "premium") {
     return (
@@ -1030,7 +1061,7 @@ function CategoryRail({ view, layout }: { view: CategoriesView; layout: Categori
           <h2 id="hib-pcats-title">Explora por categoría</h2>
           <a href="#" className="hib-pcats__all">Ver todas las categorías{ARROW}</a>
         </header>
-        <ul className={`hib-cats-l hib-cats-l--${layout}`}>
+        <CategoryList layout={layout} className={`hib-cats-l hib-cats-l--${layout}`}>
           {CATEGORIES.map(({ label, count, vd, imageSrc }) => (
             <li key={label}>
               <a href="#" className="hib-pcat vd-host" aria-label={`${label} · ${count}`}>
@@ -1043,7 +1074,7 @@ function CategoryRail({ view, layout }: { view: CategoriesView; layout: Categori
               </a>
             </li>
           ))}
-        </ul>
+        </CategoryList>
         <style>{CATEGORY_PREMIUM_CSS + CATEGORY_LAYOUT_CSS}</style>
       </section>
     );
@@ -1051,7 +1082,7 @@ function CategoryRail({ view, layout }: { view: CategoriesView; layout: Categori
   return (
     <section aria-label="Explora por categoría" style={FLAT}>
       <SectionHead title="Explora por categoría" subtitle="Encuentra oportunidades por tipo de activo" action="Ver todas las categorías" />
-      <ul className={`hib-cats-l hib-cats-l--${layout}${view === "plain" ? " hib-cats--plain" : ""}`}>
+      <CategoryList layout={layout} className={`hib-cats-l hib-cats-l--${layout}${view === "plain" ? " hib-cats--plain" : ""}`}>
         {CATEGORIES.map(({ label, count, vd, imageSrc }) => (
           <li key={label}>
             <a href="#" className="hib-cat vd-host" aria-label={`${label} · ${count}`}>
@@ -1064,7 +1095,7 @@ function CategoryRail({ view, layout }: { view: CategoriesView; layout: Categori
             </a>
           </li>
         ))}
-      </ul>
+      </CategoryList>
       <style>{CATEGORY_CSS + CATEGORY_LAYOUT_CSS}</style>
     </section>
   );
@@ -1777,14 +1808,14 @@ const MOBILE_CSS = `
   .hp-slide:not(:has(.hp-photo.full)) .hp-p { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
   .hib-sell__layout { grid-template-columns: minmax(0, 1fr) !important; }
   .hib-sell__benefit { min-height: 270px; }
-  /* Categorías: en móvil, 2 columnas y cards verticales en todas las distribuciones salvo el carrusel; el filmstrip se desliza. */
-  .hib-home .hib-cats-l--film { overflow-x: auto; scroll-snap-type: x mandatory; }
-  .hib-home .hib-cats-l--film > li { flex: 0 0 150px !important; scroll-snap-align: start; }
-  .hib-home .hib-cats-l:not(.hib-cats-l--carrusel) { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
-  .hib-home .hib-cats-l:not(.hib-cats-l--carrusel) > li { grid-column: auto !important; }
-  .hib-home .hib-cats-l:not(.hib-cats-l--carrusel) .hib-cat, .hib-home .hib-cats-l:not(.hib-cats-l--carrusel) .hib-pcat { flex-direction: column !important; }
-  .hib-home .hib-cats-l:not(.hib-cats-l--carrusel) .hib-cat > img { width: 100% !important; height: 92px !important; min-height: 0 !important; }
-  .hib-home .hib-cats-l:not(.hib-cats-l--carrusel) .hib-pcat__media { width: auto !important; height: 96px !important; min-height: 0 !important; margin: 6px 6px 0 !important; }
+  /* Categorías: en móvil, 2 columnas y cards verticales salvo las que se deslizan (carrusel, 5 + scroll, 5 + flecha). */
+  .hib-home .hib-cats-l--s5 > li, .hib-home .hib-cats-l--f5 > li { flex: 0 0 150px !important; }
+  .hib-home .hib-cats-nav__btn--next { right: -4px; } .hib-home .hib-cats-nav__btn--prev { left: -4px; }
+  .hib-home .hib-cats-l:not(.hib-cats-l--carrusel):not(.hib-cats-l--s5):not(.hib-cats-l--f5) { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .hib-home .hib-cats-l:not(.hib-cats-l--carrusel):not(.hib-cats-l--s5):not(.hib-cats-l--f5) > li { grid-column: auto !important; }
+  .hib-home .hib-cats-l:not(.hib-cats-l--carrusel):not(.hib-cats-l--s5):not(.hib-cats-l--f5) .hib-cat, .hib-home .hib-cats-l:not(.hib-cats-l--carrusel):not(.hib-cats-l--s5):not(.hib-cats-l--f5) .hib-pcat { flex-direction: column !important; }
+  .hib-home .hib-cats-l:not(.hib-cats-l--carrusel):not(.hib-cats-l--s5):not(.hib-cats-l--f5) .hib-cat > img { width: 100% !important; height: 92px !important; min-height: 0 !important; }
+  .hib-home .hib-cats-l:not(.hib-cats-l--carrusel):not(.hib-cats-l--s5):not(.hib-cats-l--f5) .hib-pcat__media { width: auto !important; height: 96px !important; min-height: 0 !important; margin: 6px 6px 0 !important; }
 }
 @media (max-width: 480px) {
   .hib-home { padding: 12px !important; }
