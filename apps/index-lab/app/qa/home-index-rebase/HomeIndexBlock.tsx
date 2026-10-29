@@ -860,9 +860,10 @@ const CATEGORY_CSS = `
 .hib-cats--plain .hib-cat__icon { border: 0; background: none; box-shadow: none; }
 `;
 // Distribución de las 6 cards (29/10). Las que ocupan media fila o más pasan a horizontal: foto a la izquierda, texto a la derecha.
-type CategoriesLayout = "fila" | "d222" | "d33" | "d42" | "d51" | "carrusel";
+type CategoriesLayout = "fila" | "film" | "d222" | "d33" | "d42" | "d51" | "carrusel";
 const CATEGORY_LAYOUTS: { id: CategoriesLayout; label: string; hint: string }[] = [
   { id: "fila", label: "Fila de 6", hint: "Las 6 en una sola fila" },
+  { id: "film", label: "Filmstrip", hint: "Fila de 6 unida como tira de película; la que señalas se ensancha" },
   { id: "d33", label: "3 · 3", hint: "Dos filas de 3" },
   { id: "d222", label: "2 · 2 · 2", hint: "Tres filas de 2, cards horizontales" },
   { id: "d42", label: "4 · 2 largas", hint: "4 arriba y las 2 últimas más largas" },
@@ -887,6 +888,19 @@ const CATEGORY_LAYOUT_CSS = `
 .hib-cats-l--carrusel::-webkit-scrollbar { height: 6px; }
 .hib-cats-l--carrusel::-webkit-scrollbar-track { border-radius: 999px; background: #F3EFFD; }
 .hib-cats-l--carrusel::-webkit-scrollbar-thumb { border-radius: 999px; background: #B9A6F2; }
+/* Filmstrip (29/10): las 6 en una tira continua (un solo borde redondeado, 3 px entre cuadros), foto a todo el alto y el
+   texto en una placa de vidrio blanco encima. La que señalas o enfocas se ensancha y su foto se acerca. */
+.hib-cats-l--film { display: flex; gap: 3px; padding: 0; margin: 0 0 6px; overflow: hidden; border-radius: 12px; background: #fff; box-shadow: rgba(0,0,0,0.07) 0 0 16px 4px; }
+.hib-cats-l--film > li { flex: 1 1 0; transition: flex-grow 300ms cubic-bezier(0.3,0,0,1); }
+.hib-cats-l--film > li:hover, .hib-cats-l--film > li:focus-within { flex-grow: 1.3; }
+.hib-cats-l--film .hib-cat, .hib-cats-l--film .hib-pcat { position: relative; width: 100%; border: 0; border-radius: 0; box-shadow: none; transform: none !important; }
+.hib-cats-l--film .hib-cat > img { height: 160px; transition: transform 400ms ease; }
+.hib-cats-l--film .hib-cat:hover > img { transform: scale(1.05); }
+.hib-cats-l--film .hib-cat__foot { position: absolute; left: 6px; right: 6px; bottom: 6px; padding: 6px 6px 6px 7px; border-radius: 8px;
+  background: rgba(255,255,255,0.88); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); box-shadow: rgba(32,0,104,0.12) 0 4px 12px; }
+.hib-cats-l--film .hib-cat:focus-visible { outline-offset: -3px; }
+.hib-cats-l--film .hib-pcat__media { height: 150px; margin: 0; border-radius: 0; }
+@media (prefers-reduced-motion: reduce) { .hib-cats-l--film > li, .hib-cats-l--film .hib-cat > img { transition: none; } }
 /* Cards largas: horizontales, foto a la izquierda de alto fijo (en la de ancho completo, un 30 % del ancho). */
 ${wide(".hib-cat")}, ${wide(".hib-pcat")} { flex-direction: row; }
 ${wide(".hib-cat > img")} { width: 46%; height: 104px; }
@@ -1763,7 +1777,9 @@ const MOBILE_CSS = `
   .hp-slide:not(:has(.hp-photo.full)) .hp-p { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
   .hib-sell__layout { grid-template-columns: minmax(0, 1fr) !important; }
   .hib-sell__benefit { min-height: 270px; }
-  /* Categorías: en móvil, 2 columnas y cards verticales en todas las distribuciones salvo el carrusel. */
+  /* Categorías: en móvil, 2 columnas y cards verticales en todas las distribuciones salvo el carrusel; el filmstrip se desliza. */
+  .hib-home .hib-cats-l--film { overflow-x: auto; scroll-snap-type: x mandatory; }
+  .hib-home .hib-cats-l--film > li { flex: 0 0 150px !important; scroll-snap-align: start; }
   .hib-home .hib-cats-l:not(.hib-cats-l--carrusel) { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
   .hib-home .hib-cats-l:not(.hib-cats-l--carrusel) > li { grid-column: auto !important; }
   .hib-home .hib-cats-l:not(.hib-cats-l--carrusel) .hib-cat, .hib-home .hib-cats-l:not(.hib-cats-l--carrusel) .hib-pcat { flex-direction: column !important; }
