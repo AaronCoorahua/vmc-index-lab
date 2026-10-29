@@ -832,13 +832,15 @@ const CAMPAIGN_FOTO_CSS = `
 .hib-campaign--foto .hib-campaign__media::before, .hib-campaign--foto .hib-campaign__media::after { display: none; }
 `;
 
-// «Explora por categoría»: cinco cards con la caja de OfferCard (radio 8, sombra y elevación al pasar).
-// Íconos dúotono como los del banner. Las fotos son las de demo del lab (no hay una de artículos diversos).
+// «Explora por categoría»: seis cards con la caja de OfferCard (radio 8, sombra y elevación al pasar).
+// Íconos dúotono como los del banner. Las fotos son las de demo del lab; la de mobiliario es de Unsplash (1RT4txDDAbM, licencia Unsplash).
+// Artículos diversos va al final: es la card que se alarga en la distribución «5 · 1 larga».
 const CATEGORIES = [
   { label: "Vehicular", count: "21 lotes", vd: "vehicular" as VidrioName, imageSrc: "/demo/inventory-suv-v1.png" },
   { label: "Equipos diversos", count: "12 lotes", vd: "equipos" as VidrioName, imageSrc: "/demo/inventory-forklift-v1.png" },
   { label: "Maquinaria", count: "2 lotes", vd: "maquinaria" as VidrioName, imageSrc: "/demo/inventory-excavator-v1.png" },
   { label: "Materiales", count: "1 lote", vd: "materiales" as VidrioName, imageSrc: "/demo/inventory-steel-v1.png" },
+  { label: "Mobiliario", count: "3 lotes", vd: "mobiliario" as VidrioName, imageSrc: "/demo/inventory-furniture-v1.jpg" },
   { label: "Artículos diversos", count: "1 lote", vd: "articulos" as VidrioName, imageSrc: "/demo/inventory-mosaic-v1.png" },
 ];
 const CATEGORY_CSS = `
@@ -856,6 +858,41 @@ const CATEGORY_CSS = `
 @media (prefers-reduced-motion: reduce) { .hib-cat { transition: none; } }
 /* Vista «Sin card»: el ícono suelto, sin la caja con borde degradado. */
 .hib-cats--plain .hib-cat__icon { border: 0; background: none; box-shadow: none; }
+`;
+// Distribución de las 6 cards (29/10). Las que ocupan media fila o más pasan a horizontal: foto a la izquierda, texto a la derecha.
+type CategoriesLayout = "fila" | "d222" | "d33" | "d42" | "d51" | "carrusel";
+const CATEGORY_LAYOUTS: { id: CategoriesLayout; label: string; hint: string }[] = [
+  { id: "fila", label: "Fila de 6", hint: "Las 6 en una sola fila" },
+  { id: "d33", label: "3 · 3", hint: "Dos filas de 3" },
+  { id: "d222", label: "2 · 2 · 2", hint: "Tres filas de 2, cards horizontales" },
+  { id: "d42", label: "4 · 2 largas", hint: "4 arriba y las 2 últimas más largas" },
+  { id: "d51", label: "5 · 1 larga", hint: "5 arriba y Artículos diversos a lo ancho" },
+  { id: "carrusel", label: "Carrusel", hint: "Una fila con scroll horizontal" },
+];
+const WIDE = [".hib-cats-l--d222 > li", ".hib-cats-l--d42 > li:nth-child(n+5)", ".hib-cats-l--d51 > li:nth-child(6)"];
+const wide = (tail: string) => WIDE.map((w) => `${w} ${tail}`).join(", ");
+const CATEGORY_LAYOUT_CSS = `
+.hib-cats-l { display: grid; gap: 10px; margin: 0; padding: 0 0 6px; list-style: none; }
+.hib-cats-l > li { display: flex; min-width: 0; }
+.hib-cats-l--fila { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.hib-cats-l--d33 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.hib-cats-l--d222 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.hib-cats-l--d42 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.hib-cats-l--d42 > li:nth-child(n+5) { grid-column: span 2; }
+.hib-cats-l--d51 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.hib-cats-l--d51 > li:nth-child(6) { grid-column: 1 / -1; }
+.hib-cats-l--carrusel { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; padding: 4px 2px 12px; margin: -4px -2px 0;
+  scrollbar-width: thin; scrollbar-color: #B9A6F2 #F3EFFD; }
+.hib-cats-l--carrusel > li { flex: 0 0 188px; scroll-snap-align: start; }
+.hib-cats-l--carrusel::-webkit-scrollbar { height: 6px; }
+.hib-cats-l--carrusel::-webkit-scrollbar-track { border-radius: 999px; background: #F3EFFD; }
+.hib-cats-l--carrusel::-webkit-scrollbar-thumb { border-radius: 999px; background: #B9A6F2; }
+/* Cards largas: horizontales, foto a la izquierda de alto fijo (en la de ancho completo, un 30 % del ancho). */
+${wide(".hib-cat")}, ${wide(".hib-pcat")} { flex-direction: row; }
+${wide(".hib-cat > img")} { width: 46%; height: 104px; }
+${wide(".hib-pcat__media")} { flex: none; width: 46%; height: 96px; margin: 6px 0 6px 6px; }
+.hib-cats-l--d51 > li:nth-child(6) .hib-cat > img, .hib-cats-l--d51 > li:nth-child(6) .hib-pcat__media { width: 30%; }
+${wide(".hib-cat__foot")} { padding: 12px 12px 12px 14px; }
 `;
 type CategoriesView = "normal" | "plain" | "premium";
 const CATEGORIES_VIEWS: { id: CategoriesView; label: string; hint: string }[] = [
@@ -875,7 +912,7 @@ const CATEGORY_PREMIUM_CSS = `
 .hib-pcats__all { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: #3B1782; text-decoration: none; }
 .hib-pcats__all svg { transition: transform 0.2s; }
 .hib-pcats__all:hover svg { transform: translateX(3px); }
-.hib-pcats ul { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+.hib-pcats ul { margin: 0; padding: 0; list-style: none; } /* columnas: CATEGORY_LAYOUT_CSS */
 .hib-pcat { position: relative; display: flex; flex-direction: column; height: 100%; overflow: hidden; border-radius: 14px; color: inherit; text-decoration: none;
   background: rgba(255,255,255,0.88); border: 1px solid rgba(255,255,255,0.95); box-shadow: rgba(76,40,200,0.12) 0 8px 22px -8px, inset 0 1px 0 #fff;
   transition: transform 0.2s cubic-bezier(0.3,0,0,1), box-shadow 0.2s; }
@@ -971,7 +1008,7 @@ function SellSection(): JSX.Element {
   );
 }
 
-function CategoryRail({ view }: { view: CategoriesView }): JSX.Element {
+function CategoryRail({ view, layout }: { view: CategoriesView; layout: CategoriesLayout }): JSX.Element {
   if (view === "premium") {
     return (
       <section className="hib-pcats" aria-labelledby="hib-pcats-title">
@@ -979,9 +1016,9 @@ function CategoryRail({ view }: { view: CategoriesView }): JSX.Element {
           <h2 id="hib-pcats-title">Explora por categoría</h2>
           <a href="#" className="hib-pcats__all">Ver todas las categorías{ARROW}</a>
         </header>
-        <ul>
+        <ul className={`hib-cats-l hib-cats-l--${layout}`}>
           {CATEGORIES.map(({ label, count, vd, imageSrc }) => (
-            <li key={label} style={{ display: "flex" }}>
+            <li key={label}>
               <a href="#" className="hib-pcat vd-host" aria-label={`${label} · ${count}`}>
                 <span className="hib-pcat__media"><img src={imageSrc} alt="" /></span>
                 <span className="hib-pcat__foot">
@@ -993,16 +1030,16 @@ function CategoryRail({ view }: { view: CategoriesView }): JSX.Element {
             </li>
           ))}
         </ul>
-        <style>{CATEGORY_PREMIUM_CSS}</style>
+        <style>{CATEGORY_PREMIUM_CSS + CATEGORY_LAYOUT_CSS}</style>
       </section>
     );
   }
   return (
     <section aria-label="Explora por categoría" style={FLAT}>
       <SectionHead title="Explora por categoría" subtitle="Encuentra oportunidades por tipo de activo" action="Ver todas las categorías" />
-      <ul className={view === "plain" ? "hib-cats--plain" : undefined} style={{ display: "grid", gridTemplateColumns: "repeat(5, minmax(0, 1fr))", gap: 10, margin: 0, padding: "0 0 6px", listStyle: "none" }}>
+      <ul className={`hib-cats-l hib-cats-l--${layout}${view === "plain" ? " hib-cats--plain" : ""}`}>
         {CATEGORIES.map(({ label, count, vd, imageSrc }) => (
-          <li key={label} style={{ display: "flex" }}>
+          <li key={label}>
             <a href="#" className="hib-cat vd-host" aria-label={`${label} · ${count}`}>
               <img src={imageSrc} alt="" />
               <span className="hib-cat__foot">
@@ -1014,7 +1051,7 @@ function CategoryRail({ view }: { view: CategoriesView }): JSX.Element {
           </li>
         ))}
       </ul>
-      <style>{CATEGORY_CSS}</style>
+      <style>{CATEGORY_CSS + CATEGORY_LAYOUT_CSS}</style>
     </section>
   );
 }
@@ -1726,9 +1763,12 @@ const MOBILE_CSS = `
   .hp-slide:not(:has(.hp-photo.full)) .hp-p { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
   .hib-sell__layout { grid-template-columns: minmax(0, 1fr) !important; }
   .hib-sell__benefit { min-height: 270px; }
-  .hib-home section[aria-label="Explora por categoría"] > ul { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
-  .hib-home section[aria-label="Explora por categoría"] > ul > li:last-child { grid-column: span 2; }
-  .hib-home .hib-pcats ul { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* Categorías: en móvil, 2 columnas y cards verticales en todas las distribuciones salvo el carrusel. */
+  .hib-home .hib-cats-l:not(.hib-cats-l--carrusel) { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .hib-home .hib-cats-l:not(.hib-cats-l--carrusel) > li { grid-column: auto !important; }
+  .hib-home .hib-cats-l:not(.hib-cats-l--carrusel) .hib-cat, .hib-home .hib-cats-l:not(.hib-cats-l--carrusel) .hib-pcat { flex-direction: column !important; }
+  .hib-home .hib-cats-l:not(.hib-cats-l--carrusel) .hib-cat > img { width: 100% !important; height: 92px !important; min-height: 0 !important; }
+  .hib-home .hib-cats-l:not(.hib-cats-l--carrusel) .hib-pcat__media { width: auto !important; height: 96px !important; min-height: 0 !important; margin: 6px 6px 0 !important; }
 }
 @media (max-width: 480px) {
   .hib-home { padding: 12px !important; }
@@ -1847,7 +1887,7 @@ function AdStrip(): JSX.Element {
 
 // Todos los selectores de QA en una lista: el panel de la vista mobile los muestra igual que escritorio y los envía al teléfono.
 export type QaKey = "bannerNav" | "bannerFx" | "feedView" | "feedScenario" | "feedSpeed" | "feedAd" | "feedAdBadge" | "feedViews" | "feedShare" | "feedActs" | "feedTags" | "feedScroll" | "feedTone" | "offerView" | "lotsView" | "cardStyle" | "lotsView2" | "cardStyle2"
-  | "categoriesView" | "bannerView" | "bannerCamp" | "companiesView";
+  | "categoriesView" | "categoriesLayout" | "bannerView" | "bannerCamp" | "companiesView";
 type QaOption = { id: string; label: string; hint: string };
 export const QA_CONTROLS: { key: QaKey; title: string; options: QaOption[] }[] = [
   { key: "bannerNav", title: "Banner · indicador", options: BANNER_NAVS },
@@ -1869,6 +1909,7 @@ export const QA_CONTROLS: { key: QaKey; title: string; options: QaOption[] }[] =
   { key: "lotsView2", title: "Mapfre · lotes", options: LOTS_VIEWS },
   { key: "cardStyle2", title: "Mapfre · detail card", options: CARD_STYLES },
   { key: "categoriesView", title: "Categorías · vista", options: CATEGORIES_VIEWS },
+  { key: "categoriesLayout", title: "Categorías · distribución", options: CATEGORY_LAYOUTS },
   { key: "bannerCamp", title: "Banner secundario · campaña", options: CAMPAIGNS },
   { key: "bannerView", title: "Banner secundario · vista", options: BANNER_VIEWS },
   { key: "companiesView", title: "Empresas · vista", options: COMPANIES_VIEWS },
@@ -1909,12 +1950,13 @@ export default function HomeIndexBlock({ hideFeed = false, feedSlot = false, onO
   }), [feedAd, feedAdBadge, feedViews, feedShare, feedActs, feedTags, feedScroll, feedTone]);
   const [heroH, setHeroH] = useState(OPTION_A.heroH); // alto del banner + VMC ahora (control QA)
   const [categoriesView, setCategoriesView] = useState<CategoriesView>(() => initQa("categoriesView", OPTION_A.categoriesView));
+  const [categoriesLayout, setCategoriesLayout] = useState<CategoriesLayout>(() => initQa("categoriesLayout", "d33"));
   const [bannerView, setBannerView] = useState<BannerView>(() => initQa("bannerView", "fondo"));
   const [bannerCamp, setBannerCamp] = useState<CampaignId>(() => initQa("bannerCamp", "valoriza"));
   const [controls, setControls] = useState(false);
   const [bannerNav, setBannerNav] = useState<BannerNav>(() => initQa("bannerNav", "plain"));
   const [bannerFx, setBannerFx] = useState<BannerFx>(() => initQa("bannerFx", "letters"));
-  const qa: Record<QaKey, string> = { bannerNav, bannerFx, feedView, feedScenario, feedSpeed, feedAd, feedAdBadge, feedViews, feedShare, feedActs, feedTags, feedScroll, feedTone, offerView, lotsView, cardStyle, lotsView2, cardStyle2, categoriesView, bannerView, bannerCamp, companiesView };
+  const qa: Record<QaKey, string> = { bannerNav, bannerFx, feedView, feedScenario, feedSpeed, feedAd, feedAdBadge, feedViews, feedShare, feedActs, feedTags, feedScroll, feedTone, offerView, lotsView, cardStyle, lotsView2, cardStyle2, categoriesView, categoriesLayout, bannerView, bannerCamp, companiesView };
   const setQa = useCallback((key: QaKey, v: string) => {
     const set: Record<QaKey, (v: string) => void> = {
       bannerNav: (x) => setBannerNav(x as BannerNav), bannerFx: (x) => setBannerFx(x as BannerFx),
@@ -1923,7 +1965,7 @@ export default function HomeIndexBlock({ hideFeed = false, feedSlot = false, onO
       feedShare: (x) => setFeedShare(x as ShareIcon), feedActs: (x) => setFeedActs(x as ActsAlign), feedTags: (x) => setFeedTags(x as TagsMode),
       feedScroll: (x) => setFeedScroll(x as ScrollStyle), feedTone: (x) => setFeedTone(x as ColorTone), offerView: (x) => setOfferView(x as OfferTypeView), lotsView: (x) => setLotsView(x as LotsView),
       cardStyle: (x) => setCardStyle(x as CardStyle), lotsView2: (x) => setLotsView2(x as LotsView), cardStyle2: (x) => setCardStyle2(x as CardStyle),
-      categoriesView: (x) => setCategoriesView(x as CategoriesView), bannerView: (x) => setBannerView(x as BannerView), bannerCamp: (x) => setBannerCamp(x as CampaignId), companiesView: (x) => setCompaniesView(x as CompaniesView),
+      categoriesView: (x) => setCategoriesView(x as CategoriesView), categoriesLayout: (x) => setCategoriesLayout(x as CategoriesLayout), bannerView: (x) => setBannerView(x as BannerView), bannerCamp: (x) => setBannerCamp(x as CampaignId), companiesView: (x) => setCompaniesView(x as CompaniesView),
     };
     if (isQaValue(key, v)) set[key](v);
   }, []);
@@ -2040,8 +2082,9 @@ export default function HomeIndexBlock({ hideFeed = false, feedSlot = false, onO
       {/* Solo móvil: Tipo de oferta después de las tiendas (arriba quitaba mucho espacio). */}
       <div className="hib-ot-mobile" style={{ display: "none", width: "100%" }}><OfferTypeCard view={offerView} /></div>
       <div style={{ position: "relative", width: "100%" }}>
-        <CategoryRail view={categoriesView} />
-        <Switches visible={controls}><ViewSwitch title="Categorías" options={CATEGORIES_VIEWS} value={categoriesView} onChange={setCategoriesView} /></Switches>
+        <CategoryRail view={categoriesView} layout={categoriesLayout} />
+        <Switches visible={controls}><ViewSwitch title="Categorías" options={CATEGORIES_VIEWS} value={categoriesView} onChange={setCategoriesView} />
+          <ViewSwitch title="Categorías" suffix="distribución" options={CATEGORY_LAYOUTS} value={categoriesLayout} onChange={setCategoriesLayout} /></Switches>
       </div>
       <div data-slot="banner" style={{ position: "relative", width: "100%" }}>
         <CampaignBanner view={bannerView} camp={bannerCamp} />

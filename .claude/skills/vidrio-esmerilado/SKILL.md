@@ -20,7 +20,7 @@ El objetivo es que cualquiera obtenga **exactamente** los mismos íconos que el 
    (`next/font/google` o Google Fonts); si falta, el navegador pone otra y el ícono cambia.
 3. **Fondo blanco o lila muy claro.** Sobre fondos oscuros el vidrio translúcido se ve distinto.
 4. **Compara con la referencia antes de entregar.** `assets/referencia.png` (y `referencia.html`, que se abre en el
-   navegador y tiene hover) muestra los 18 íconos a 72/48/32/24 px. Lo nuevo tiene que parecer del mismo set:
+   navegador y tiene hover) muestra todos los íconos a 72/48/32/24 px. Lo nuevo tiene que parecer del mismo set:
    mismo peso, mismos colores, mismo desenfoque.
 5. **Regenera la referencia** tras agregar un ícono (sumarlo también a `KEYS` en `scripts/referencia.tsx`), desde un
    proyecto que tenga `react` y `react-dom` instalados:
@@ -33,8 +33,8 @@ El objetivo es que cualquiera obtenga **exactamente** los mismos íconos que el 
 
 ## Íconos de categoría · versión 2 (21/10/2026)
 
-`vehicular`, `equipos`, `maquinaria`, `materiales` y `articulos` (tarjetas de categoría de la home: Vehicular,
-Equipos diversos, Maquinaria, Materiales, Artículos diversos). La v2 corrige los «débiles» de la v1 con la regla de
+`vehicular`, `equipos`, `maquinaria`, `materiales`, `mobiliario` y `articulos` (tarjetas de categoría de la home: Vehicular,
+Equipos diversos, Maquinaria, Materiales, Mobiliario, Artículos diversos). La v2 corrige los «débiles» de la v1 con la regla de
 accesibilidad de abajo: el rasgo que identifica al objeto va en la parte **sólida**. Maqueta en `assets/categorias-v2.png`
 (tarjetas a 32 y 40 px).
 
@@ -48,6 +48,7 @@ usa el mismo comando de la referencia con `scripts/categorias.tsx`, pasando `<sk
 | `maquinaria` | Excavadora (como la foto de la tarjeta): brazo, cucharón y orugas sólidos, cabina de vidrio | Antes era grúa pórtico. |
 | `materiales` | Sin cambios: dos capas apiladas | — |
 | `articulos` | Caja de vidrio con objetos sólidos que asoman (pelota y un equipo) | Antes laptop con gráfico («estadísticas»). Alternativa: laptop sin gráfico. |
+| `mobiliario` | Sofá (29/10): respaldo y patas sólidos, brazos y asiento de vidrio con la costura en blanco | Nuevo. |
 
 Al cambiarlos: misma receta, mismos colores, comparar con `referencia.png` y regenerar ambas imágenes.
 

@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { writeFileSync, readFileSync } from "node:fs";
 import { Vidrio, type Sec } from "../assets/Vidrio";
-const C: [Sec, string, string][] = [["vehicular","Vehicular","21 lotes"],["equipos","Equipos diversos","12 lotes"],["maquinaria","Maquinaria","2 lotes"],["materiales","Materiales","1 lote"],["articulos","Artículos diversos","1 lote"]];
+const C: [Sec, string, string][] = [["vehicular","Vehicular","21 lotes"],["equipos","Equipos diversos","12 lotes"],["maquinaria","Maquinaria","2 lotes"],["materiales","Materiales","1 lote"],["mobiliario","Mobiliario","3 lotes"],["articulos","Artículos diversos","1 lote"]];
 const row = (z: number) => renderToStaticMarkup(<div className="row">{C.map(([s,t,n]) => <a key={s} className="card vd-host"><Vidrio s={s} size={z} /><span><b>{t}</b><small>{n}</small></span><i>→</i></a>)}</div>);
 const css = readFileSync(process.argv[2] + "/vidrio.css", "utf8");
 writeFileSync(process.argv[3], `<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;800&display=block"><style>${css}

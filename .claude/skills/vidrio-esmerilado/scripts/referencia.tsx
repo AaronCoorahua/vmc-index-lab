@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { writeFileSync, readFileSync } from "node:fs";
 import { Vidrio, type Sec } from "../assets/Vidrio";
-const KEYS: Sec[] = ["negociaciones","participaciones","compras","publicaciones","valorizaciones","billetera","auto","alertas","publicar","km","caja","combustible","fecha","ubicacion","equipo","docs","texto","precio","vehicular","equipos","maquinaria","materiales","articulos","empresa","verificado","crecimiento","vender"];
+const KEYS: Sec[] = ["negociaciones","participaciones","compras","publicaciones","valorizaciones","billetera","auto","alertas","publicar","km","caja","combustible","fecha","ubicacion","equipo","docs","texto","precio","vehicular","equipos","maquinaria","materiales","articulos","mobiliario","empresa","verificado","crecimiento","vender"];
 const css = readFileSync(process.argv[2] + "/vidrio.css", "utf8");
 // Todo en un solo render: useId solo da IDs únicos dentro de una misma raíz (si no, todos comparten el clipPath del primero).
 const grid = renderToStaticMarkup(<>{KEYS.map((k) => <figure key={k} className="vd-host"><Vidrio s={k} size={72} /><div>{[48, 32, 24].map((z) => <Vidrio key={z} s={k} size={z} />)}</div><figcaption>{k}</figcaption></figure>)}</>);

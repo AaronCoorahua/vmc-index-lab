@@ -7,7 +7,7 @@ import "./vidrio.css";
  *  se cruzan, con el detalle en blanco. Referencia: sets de íconos glassmorphism de Dribbble/Figma (p. ej. Glazicons).
  *  ponytail: el vidrio es SVG puro (copia desenfocada de la forma de atrás, recortada por la de adelante), no backdrop-filter:
  *  se ve igual en todos los navegadores y se exporta tal cual a Figma. Retícula de 48 px. */
-export type Sec = "negociaciones" | "participaciones" | "compras" | "publicaciones" | "valorizaciones" | "billetera" | "auto" | "alertas" | "publicar" | "km" | "caja" | "combustible" | "fecha" | "ubicacion" | "equipo" | "docs" | "texto" | "precio" | "vehicular" | "equipos" | "maquinaria" | "materiales" | "articulos" | "empresa" | "verificado" | "crecimiento" | "vender";
+export type Sec = "negociaciones" | "participaciones" | "compras" | "publicaciones" | "valorizaciones" | "billetera" | "auto" | "alertas" | "publicar" | "km" | "caja" | "combustible" | "fecha" | "ubicacion" | "equipo" | "docs" | "texto" | "precio" | "vehicular" | "equipos" | "maquinaria" | "materiales" | "articulos" | "mobiliario" | "empresa" | "verificado" | "crecimiento" | "vender";
 
 type Parts = { back: ReactNode; front: ReactNode; detail: ReactNode };
 const W = { fill: "none", stroke: "#fff", strokeWidth: 3, strokeLinecap: "round", strokeLinejoin: "round" } as const;
@@ -142,6 +142,12 @@ const PARTS: Record<Sec, Parts> = {
     back: <><circle cx="15" cy="11" r="7" /><rect x="26" y="3" width="11" height="17" rx="3" transform="rotate(14 31.5 11.5)" /></>,
     front: <><rect x="5" y="15" width="38" height="8" rx="3" /><path d="M8 25h32v13a4 4 0 0 1-4 4H12a4 4 0 0 1-4-4z" /></>,
     detail: <path d="M24 15v8M19 32h10" {...W} strokeWidth={2.5} />,
+  },
+  // Mobiliario (29/10): sofá; respaldo y patas sólidos (la silueta que lo identifica), brazos y asiento de vidrio con la costura.
+  mobiliario: {
+    back: <><rect x="9" y="9" width="30" height="21" rx="6" /><rect x="9" y="36" width="5" height="7" rx="2" /><rect x="34" y="36" width="5" height="7" rx="2" /></>,
+    front: <path d="M9 19a5 5 0 0 1 5 5v2h20v-2a5 5 0 0 1 10 0v12a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V24a5 5 0 0 1 5-5z" />,
+    detail: <path d="M24 30v5" {...W} strokeWidth={2.5} />,
   },
   // Banner de maquinaria de la home (vmc-index-lab, 21/10): empresa, verificado y crecimiento.
   // Empresa: ala sólida a la derecha, edificio de vidrio delante con ventanas y puerta.
