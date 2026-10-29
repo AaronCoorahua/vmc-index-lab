@@ -1950,7 +1950,7 @@ export default function HomeIndexBlock({ hideFeed = false, feedSlot = false, onO
   }), [feedAd, feedAdBadge, feedViews, feedShare, feedActs, feedTags, feedScroll, feedTone]);
   const [heroH, setHeroH] = useState(OPTION_A.heroH); // alto del banner + VMC ahora (control QA)
   const [categoriesView, setCategoriesView] = useState<CategoriesView>(() => initQa("categoriesView", OPTION_A.categoriesView));
-  const [categoriesLayout, setCategoriesLayout] = useState<CategoriesLayout>(() => initQa("categoriesLayout", "d33"));
+  const [categoriesLayout, setCategoriesLayout] = useState<CategoriesLayout>(() => initQa("categoriesLayout", "fila"));
   const [bannerView, setBannerView] = useState<BannerView>(() => initQa("bannerView", "fondo"));
   const [bannerCamp, setBannerCamp] = useState<CampaignId>(() => initQa("bannerCamp", "valoriza"));
   const [controls, setControls] = useState(false);
