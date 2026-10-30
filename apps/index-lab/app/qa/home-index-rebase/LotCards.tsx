@@ -21,6 +21,7 @@
  *                   precio en una cápsula de vidrio.
  */
 import { useId, useState } from "react";
+import { PILL_CSS } from "./pills";
 import type { JSX, PointerEvent } from "react";
 
 export type LotData = {
@@ -40,16 +41,8 @@ const CSS = `
 .lc--live::after { background: linear-gradient(90deg, #ff9639 0%, #ef852e 50%, #be3d00 100%); }
 .lc--negotiable::after { background: linear-gradient(90deg, #00DAE0 0%, #008688 100%); }
 
-/* Pills (estado / destacado) y like */
-.lc-pills { position: absolute; top: 8px; left: 8px; z-index: 2; display: flex; gap: 4px; }
-.lc-pill { display: inline-flex; align-items: center; gap: 5px; height: 18px; padding: 0 8px 0 6px; border-radius: 999px; font-size: 9px; font-weight: 700; letter-spacing: 0.07em; color: #fff;
-  text-transform: uppercase; white-space: nowrap; box-shadow: rgba(0,0,0,0.18) 0 2px 6px; }
-.lc-pill svg { flex: none; width: 10px; height: 10px; }
-.lc-pill--live { background: linear-gradient(135deg, #ff9639 0%, #ef852e 40%, #be3d00 100%); }
-.lc-pill--live i { width: 6px; height: 6px; border-radius: 50%; background: #fff; }
-/* Recibe ofertas (feature nuevo): cian → morado de marca, en vez del turquesa plano de «Negociable». */
-.lc-pill--negotiable { background: linear-gradient(110deg, #00A9B0 0%, #3F7FD0 45%, #6A35D6 100%); }
-.lc-pill--featured { background: linear-gradient(135deg, #8460e5 0%, #3b1782 100%); }
+/* Pills: pills.ts (PILL_CSS). Like: */
+${PILL_CSS}
 .lc-like { position: absolute; top: 8px; right: 8px; z-index: 2; display: grid; place-items: center; width: 28px; height: 28px; padding: 0;
   border: 0; border-radius: 50%; color: #6b3fe0; background: #fff; box-shadow: rgba(32,0,104,0.18) 0 2px 8px; cursor: pointer; }
 
