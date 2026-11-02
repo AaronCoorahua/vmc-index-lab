@@ -78,11 +78,11 @@ function Preview({ desktop, mobile, width, controls, note, tone = "light" }: {
     {controls ? <div className="cx-prev__controls">{controls}</div> : null}
     <div className="cx-views">
       <div className="cx-view">
-        <span className="cx-view__label">{mobile ? "Escritorio" : "Vista"}{width ? ` · ${width} px, como en el Index` : ""}</span>
+        <span className="cx-view__label">{mobile ? "Escritorio" : "Vista"}</span>
         <div className={`cx-view__box cx-view__box--${tone}`}><div style={width ? { width } : undefined}>{desktop}</div></div>
       </div>
       {mobile ? <div className="cx-view cx-view--phone">
-        <span className="cx-view__label">Móvil · iPhone 14 Pro, 393 px</span>
+        <span className="cx-view__label">Móvil</span>
         <div className={`cx-view__box cx-view__box--${tone} cx-view__box--phone`}><Phone>{mobile}</Phone></div>
       </div> : null}
     </div>
@@ -280,7 +280,7 @@ export default function ComponentsLibrary({ sources }: { sources: LibSources }):
     </aside>
     <main className="cx-main">
       <Section id="boton-vidrio" name="Botón de vidrio" tag=".hib-glass"
-        summary="Botón translúcido con borde degradado, para fondos con foto o color."
+        summary="Botón translúcido con borde degradado."
         preview={<Preview tone="lilac" desktop={<div className="cx-states">
           {([["", "Normal"], ["is-hover", "Al pasar el mouse"], ["is-active", "Al hacer clic"]] as const).map(([k, l]) =>
             <div key={l} className="cx-photo">{k ? <span className={`hib-glass ${k}`} aria-hidden>Publicar mi auto</span> : <button type="button" className="hib-glass">Publicar mi auto</button>}<small>{l}</small></div>)}
@@ -289,7 +289,7 @@ export default function ComponentsLibrary({ sources }: { sources: LibSources }):
         props={[["children", "ReactNode", "—", "Texto del botón"], ["...props", "ButtonHTMLAttributes", "—", "onClick, disabled y demás atributos de <button>"]]} />
 
       <Section id="badge" name="Badge" tag=".lc-pill"
-        summary="Etiquetas de estado de los lotes: En vivo, Recibe ofertas y Destacado."
+        summary="Etiquetas de estado de los lotes."
         preview={<Preview desktop={<div className="cx-badges">
           <div className="cx-badges__row">{(Object.keys(PILL) as PillKind[]).map((k) => <Pill key={k} kind={k} />)}</div>
           <div className="cx-lots">{LOTS.map((c) => <div key={c.name} className="cx-lot"><span className="cx-lot__img"><img src={c.photo} alt="" />
@@ -299,10 +299,10 @@ export default function ComponentsLibrary({ sources }: { sources: LibSources }):
         props={[["lc-pill--live", "clase", "—", "En vivo, naranja"], ["lc-pill--negotiable", "clase", "—", "Recibe ofertas, cian a violeta"], ["lc-pill--featured", "clase", "—", "Destacado, violeta"], ["lc-pills", "clase", "—", "Grupo arriba a la izquierda de la card (la card con position: relative)"]]} />
 
       <Section id="carta-destacada" name="Carta destacada" tag="FeaturedCard"
-        summary="Se inclina hacia el mouse, el brillo holográfico lo sigue y abajo corre la barra de luz."
+        summary="Carta de lote destacado. Se inclina hacia el mouse."
         preview={<Preview tone="lilac" note="Pasa el mouse sobre la carta." width={292}
           desktop={<FeaturedCard {...YARIS} featured width={292} height={386} fillMedia />}
-          mobile={<FeaturedCard {...YARIS} featured width={337} height={416} fillMedia />} />}
+          mobile={<div className="cx-inset"><FeaturedCard {...YARIS} featured height={416} fillMedia /></div>} />}
         files={[f("FeaturedCard.tsx"), f("featured-card.css"), f("LightBar.tsx"), f("light-bar.css")]} usage={USE_CARD}
         props={[
           ["image", "string", "—", "Foto del lote"], ["title", "string", "—", "Nombre"], ["subtitle", "string", "—", "Año y tipo"],
@@ -316,7 +316,7 @@ export default function ComponentsLibrary({ sources }: { sources: LibSources }):
         ]} />
 
       <Section id="barra-luz" name="Barra de luz" tag="LightBar"
-        summary="Barra de avance con una luz que la recorre. Es la franja de la carta destacada y también se usa sola."
+        summary="Barra de avance con una luz que la recorre."
         preview={<Preview desktop={<div className="cx-bars">
           <div><small>En vivo, 62 %</small><LightBar value={0.62} /></div>
           <div><small>Recibe ofertas, llena</small><LightBar value={1} tone="negotiable" /></div>
@@ -330,7 +330,7 @@ export default function ComponentsLibrary({ sources }: { sources: LibSources }):
         ]} />
 
       <Section id="tipo-oferta" name="Tipo de oferta" tag="OfferTypeCards"
-        summary="Al pasar el mouse la tarjeta crece, se desenfoca y aparece el botón. Cada 5 s cruza un destello."
+        summary="Tarjetas para elegir el tipo de oferta."
         preview={<Preview note="Pasa el mouse sobre una tarjeta." width={600} desktop={<OfferTypeCards items={OFFERS} />} mobile={<OfferTypeCards items={OFFERS} />} />}
         files={[f("OfferTypeCards.tsx"), f("offer-type-cards.css")]} usage={USE_OFFER}
         props={[
@@ -341,7 +341,7 @@ export default function ComponentsLibrary({ sources }: { sources: LibSources }):
         ]} />
 
       <Section id="categorias" name="Categorías" tag="CategoryGrid"
-        summary="Cards de categoría que se apilan solas según el ancho disponible."
+        summary="Cards de categoría. Se acomodan según el ancho."
         preview={<Preview width={916}
           controls={<Seg label="Distribución" value={layout} onChange={setLayout} options={[["auto", "Se apilan solas"], ["columns", "3 columnas"], ["scroll", "Una fila con scroll"]]} />}
           desktop={<CategoryGrid items={CATS} layout={layout} />} mobile={<CategoryGrid items={CATS} layout={layout} />} />}
@@ -354,8 +354,8 @@ export default function ComponentsLibrary({ sources }: { sources: LibSources }):
         ]} />
 
       <Section id="banner" name="Banner" tag="HeroBanner"
-        summary="Carrusel con fundido, zoom lento de la foto y el título entrando letra por letra. Los puntos van en una pestaña de vidrio."
-        preview={<Preview width={600} note="Toca los puntos de abajo para cambiar de imagen. Avanza solo cada 7 s."
+        summary="Carrusel de banners."
+        preview={<Preview width={600} note="Toca los puntos de abajo para cambiar de imagen."
           controls={<Seg label="Efecto del título" value={fx} onChange={setFx} options={[["letters", "Letras"], ["rise", "Subir"], ["blur", "Desenfoque"], ["mask", "Revelar"], ["none", "Ninguno"]]} />}
           desktop={<HeroBanner key={`d-${fx}`} slides={SLIDES} effect={fx} height={300} />} mobile={<HeroBanner key={`m-${fx}`} slides={SLIDES} effect={fx} height={300} />} />}
         files={[f("HeroBanner.tsx"), f("hero-banner.css")]} usage={USE_HERO}
@@ -415,6 +415,7 @@ const PAGE_CSS = `
 .cx-phone__icons { display: inline-flex; align-items: center; gap: 6px; }
 .cx-phone__page { flex: 1; min-height: 0; overflow: auto; padding: 12px; background: #fff; }
 .cx-phone__home { position: absolute; left: 50%; bottom: 8px; z-index: 2; width: 134px; height: 5px; margin-left: -67px; border-radius: 3px; background: rgba(20,17,43,.85); pointer-events: none; }
+.cx-inset { padding: 0 16px; } /* en el Index la carta va con 16 px a cada lado dentro de su sección */
 .cx-note { margin: 0; font-size: 13px; color: #6B6492; }
 .cx-states { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 .cx-photo { display: grid; place-items: center; align-content: center; gap: 10px; min-height: 120px; padding: 12px; border-radius: 14px; overflow: hidden;
