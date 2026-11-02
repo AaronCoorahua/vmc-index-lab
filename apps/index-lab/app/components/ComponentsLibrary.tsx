@@ -7,7 +7,7 @@
  */
 import Link from "next/link";
 import { useState } from "react";
-import type { JSX, ReactNode } from "react";
+import type { CSSProperties, JSX, ReactNode } from "react";
 import { GLASS_CSS } from "../qa/home-index-rebase/glass";
 import { PILL_CSS } from "../qa/home-index-rebase/pills";
 import { Vidrio } from "../qa/home-index-rebase/Vidrio";
@@ -52,18 +52,40 @@ function Props({ rows }: { rows: Prop[] }): JSX.Element {
   </table></div>;
 }
 
-/** Vista previa. Con `mobile`, muestra escritorio arriba y el teléfono de 375 px abajo; sin él, una sola vista. */
-function Preview({ desktop, mobile, controls, note, tone = "light" }: { desktop: ReactNode; mobile?: ReactNode; controls?: ReactNode; note?: string; tone?: "light" | "lilac" }): JSX.Element {
+/** El mismo teléfono de la vista móvil del Index (DevicePreview): iPhone 14 Pro, pantalla 393 × 852, marco de 11 px,
+ *  isla de 126 × 37 y barra de estado de 54. La página adentro tiene 12 px de margen, como el Index en celular (369 px útiles).
+ *  Se dibuja a tamaño real y se muestra al 72 %. */
+const PHONE_SCALE = 0.72;
+function Phone({ children }: { children: ReactNode }): JSX.Element {
+  return <div className="cx-phone-wrap" style={{ "--s": PHONE_SCALE } as CSSProperties}>
+    <div className="cx-phone"><div className="cx-phone__screen">
+      <span className="cx-phone__island" aria-hidden />
+      <div className="cx-phone__status" aria-hidden><span>9:41</span><span className="cx-phone__icons">
+        <svg width="18" height="12" viewBox="0 0 18 12" fill="#fff"><rect x="0" y="8" width="3" height="4" rx="1" /><rect x="5" y="5.5" width="3" height="6.5" rx="1" /><rect x="10" y="3" width="3" height="9" rx="1" /><rect x="15" y="0" width="3" height="12" rx="1" /></svg>
+        <svg width="27" height="13" viewBox="0 0 27 13"><rect x="0.5" y="0.5" width="23" height="12" rx="3.8" fill="none" stroke="#fff" strokeOpacity="0.4" /><rect x="2" y="2" width="20" height="9" rx="2.5" fill="#fff" /></svg>
+      </span></div>
+      <div className="cx-phone__page">{children}</div>
+      <span className="cx-phone__home" aria-hidden />
+    </div></div>
+  </div>;
+}
+
+/** Vista previa. Escritorio con el ancho que tiene en el Index (`width`) y, si hay `mobile`, el teléfono al lado. */
+function Preview({ desktop, mobile, width, controls, note, tone = "light" }: {
+  desktop: ReactNode; mobile?: ReactNode; width?: number; controls?: ReactNode; note?: string; tone?: "light" | "lilac";
+}): JSX.Element {
   return <div className="cx-prev">
     {controls ? <div className="cx-prev__controls">{controls}</div> : null}
-    <div className="cx-view">
-      <span className="cx-view__label">{mobile ? "Escritorio" : "Vista"}</span>
-      <div className={`cx-view__box cx-view__box--${tone}`}><div className={mobile ? "cx-desk" : undefined}>{desktop}</div></div>
+    <div className="cx-views">
+      <div className="cx-view">
+        <span className="cx-view__label">{mobile ? "Escritorio" : "Vista"}{width ? ` · ${width} px, como en el Index` : ""}</span>
+        <div className={`cx-view__box cx-view__box--${tone}`}><div style={width ? { width } : undefined}>{desktop}</div></div>
+      </div>
+      {mobile ? <div className="cx-view cx-view--phone">
+        <span className="cx-view__label">Móvil · iPhone 14 Pro, 393 px</span>
+        <div className={`cx-view__box cx-view__box--${tone} cx-view__box--phone`}><Phone>{mobile}</Phone></div>
+      </div> : null}
     </div>
-    {mobile ? <div className="cx-view">
-      <span className="cx-view__label">Móvil · 375 px</span>
-      <div className={`cx-view__box cx-view__box--${tone} cx-view__box--phone`}><div className="cx-phone">{mobile}</div></div>
-    </div> : null}
     {note ? <p className="cx-note">{note}</p> : null}
   </div>;
 }
@@ -108,9 +130,6 @@ const LOTS: { kind: "live" | "negotiable"; featured?: boolean; name: string; pho
 const YARIS = { image: "/demo/vehicles/autoplan-yaris.png", title: "Toyota Yaris", subtitle: "2022 · Hatchback", photos: 12, startsIn: "01:24:36", price: "US$ 2,799", progress: 0.62,
   chips: [{ icon: CardIcons.gear, label: "Automática" }, { icon: CardIcons.fuel, label: "Gasolina" }],
   stats: [{ icon: CardIcons.gauge, label: "45,000 km" }, { icon: CardIcons.seats, label: "5 asientos" }] };
-const AGYA = { image: "/demo/vehicles/autoplan-agya.png", title: "Toyota Agya", subtitle: "2023 · Hatchback", photos: 9,
-  chips: [{ icon: CardIcons.gear, label: "Automática" }, { icon: CardIcons.fuel, label: "Gasolina" }],
-  stats: [{ icon: CardIcons.gauge, label: "32,000 km" }, { icon: CardIcons.pin, label: "Lima" }] };
 const OFFERS = [
   { tone: "negotiable" as const, title: "Recibe ofertas", text: "Encuentra vehículos con precio conversable", cta: "Ver lotes", image: "/demo/vehicles/autoplan-agya.png" },
   { tone: "live" as const, title: "En vivo", text: "Participa en subastas en tiempo real", cta: "Ver subastas", image: "/demo/vehicles/autoplan-yaris.png" },
@@ -281,9 +300,9 @@ export default function ComponentsLibrary({ sources }: { sources: LibSources }):
 
       <Section id="carta-destacada" name="Carta destacada" tag="FeaturedCard"
         summary="Se inclina hacia el mouse, el brillo holográfico lo sigue y abajo corre la barra de luz."
-        preview={<Preview tone="lilac" note="Pasa el mouse sobre la carta."
-          desktop={<div className="cx-row"><FeaturedCard {...YARIS} featured width={220} height={380} fillMedia /><FeaturedCard {...AGYA} tone="negotiable" width={220} height={380} fillMedia /></div>}
-          mobile={<FeaturedCard {...YARIS} featured height={400} fillMedia />} />}
+        preview={<Preview tone="lilac" note="Pasa el mouse sobre la carta." width={292}
+          desktop={<FeaturedCard {...YARIS} featured width={292} height={386} fillMedia />}
+          mobile={<FeaturedCard {...YARIS} featured width={337} height={416} fillMedia />} />}
         files={[f("FeaturedCard.tsx"), f("featured-card.css"), f("LightBar.tsx"), f("light-bar.css")]} usage={USE_CARD}
         props={[
           ["image", "string", "—", "Foto del lote"], ["title", "string", "—", "Nombre"], ["subtitle", "string", "—", "Año y tipo"],
@@ -312,7 +331,7 @@ export default function ComponentsLibrary({ sources }: { sources: LibSources }):
 
       <Section id="tipo-oferta" name="Tipo de oferta" tag="OfferTypeCards"
         summary="Al pasar el mouse la tarjeta crece, se desenfoca y aparece el botón. Cada 5 s cruza un destello."
-        preview={<Preview note="Pasa el mouse sobre una tarjeta." desktop={<OfferTypeCards items={OFFERS} />} mobile={<OfferTypeCards items={OFFERS} />} />}
+        preview={<Preview note="Pasa el mouse sobre una tarjeta." width={600} desktop={<OfferTypeCards items={OFFERS} />} mobile={<OfferTypeCards items={OFFERS} />} />}
         files={[f("OfferTypeCards.tsx"), f("offer-type-cards.css")]} usage={USE_OFFER}
         props={[
           ["items", "OfferTypeItem[]", "—", "Una tarjeta por elemento"], ["items[].tone", "\"live\" | \"negotiable\"", "—", "Colores de la tarjeta"],
@@ -323,7 +342,7 @@ export default function ComponentsLibrary({ sources }: { sources: LibSources }):
 
       <Section id="categorias" name="Categorías" tag="CategoryGrid"
         summary="Cards de categoría que se apilan solas según el ancho disponible."
-        preview={<Preview
+        preview={<Preview width={916}
           controls={<Seg label="Distribución" value={layout} onChange={setLayout} options={[["auto", "Se apilan solas"], ["columns", "3 columnas"], ["scroll", "Una fila con scroll"]]} />}
           desktop={<CategoryGrid items={CATS} layout={layout} />} mobile={<CategoryGrid items={CATS} layout={layout} />} />}
         files={[f("CategoryGrid.tsx"), f("category-grid.css")]} usage={USE_CATS}
@@ -336,9 +355,9 @@ export default function ComponentsLibrary({ sources }: { sources: LibSources }):
 
       <Section id="banner" name="Banner" tag="HeroBanner"
         summary="Carrusel con fundido, zoom lento de la foto y el título entrando letra por letra. Los puntos van en una pestaña de vidrio."
-        preview={<Preview note="Toca los puntos de abajo para cambiar de imagen. Avanza solo cada 7 s."
+        preview={<Preview width={600} note="Toca los puntos de abajo para cambiar de imagen. Avanza solo cada 7 s."
           controls={<Seg label="Efecto del título" value={fx} onChange={setFx} options={[["letters", "Letras"], ["rise", "Subir"], ["blur", "Desenfoque"], ["mask", "Revelar"], ["none", "Ninguno"]]} />}
-          desktop={<HeroBanner key={`d-${fx}`} slides={SLIDES} effect={fx} height={300} />} mobile={<HeroBanner key={`m-${fx}`} slides={SLIDES} effect={fx} height={340} />} />}
+          desktop={<HeroBanner key={`d-${fx}`} slides={SLIDES} effect={fx} height={300} />} mobile={<HeroBanner key={`m-${fx}`} slides={SLIDES} effect={fx} height={300} />} />}
         files={[f("HeroBanner.tsx"), f("hero-banner.css")]} usage={USE_HERO}
         props={[
           ["slides", "HeroBannerSlide[]", "—", "Una diapositiva por elemento"], ["slides[].image", "string", "—", "Foto de fondo"],
@@ -371,19 +390,32 @@ const PAGE_CSS = `
 .cx-sum { margin: -6px 0 4px; font-size: 15px; line-height: 1.5; color: #4A4370; }
 .cx-sec h3 { margin: 12px 0 0; font-size: 15px; }
 
-/* Vista previa: escritorio arriba y teléfono de 375 px abajo */
+/* Vista previa: escritorio con su ancho del Index y el teléfono al lado (bajan si no entran) */
 .cx-prev { display: flex; flex-direction: column; gap: 16px; }
 .cx-prev__controls { display: flex; flex-wrap: wrap; gap: 12px; }
-.cx-view { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.cx-views { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 20px; }
+.cx-view { display: flex; flex-direction: column; gap: 8px; min-width: 0; max-width: 100%; }
+.cx-view--phone { flex: none; }
 .cx-view__label { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #6B6492; }
-.cx-view__box { min-width: 0; padding: 24px; overflow-x: auto; border-radius: 16px; }
+.cx-view__box { min-width: 0; max-width: 100%; padding: 24px; overflow-x: auto; border-radius: 16px; }
 .cx-view__box--light { background: #F7F6FB; border: 1px solid #ECE8F7; }
 .cx-view__box--lilac { background: radial-gradient(120% 120% at 0% 0%, #F4EFFF 0%, #EEE8FF 45%, #F8F5FF 100%); border: 1px solid #E6DEFF; }
-.cx-desk { min-width: 720px; }
-.cx-view__box--phone { display: flex; justify-content: center; padding: 28px 16px; }
-.cx-phone { box-sizing: border-box; flex: none; width: 375px; max-width: 100%; padding: 16px; border: 8px solid #1B1340; border-radius: 36px; background: #fff; box-shadow: 0 20px 40px -20px rgba(27,19,64,.4); }
+.cx-view__box--phone { padding: 20px 24px; }
+/* iPhone 14 Pro de la vista móvil del Index, a tamaño real y escalado con --s */
+.cx-phone-wrap { width: calc(415px * var(--s)); height: calc(874px * var(--s)); }
+.cx-phone { position: relative; box-sizing: border-box; width: 415px; height: 874px; padding: 11px; border-radius: 66px; background: #1B1A20;
+  box-shadow: inset 0 0 0 2px #3C3A44, 0 0 0 1px #0B0B0F, 0 40px 90px -30px rgba(0,0,0,.45); transform: scale(var(--s)); transform-origin: 0 0; }
+.cx-phone::before { content: ""; position: absolute; left: -3px; top: 168px; width: 3px; height: 150px; border-radius: 2px 0 0 2px;
+  background: linear-gradient(#2A2930 0 20%, transparent 20% 33%, #2A2930 33% 63%, transparent 63% 70%, #2A2930 70%); }
+.cx-phone::after { content: ""; position: absolute; right: -3px; top: 250px; width: 3px; height: 96px; border-radius: 0 2px 2px 0; background: #2A2930; }
+.cx-phone__screen { position: relative; display: flex; flex-direction: column; width: 393px; height: 852px; overflow: hidden; border-radius: 55px; background: #2E0F70; }
+.cx-phone__island { position: absolute; top: 11px; left: 50%; z-index: 2; width: 126px; height: 37px; margin-left: -63px; border-radius: 20px; background: #000; }
+.cx-phone__status { flex: none; display: flex; align-items: center; justify-content: space-between; height: 54px; padding: 6px 30px 0 52px; color: #fff;
+  font: 600 16px/1 -apple-system, "SF Pro Text", "Plus Jakarta Sans", system-ui, sans-serif; }
+.cx-phone__icons { display: inline-flex; align-items: center; gap: 6px; }
+.cx-phone__page { flex: 1; min-height: 0; overflow: auto; padding: 12px; background: #fff; }
+.cx-phone__home { position: absolute; left: 50%; bottom: 8px; z-index: 2; width: 134px; height: 5px; margin-left: -67px; border-radius: 3px; background: rgba(20,17,43,.85); pointer-events: none; }
 .cx-note { margin: 0; font-size: 13px; color: #6B6492; }
-.cx-row { display: flex; flex-wrap: wrap; gap: 24px; }
 .cx-states { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 .cx-photo { display: grid; place-items: center; align-content: center; gap: 10px; min-height: 120px; padding: 12px; border-radius: 14px; overflow: hidden;
   background: linear-gradient(100deg, rgba(42,22,112,.92) 0%, rgba(61,34,153,.82) 40%, rgba(107,72,221,.55) 76%, rgba(132,96,229,.35) 100%), url(/banners/vmc/hero-publica.jpg) 30% 30% / cover; }
@@ -439,8 +471,5 @@ const PAGE_CSS = `
   .cx-view__box { padding: 16px; }
   .cx-states { grid-template-columns: 1fr; }
   .cx-table th:nth-child(3), .cx-table td:nth-child(3) { display: none; }
-  /* En un teléfono real la vista móvil ya es la pantalla: sin marco de teléfono. */
-  .cx-view__box--phone { padding: 12px; }
-  .cx-phone { width: 100%; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; }
 }
 `;

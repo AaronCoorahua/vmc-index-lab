@@ -5,7 +5,6 @@
 .vot { container-type: inline-size; font-family: var(--vmc-font-display, 'Plus Jakarta Sans', -apple-system, sans-serif); }
 .vot *, .vot *::before, .vot *::after { box-sizing: border-box; }
 .vot__grid { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 16px; padding: 4px 0; } /* una columna por tarjeta */
-@container (max-width: 560px) { .vot__grid { grid-auto-flow: row; grid-auto-columns: auto; grid-template-columns: minmax(0, 1fr); gap: 12px; } }
 
 /* Tarjeta */
 .vot__card { position: relative; isolation: isolate; display: block; min-height: 128px; overflow: hidden; border-radius: 16px; color: #fff; text-decoration: none;
@@ -51,3 +50,14 @@
 .vot__card:hover .vot__cta, .vot__card:focus-visible .vot__cta { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 .vot__card:active .vot__cta { transform: translate(-50%, calc(-50% + 1px)) scale(0.97); background-color: rgba(32,0,104,0.22);
   box-shadow: rgba(0,0,0,0.12) 0 2px 6px, inset 0 2px 8px rgba(32,0,104,0.4); }
+
+/* Móvil (contenedor de menos de 560 px): dos tarjetas compactas lado a lado, como en el Index en celular */
+@container (max-width: 560px) {
+  .vot__grid { gap: 10px; }
+  .vot__card { min-height: 104px; }
+  .vot__body { max-width: none; gap: 8px; padding: 14px; }
+  .vot__img { width: 100%; opacity: 0.55; }
+  .vot__text { font-size: 11px; line-height: 15px; }
+}
+/* Muy angosto (menos de 300 px): una debajo de otra */
+@container (max-width: 300px) { .vot__grid { grid-auto-flow: row; grid-auto-columns: auto; grid-template-columns: minmax(0, 1fr); } }
