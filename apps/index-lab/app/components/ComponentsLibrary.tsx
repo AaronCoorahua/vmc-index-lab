@@ -11,6 +11,7 @@ import { useState } from "react";
 import type { JSX } from "react";
 import { GLASS_CSS } from "../qa/home-index-rebase/glass";
 import { PILL_CSS } from "../qa/home-index-rebase/pills";
+import LibrarySections, { LIB_NAV, type LibSources } from "./LibrarySections";
 
 const forced = (css: string, cls: string) => css
   .replaceAll(`.${cls}:hover`, `.${cls}.is-hover`)
@@ -149,9 +150,9 @@ function BadgeCard(): JSX.Element {
   </article>;
 }
 
-const NAV = [...COMPONENTS.map((c) => ({ id: c.id, name: c.name })), { id: "badge", name: "Badge" }];
+const NAV = [...COMPONENTS.map((c) => ({ id: c.id, name: c.name })), { id: "badge", name: "Badge" }, ...LIB_NAV];
 
-export default function ComponentsLibrary(): JSX.Element {
+export default function ComponentsLibrary({ sources }: { sources: LibSources }): JSX.Element {
   return <div className="cmp">
     <style>{PAGE_CSS}</style>
     <aside className="cmp-nav"><p className="cmp-nav__k">VMC Index Lab</p><h1>Componentes</h1>
@@ -160,6 +161,7 @@ export default function ComponentsLibrary(): JSX.Element {
     <main className="cmp-main">
       {COMPONENTS.map((c) => <Card key={c.id} c={c} />)}
       <BadgeCard />
+      <LibrarySections sources={sources} />
     </main>
   </div>;
 }
@@ -170,7 +172,7 @@ const PAGE_CSS = `
 .cmp-nav { position: sticky; top: 0; height: 100vh; box-sizing: border-box; padding: 28px 20px; background: #2E0F70; color: #fff; display: flex; flex-direction: column; gap: 6px; }
 .cmp-nav__k { margin: 0; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; opacity: .7; }
 .cmp-nav h1 { margin: 0 0 16px; font-size: 24px; }
-.cmp-nav nav { display: flex; flex-direction: column; gap: 4px; }
+.cmp-nav nav { display: flex; flex-direction: column; gap: 4px; overflow-y: auto; }
 .cmp-nav nav a { padding: 8px 12px; border-radius: 10px; color: #fff; text-decoration: none; font-size: 14px; font-weight: 600; background: rgba(255,255,255,.08); }
 .cmp-nav nav a:hover { background: rgba(255,255,255,.16); }
 .cmp-nav__back { margin-top: auto; color: #fff; opacity: .8; font-size: 13px; text-decoration: none; }

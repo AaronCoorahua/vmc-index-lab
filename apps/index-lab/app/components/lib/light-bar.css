@@ -1,0 +1,10 @@
+/* LightBar: pista gris, relleno con el degradado de la modalidad y una luz blanca (30 % del ancho) que corre de izquierda a derecha.
+   La luz se mueve siempre, también con «reducir movimiento» (pedido de producto, como en el Index). */
+@keyframes vlb-run { from { left: -30%; } to { left: 100%; } }
+.vlb { position: relative; display: block; flex: none; width: 100%; height: var(--vlb-h, 9px); overflow: hidden; background: #ECEAF3; }
+.vlb > i { position: relative; display: block; height: 100%; overflow: hidden; transition: width 0.4s ease;
+  background: linear-gradient(90deg, #FF9639, #EF852E 60%, #BE3D00); }
+.vlb--negotiable > i { background: linear-gradient(90deg, #00DAE0, #008688); }
+.vlb > i::after { content: ""; position: absolute; top: 0; width: 30%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); animation: vlb-run var(--vlb-speed, 1.8s) linear infinite; }
+.vlb--rounded, .vlb--rounded > i { border-radius: 999px; }
