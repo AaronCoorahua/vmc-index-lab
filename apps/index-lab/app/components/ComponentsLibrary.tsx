@@ -11,12 +11,12 @@ import type { CSSProperties, JSX, ReactNode } from "react";
 import { GLASS_CSS } from "../qa/home-index-rebase/glass";
 import { PILL_CSS } from "../qa/home-index-rebase/pills";
 import { Vidrio } from "../qa/home-index-rebase/Vidrio";
-import { EbayLotRow, FichaLegend, LotCardStyles, type LotData } from "../qa/home-index-rebase/LotCards";
 import { CardIcons, FeaturedCard } from "./lib/FeaturedCard";
 import { LightBar } from "./lib/LightBar";
 import { OfferTypeCards } from "./lib/OfferTypeCards";
 import { CategoryGrid } from "./lib/CategoryGrid";
 import { HeroBanner, type HeroBannerEffect } from "./lib/HeroBanner";
+import { LotGallery, type LotRowItem } from "./lib/LotGallery";
 
 export type LibSources = Record<string, string>;
 type Prop = [name: string, type: string, def: string, desc: string];
@@ -122,34 +122,21 @@ const ICON = {
 type PillKind = "live" | "negotiable" | "featured";
 const PILL: Record<PillKind, [JSX.Element, string]> = { live: [ICON.live, "En vivo"], negotiable: [ICON.tag, "Recibe ofertas"], featured: [ICON.star, "Destacado"] };
 const Pill = ({ kind }: { kind: PillKind }) => <span className={`lc-pill lc-pill--${kind}`}>{PILL[kind][0]}{PILL[kind][1]}</span>;
-// Galería de lotes del Index (Autoplan): carta destacada a la izquierda y 6 lotes a la derecha, con sus badges.
-const GALLERY: LotData[] = [
-  { name: "Toyota Yaris", year: 2022, price: "US$ 2,799", variant: "live", live: true, imageSrc: "/demo/vehicles/autoplan-yaris.png",
-    kind: "Hatchback", photos: 12, km: "45,000 km", transmission: "Automática", fuel: "Gasolina", seats: 5, city: "Lima", remaining: "01:24:36", progress: 0.72 },
-  { name: "Hyundai Grand i10", year: 2021, price: "US$ 2,199", variant: "live", imageSrc: "/demo/vehicles/autoplan-grand-i10.png",
-    kind: "Hatchback", photos: 9, km: "38,200 km", transmission: "Mecánica", fuel: "Gasolina", seats: 5, city: "Lima", remaining: "05:10:00", progress: 0.35 },
-  { name: "Toyota Agya", year: 2023, variant: "negotiable", imageSrc: "/demo/vehicles/autoplan-agya.png",
-    kind: "Hatchback", photos: 15, km: "32,000 km", transmission: "Automática", fuel: "Gasolina", seats: 5, city: "Lima", owner: "Único dueño" },
-  { name: "Jac Refine", year: 2022, variant: "negotiable", imageSrc: "/demo/vehicles/autoplan-refine.png",
-    kind: "Van", photos: 8, km: "61,500 km", transmission: "Mecánica", fuel: "Diésel", seats: 8, city: "Arequipa", owner: "Empresa" },
-  { name: "Caterpillar 320", year: 2019, price: "US$ 45,000", variant: "live", live: true, imageSrc: "/demo/inventory-excavator-v1.png",
-    kind: "Excavadora", photos: 10, km: "6,200 h", transmission: "Hidráulica", fuel: "Diésel", city: "Lima", remaining: "03:02:10", progress: 0.5 },
-  { name: "Lote de vigas", year: 2024, variant: "negotiable", imageSrc: "/demo/inventory-steel-v1.png",
-    kind: "Materiales", photos: 6, km: "12 t", transmission: "Acero A36", fuel: "Vigas H", city: "Callao", owner: "Empresa" },
-  { name: "Kia Sportage", year: 2020, price: "US$ 8,450", variant: "live", imageSrc: "/demo/vehicles/autoplan-suv.png",
-    kind: "SUV", photos: 14, km: "52,300 km", transmission: "Automática", fuel: "Gasolina", seats: 5, city: "Lima", remaining: "07:45:00", progress: 0.2 },
-];
-function LotGallery({ mobile = false }: { mobile?: boolean }): JSX.Element {
-  const [featured, ...rest] = GALLERY;
-  return <div className={`cx-gal${mobile ? " cx-gal--m" : ""}`}>
-    <div className="cx-gal__feat"><FichaLegend lot={featured} tier="holo" curve featured width="100%" height="100%" mediaFill /></div>
-    <div className="cx-gal__list">{rest.map((lot) => <EbayLotRow key={lot.name} lot={lot} store="Autoplan" size="sm" />)}</div>
-  </div>;
-}
 
 const YARIS = { image: "/demo/vehicles/autoplan-yaris.png", title: "Toyota Yaris", subtitle: "2022 · Hatchback", photos: 12, startsIn: "01:24:36", price: "US$ 2,799", progress: 0.62,
   chips: [{ icon: CardIcons.gear, label: "Automática" }, { icon: CardIcons.fuel, label: "Gasolina" }],
   stats: [{ icon: CardIcons.gauge, label: "45,000 km" }, { icon: CardIcons.seats, label: "5 asientos" }] };
+// Galería de lotes (Autoplan): los 6 lotes que van a la derecha de la destacada.
+const LOT_ROWS: LotRowItem[] = [
+  { image: "/demo/vehicles/autoplan-grand-i10.png", title: "Hyundai Grand i10 2021", tone: "live", price: "US$ 2,199", details: "38,200 km · Mecánica · Gasolina", location: "Lima", startsIn: "05:10:00" },
+  { image: "/demo/vehicles/autoplan-agya.png", title: "Toyota Agya 2023", tone: "negotiable", details: "32,000 km · Automática · Gasolina", location: "Lima" },
+  { image: "/demo/vehicles/autoplan-refine.png", title: "Jac Refine 2022", tone: "negotiable", details: "61,500 km · Mecánica · Diésel", location: "Arequipa" },
+  { image: "/demo/inventory-excavator-v1.png", title: "Caterpillar 320 2019", tone: "live", price: "US$ 45,000", details: "6,200 h · Hidráulica · Diésel", location: "Lima", startsIn: "03:02:10" },
+  { image: "/demo/inventory-steel-v1.png", title: "Lote de vigas 2024", tone: "negotiable", details: "12 t · Acero A36 · Vigas H", location: "Callao" },
+  { image: "/demo/vehicles/autoplan-suv.png", title: "Kia Sportage 2020", tone: "live", price: "US$ 8,450", details: "52,300 km · Automática · Gasolina", location: "Lima", startsIn: "07:45:00" },
+];
+const Gallery = ({ count = 6 }: { count?: number }) =>
+  <LotGallery featured={<FeaturedCard {...YARIS} featured progress={0.72} height="100%" fillMedia />} items={LOT_ROWS.slice(0, count)} />;
 const OFFERS = [
   { tone: "negotiable" as const, title: "Recibe ofertas", text: "Encuentra vehículos con precio conversable", cta: "Ver lotes", image: "/demo/vehicles/autoplan-agya.png" },
   { tone: "live" as const, title: "En vivo", text: "Participa en subastas en tiempo real", cta: "Ver subastas", image: "/demo/vehicles/autoplan-yaris.png" },
@@ -218,6 +205,28 @@ const USE_CARD = `import { FeaturedCard, CardIcons } from "./FeaturedCard";
 />
 
 <FeaturedCard tone="negotiable" image="/fotos/agya.png" title="Toyota Agya" subtitle="2023 · Hatchback" />`;
+const USE_GALLERY = `import { LotGallery } from "./LotGallery";
+import { FeaturedCard, CardIcons } from "./FeaturedCard";
+
+<LotGallery
+  featured={
+    <FeaturedCard
+      image="/fotos/yaris.png"
+      title="Toyota Yaris"
+      subtitle="2022 · Hatchback"
+      featured
+      price="US$ 2,799"
+      height="100%"
+      fillMedia
+    />
+  }
+  items={[
+    { image: "/fotos/i10.png", title: "Hyundai Grand i10 2021", tone: "live", price: "US$ 2,199",
+      details: "38,200 km · Mecánica · Gasolina", location: "Lima", startsIn: "05:10:00" },
+    { image: "/fotos/agya.png", title: "Toyota Agya 2023", tone: "negotiable",
+      details: "32,000 km · Automática · Gasolina", location: "Lima" },
+  ]}
+/>`;
 const USE_BAR = `import { LightBar } from "./LightBar";
 
 <LightBar value={0.62} />
@@ -281,7 +290,7 @@ const USE_HERO = `import { HeroBanner } from "./HeroBanner";
 
 // ── Página ──────────────────────────────────────────────────────────────────────
 const NAV = [
-  ["boton-vidrio", "Botón de vidrio"], ["badge", "Badge"], ["carta-destacada", "Carta destacada"], ["barra-luz", "Barra de luz"],
+  ["boton-vidrio", "Botón de vidrio"], ["badge", "Badge"], ["carta-destacada", "Carta destacada"], ["galeria", "Galería de lotes"], ["barra-luz", "Barra de luz"],
   ["tipo-oferta", "Tipo de oferta"], ["categorias", "Categorías"], ["banner", "Banner"],
 ] as const;
 const forced = (css: string) => css.replaceAll(".hib-glass:hover", ".hib-glass.is-hover").replaceAll(".hib-glass:active", ".hib-glass.is-active");
@@ -290,9 +299,9 @@ export default function ComponentsLibrary({ sources }: { sources: LibSources }):
   const f = (name: string): File => ({ name, code: sources[name] ?? "" });
   const [layout, setLayout] = useState<"auto" | "columns" | "scroll">("auto");
   const [fx, setFx] = useState<HeroBannerEffect>("letters");
+  const [count, setCount] = useState("6");
   return <div className="cx">
     <style>{PAGE_CSS + GLASS_CSS + forced(GLASS_CSS) + PILL_CSS}</style>
-    <LotCardStyles />
     <aside className="cx-nav">
       <p className="cx-nav__k">VMC Index Lab</p>
       <h1>Componentes</h1>
@@ -312,7 +321,7 @@ export default function ComponentsLibrary({ sources }: { sources: LibSources }):
       <Section id="badge" name="Badge" tag=".lc-pill"
         summary="Etiquetas de estado de los lotes."
         preview={<Preview width={884} controls={<div className="cx-badges__row">{(Object.keys(PILL) as PillKind[]).map((k) => <Pill key={k} kind={k} />)}</div>}
-          desktop={<LotGallery />} mobile={<div className="cx-inset"><LotGallery mobile /></div>} />}
+          desktop={<Gallery />} mobile={<div className="cx-inset"><Gallery /></div>} />}
         files={[{ name: "pills.css", code: PILL_CSS.trim() }]} usage={USE_BADGE}
         props={[["lc-pill--live", "clase", "—", "En vivo, naranja"], ["lc-pill--negotiable", "clase", "—", "Recibe ofertas, cian a violeta"], ["lc-pill--featured", "clase", "—", "Destacado, violeta"], ["lc-pills", "clase", "—", "Grupo arriba a la izquierda de la card (la card con position: relative)"]]} />
 
@@ -331,6 +340,22 @@ export default function ComponentsLibrary({ sources }: { sources: LibSources }):
           ["progress", "number", "0.4", "Llenado de la barra de luz, de 0 a 1"], ["tilt", "number", "12", "Inclinación máxima en grados; 0 la apaga"],
           ["width / height", "number | string", "\"100%\" / \"auto\"", "Tamaño de la carta"], ["fillMedia", "boolean", "false", "La foto crece para llenar el alto"],
           ["onClick", "() => void", "—", "Clic en la carta"], ["liked / onLikeChange", "boolean / (v) => void", "—", "Favorito controlado desde afuera (opcional)"],
+        ]} />
+
+      <Section id="galeria" name="Galería de lotes" tag="LotGallery"
+        summary="Destacada a la izquierda y los lotes a su derecha, columna por columna."
+        preview={<Preview width={884} note="Con menos lotes el espacio de la derecha queda reservado."
+          controls={<Seg label="Lotes" value={count} onChange={setCount} options={[["2", "2"], ["3", "3"], ["4", "4"], ["6", "6"]]} />}
+          desktop={<Gallery count={Number(count)} />} mobile={<div className="cx-inset"><Gallery count={Number(count)} /></div>} />}
+        files={[f("LotGallery.tsx"), f("lot-gallery.css"), f("FeaturedCard.tsx"), f("featured-card.css"), f("LightBar.tsx"), f("light-bar.css")]} usage={USE_GALLERY}
+        props={[
+          ["featured", "ReactNode", "—", "Carta de la izquierda; normalmente FeaturedCard con height=\"100%\" y fillMedia"],
+          ["items", "LotRowItem[]", "—", "Lotes de la derecha, en orden: llenan la primera columna de arriba abajo y luego la siguiente"],
+          ["items[].tone", "\"live\" | \"negotiable\"", "—", "En vivo (precio) o Recibe ofertas"],
+          ["items[].title / image", "string", "—", "Nombre y foto"], ["items[].price", "string", "—", "Precio (en vivo)"],
+          ["items[].details / location / startsIn", "string", "—", "Datos, ciudad y tiempo para que empiece"],
+          ["columns", "number", "2", "Columnas a la derecha; se reservan aunque estén vacías"],
+          ["featuredWidth", "number", "292", "Ancho de la destacada en px"], ["height", "number", "386", "Alto mínimo de la galería en px"],
         ]} />
 
       <Section id="barra-luz" name="Barra de luz" tag="LightBar"
@@ -440,19 +465,6 @@ const PAGE_CSS = `
   background: linear-gradient(100deg, rgba(42,22,112,.92) 0%, rgba(61,34,153,.82) 40%, rgba(107,72,221,.55) 76%, rgba(132,96,229,.35) 100%), url(/banners/vmc/hero-publica.jpg) 30% 30% / cover; }
 .cx-photo small { color: rgba(255,255,255,.88); font-size: 12px; font-weight: 600; }
 .cx-badges__row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
-/* Galería de lotes, igual que en el Index: destacada de 292 px y 6 lotes en 2 columnas (escritorio); todo en una columna (móvil) */
-.cx-gal { display: grid; grid-template-columns: 292px minmax(0, 1fr); gap: 20px; align-items: stretch; }
-.cx-gal__feat { display: flex; min-width: 0; }
-.cx-gal__list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 20px; }
-.cx-gal__list > .lc-eb:nth-child(-n + 2) { padding-top: 0; }
-.cx-gal__list > .lc-eb:nth-last-child(-n + 2) { border-bottom: 0; padding-bottom: 0; }
-.cx-gal--m { grid-template-columns: minmax(0, 1fr); gap: 14px; }
-.cx-gal--m .cx-gal__feat { height: 416px; }
-.cx-gal--m .cx-gal__list { grid-template-columns: minmax(0, 1fr); column-gap: 0; }
-.cx-gal--m .lc-eb--sm { grid-template-columns: 76px minmax(0, 1fr); gap: 10px; }
-.cx-gal--m .lc-eb--sm .lc-eb__thumb { width: 76px; height: 76px; }
-.cx-gal--m .lc-eb__title, .cx-gal--m .lc-eb__rest { overflow: visible; text-overflow: clip; white-space: normal; }
-.cx-gal--m .lc-eb--sm .lc-eb__like { top: 6px; left: calc(76px - 32px); }
 .cx-bars { display: grid; gap: 16px; max-width: 440px; }
 .cx-bars div { display: grid; gap: 6px; }
 .cx-bars small { font-size: 12px; font-weight: 600; color: #5E5785; }

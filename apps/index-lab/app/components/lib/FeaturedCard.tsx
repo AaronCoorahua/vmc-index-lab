@@ -16,7 +16,7 @@ export const CardIcons = {
   pin: <svg width="11" height="11" viewBox="0 0 24 24" aria-hidden><path d="M12 21s-6-5.6-6-11a6 6 0 0 1 12 0c0 5.4-6 11-6 11z" fill="none" stroke="currentColor" strokeWidth="2" /><circle cx="12" cy="10" r="2" fill="currentColor" /></svg>,
   clock: <svg width="11" height="11" viewBox="0 0 24 24" aria-hidden><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" strokeWidth="2" /><path d="M12 8v4l3 2" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>,
 };
-const I = {
+export const PillIcons = {
   camera: <svg width="11" height="11" viewBox="0 0 24 24" aria-hidden><path d="M4 8h3l2-3h6l2 3h3v11H4z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" /><circle cx="12" cy="13" r="3.2" fill="none" stroke="currentColor" strokeWidth="2" /></svg>,
   star: <svg width="10" height="10" viewBox="0 0 24 24" aria-hidden><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5-4.8-4.6 6.6-.9z" fill="currentColor" /></svg>,
   live: <svg width="10" height="10" viewBox="0 0 24 24" aria-hidden><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="2.6" /><circle cx="12" cy="12" r="4" fill="currentColor" /></svg>,
@@ -25,7 +25,7 @@ const I = {
 };
 
 /** SubasCoin: la gema que acompaña al precio. */
-function SubasCoin({ size = 28 }: { size?: number }): JSX.Element {
+export function SubasCoin({ size = 28 }: { size?: number }): JSX.Element {
   const uid = `vfc-coin${useId().replace(/:/g, "")}`;
   return (
     <svg width={size} height={Math.round(size * 30 / 28)} viewBox="30 199 28 30" fill="none" aria-hidden="true" style={{ flex: "none" }}>
@@ -58,10 +58,10 @@ function SubasCoin({ size = 28 }: { size?: number }): JSX.Element {
 }
 
 /** Favorito: corazón con borde degradado lila; activo, relleno morado con un pequeño rebote. */
-function LikeButton({ name, on, onToggle }: { name: string; on: boolean; onToggle: () => void }): JSX.Element {
+export function LikeButton({ name, on, onToggle, size = 30 }: { name: string; on: boolean; onToggle: () => void; size?: number }): JSX.Element {
   const [pop, setPop] = useState(false);
   return (
-    <button type="button" className={`vfc-like${on ? " vfc-like--on" : ""}${pop ? " vfc-like--pop" : ""}`} aria-label={`Agregar a favoritos: ${name}`} aria-pressed={on}
+    <button type="button" className={`vfc-like${on ? " vfc-like--on" : ""}${pop ? " vfc-like--pop" : ""}`} style={{ width: size, height: size }} aria-label={`Agregar a favoritos: ${name}`} aria-pressed={on}
       onClick={(e) => { e.stopPropagation(); onToggle(); setPop(true); }} onAnimationEnd={() => setPop(false)}>
       <svg width="15" height="15" viewBox="0 0 24 24" fill="#ffffff" stroke={on ? "#ffffff" : "#5a35c2"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
@@ -132,12 +132,12 @@ export function FeaturedCard({
       <div className="vfc-media" style={fillMedia ? { flex: 1, minHeight: 120 } : undefined}>
         <img src={image} alt="" />
         <span className="vfc-pills">
-          {featured ? <span className="vfc-pill vfc-pill--featured">{I.star}Destacado</span> : null}
-          {tone === "live" ? (live ? <span className="vfc-pill vfc-pill--live">{I.live}En vivo</span> : null)
-            : <span className="vfc-pill vfc-pill--negotiable">{I.tag}Recibe ofertas</span>}
+          {featured ? <span className="vfc-pill vfc-pill--featured">{PillIcons.star}Destacado</span> : null}
+          {tone === "live" ? (live ? <span className="vfc-pill vfc-pill--live">{PillIcons.live}En vivo</span> : null)
+            : <span className="vfc-pill vfc-pill--negotiable">{PillIcons.tag}Recibe ofertas</span>}
         </span>
         <span className="vfc-likepos"><LikeButton name={title} on={isLiked} onToggle={toggleLike} /></span>
-        {photos ? <span className="vfc-count">{I.camera}1/{photos}</span> : null}
+        {photos ? <span className="vfc-count">{PillIcons.camera}1/{photos}</span> : null}
         <span className="vfc-dots" aria-hidden><i /><i /><i /><i /></span>
       </div>
       <div className="vfc-body" style={fillMedia ? { flex: "none" } : undefined}>
@@ -148,7 +148,7 @@ export function FeaturedCard({
         <span className="vfc-spacer" />
         {tone === "live"
           ? <div className="vfc-pricerow"><SubasCoin size={28} /><div><p className="vfc-label">{priceLabel}</p><p className="vfc-price">{price ?? "Por definir"}</p></div></div>
-          : <span className="vfc-offer">{I.hands}{offerText}</span>}
+          : <span className="vfc-offer">{PillIcons.hands}{offerText}</span>}
       </div>
       <LightBar value={tone === "live" ? progress : 1} tone={tone} />
       <span className="vfc-holo" aria-hidden />
