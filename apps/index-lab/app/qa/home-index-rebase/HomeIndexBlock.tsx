@@ -71,10 +71,11 @@ const SLIDES: HeroSlide[] = [
     title: <>Publica tu auto<br />y <em>recibe ofertas</em></>, lead: <>Recibe propuestas y elige la que más te convenga.</>,
     cta: "Publicar mi auto", bg: "linear-gradient(100deg, #2A1670 0%, #3D2299 34%, #6B48DD 76%, #8460E5 100%)",
     photo: { src: ["/banners/vmc/hero-publica.jpg"], side: "l", width: "100%", position: "30% 30%" }, copy: "right" },
-  { label: "Tú pones el precio, ellos te proponen", pill: "negotiable",
-    title: <>Tú pones el precio<br />y <em>ellos te proponen</em></>, lead: <>Activa «Recibe ofertas» y negocia directo con los compradores.</>,
-    cta: "Publicar con Recibe ofertas", bg: "linear-gradient(100deg, #2A1670 0%, #3D2299 35%, #00838C 78%, #00D2D3 100%)",
-    photo: { src: ["/banners/vmc/hero-negociable-a.jpg", "/banners/vmc/hero-negociable.jpg"], side: "r", width: "100%", position: "70% 20%", alto: true }, copy: "left" },
+  // Recibe ofertas (02/11): copy nuevo y solo la toma de la pareja (la del apretón de manos sale).
+  { label: "Tú pones el precio y el 100% es tuyo", pill: "negotiable",
+    title: <>¡Tú pones el precio<br />y <em>el 100% es tuyo</em>!</>, lead: <>Publica tu auto en minutos y negocia directo con los compradores.</>,
+    cta: "¡Publica ahora!", bg: "linear-gradient(100deg, #2A1670 0%, #3D2299 35%, #00838C 78%, #00D2D3 100%)",
+    photo: { src: ["/banners/vmc/hero-negociable-a.jpg"], side: "r", width: "100%", position: "70% 20%", alto: true }, copy: "left" },
 ];
 const AUTOPLAY_MS = 7000;
 
