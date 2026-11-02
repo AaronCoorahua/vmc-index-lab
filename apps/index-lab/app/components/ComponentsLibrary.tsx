@@ -171,7 +171,7 @@ const SLIDES = [
   { image: "/banners/vmc/hero-publica.jpg", imagePosition: "30% 30%", align: "right" as const, label: "Publica en VMC",
     pill: { text: "Publica en VMC" }, title: <>Publica tu auto<br />y <em>recibe ofertas</em></>, lead: "Recibe propuestas y elige la que más te convenga.", cta: "Publicar mi auto" },
   { image: "/banners/vmc/hero-negociable-a.jpg", imagePosition: "70% 20%", label: "Recibe ofertas",
-    pill: { text: "Recibe ofertas", background: "linear-gradient(110deg, #00A9B0 0%, #3F7FD0 45%, #6A35D6 100%)" },
+    pill: { text: "Recibe ofertas", icon: ICON.tag, background: "linear-gradient(110deg, #00A9B0 0%, #3F7FD0 45%, #6A35D6 100%)" },
     title: <>¡Tú pones el precio<br />y <em>el 100% es tuyo</em>!</>, lead: "Publica tu auto en minutos y negocia directo con los compradores.", cta: "¡Publica ahora!",
     background: "linear-gradient(100deg, #2A1670 0%, #3D2299 35%, #00838C 78%, #00D2D3 100%)" },
 ];
