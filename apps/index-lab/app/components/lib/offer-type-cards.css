@@ -52,7 +52,4 @@
 .vot__card:active .vot__cta { transform: translate(-50%, calc(-50% + 1px)) scale(0.97); background-color: rgba(32,0,104,0.22);
   box-shadow: rgba(0,0,0,0.12) 0 2px 6px, inset 0 2px 8px rgba(32,0,104,0.4); }
 
-@media (prefers-reduced-motion: reduce) {
-  .vot__light, .vot__card::after { animation: none; }
-  .vot__card, .vot__body, .vot__img, .vot__cta { transition-duration: 0.01s; }
-}
+/* Como en el Index: el destello, el foco y el hover se animan siempre, también con «reducir movimiento» del sistema (pedido de producto). */
