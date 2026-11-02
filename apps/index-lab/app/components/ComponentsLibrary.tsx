@@ -17,6 +17,7 @@ import { OfferTypeCards } from "./lib/OfferTypeCards";
 import { CategoryGrid } from "./lib/CategoryGrid";
 import { HeroBanner, type HeroBannerEffect } from "./lib/HeroBanner";
 import { LotGallery, type LotRowItem } from "./lib/LotGallery";
+import { PublicationBadge, type PublicationStatus } from "./lib/PublicationBadge";
 
 export type LibSources = Record<string, string>;
 type Prop = [name: string, type: string, def: string, desc: string];
@@ -91,12 +92,13 @@ function Preview({ desktop, mobile, width, controls, note, tone = "light" }: {
   </div>;
 }
 
-function Section({ id, name, tag, summary, preview, files, usage, props }: {
-  id: string; name: string; tag: string; summary: string; preview: ReactNode; files: File[]; usage: string; props: Prop[];
+function Section({ id, name, tag, summary, guide, preview, files, usage, props }: {
+  id: string; name: string; tag: string; summary: string; guide?: ReactNode; preview: ReactNode; files: File[]; usage: string; props: Prop[];
 }): JSX.Element {
   return <section id={id} className="cx-sec" aria-labelledby={`${id}-t`}>
     <header className="cx-sec__head"><h2 id={`${id}-t`}>{name}</h2><code>{tag}</code></header>
     <p className="cx-sum">{summary}</p>
+    {guide}
     {preview}
     <h3>Cómo usarlo</h3>
     <ol className="cx-steps">
@@ -163,6 +165,38 @@ const SLIDES = [
     background: "linear-gradient(100deg, #2A1670 0%, #3D2299 35%, #00838C 78%, #00D2D3 100%)" },
 ];
 
+// ── Badges de Mis publicaciones ──
+const PUB_GUIDE: [PublicationStatus, string][] = [
+  ["revision", "El equipo de VMC revisa la publicación antes de publicarla. Los compradores todavía no la ven."],
+  ["publicada", "Pasó la revisión y ya está publicada. Es el estado de las publicaciones en vivo (subasta)."],
+  ["negociacion", "Es negociable, ya está publicada y está recibiendo propuestas. Debajo se ve cuántas tiene."],
+  ["subaschat", "Se aceptó una propuesta. Comprador y vendedor coordinan la visita, la transferencia y el recojo en el chat."],
+  ["vendido", "A las dos semanas, los dos confirmaron en el chat que se hizo la transferencia y el recojo."],
+  ["no-concretada", "Uno de los dos indicó en el chat que la venta no se dio."],
+];
+const Arrow = () => <svg className="cx-flow__arrow" width="14" height="14" viewBox="0 0 20 20" aria-hidden><path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+const PubGuide = () => <div className="cx-guide">
+  <div className="cx-flow" aria-label="Recorrido de una publicación">
+    <div className="cx-flow__lane"><span className="cx-flow__k">Subasta</span><PublicationBadge status="revision" /><Arrow /><PublicationBadge status="publicada" /></div>
+    <div className="cx-flow__lane"><span className="cx-flow__k">Negociable</span><PublicationBadge status="revision" /><Arrow /><PublicationBadge status="negociacion" /><Arrow /><PublicationBadge status="subaschat" /><Arrow />
+      <span className="cx-flow__end"><PublicationBadge status="vendido" /><small>o</small><PublicationBadge status="no-concretada" /></span></div>
+  </div>
+  <dl className="cx-meaning">{PUB_GUIDE.map(([st, txt]) => <div key={st}><dt><PublicationBadge status={st} /></dt><dd>{txt}</dd></div>)}</dl>
+</div>;
+const PUB_ROWS: { photo: string; name: string; meta: string; status: PublicationStatus; proposals?: number; deal?: boolean }[] = [
+  { photo: "/demo/vehicles/autoplan-sedan.png", name: "Toyota Yaris 2022", meta: "Enviada a revisión", status: "revision" },
+  { photo: "/demo/vehicles/mapfre-tucson.png", name: "Hyundai Tucson 2021", meta: "Publicado: 28/10/2026", status: "publicada" },
+  { photo: "/demo/vehicles/autoplan-agya.png", name: "Toyota Agya 2023", meta: "Publicado: 27/10/2026", status: "negociacion", proposals: 3 },
+  { photo: "/demo/vehicles/mapfre-rio.png", name: "Kia Rio 2020", meta: "Acuerdo por US$ 12,500", status: "subaschat", deal: true },
+  { photo: "/demo/vehicles/autoplan-suv.png", name: "Kia Sportage 2020", meta: "Vendido por US$ 8,450", status: "vendido", deal: true },
+  { photo: "/demo/vehicles/mapfre-pickup.png", name: "Toyota Hilux 2019", meta: "La venta no se concretó", status: "no-concretada", deal: true },
+];
+const PubList = () => <div className="cx-pubs">{PUB_ROWS.map((r) => <div key={r.name} className="cx-pub">
+  <img src={r.photo} alt="" />
+  <span className="cx-pub__main"><b>{r.name}</b><small className={r.deal ? "is-deal" : undefined}>{r.meta}</small></span>
+  <span className="cx-pub__side"><PublicationBadge status={r.status} />{r.proposals ? <small>Propuestas <b>{r.proposals}</b></small> : null}</span>
+</div>)}</div>;
+
 // ── Ejemplos ────────────────────────────────────────────────────────────────────
 const USE_BUTTON = `import "./glass-button.css";
 
@@ -227,6 +261,20 @@ import { FeaturedCard, CardIcons } from "./FeaturedCard";
       details: "32,000 km · Automática · Gasolina", location: "Lima" },
   ]}
 />`;
+const USE_PUB = `import { PublicationBadge } from "./PublicationBadge";
+
+<PublicationBadge status="revision" />       // En revisión
+<PublicationBadge status="publicada" />      // Publicada
+<PublicationBadge status="negociacion" />    // En negociación
+<PublicationBadge status="subaschat" />      // SubasChat
+<PublicationBadge status="vendido" />        // Vendido
+<PublicationBadge status="no-concretada" />  // No concretada
+
+// En la fila, a la derecha; con propuestas, el número va debajo del badge
+<span className="fila__derecha">
+  <PublicationBadge status="negociacion" />
+  <small>Propuestas <b>3</b></small>
+</span>`;
 const USE_BAR = `import { LightBar } from "./LightBar";
 
 <LightBar value={0.62} />
@@ -290,7 +338,7 @@ const USE_HERO = `import { HeroBanner } from "./HeroBanner";
 
 // ── Página ──────────────────────────────────────────────────────────────────────
 const NAV = [
-  ["boton-vidrio", "Botón de vidrio"], ["badge", "Badge"], ["carta-destacada", "Carta destacada"], ["galeria", "Galería de lotes"], ["barra-luz", "Barra de luz"],
+  ["boton-vidrio", "Botón de vidrio"], ["badge", "Badge"], ["badges-publicaciones", "Badges de publicaciones"], ["carta-destacada", "Carta destacada"], ["galeria", "Galería de lotes"], ["barra-luz", "Barra de luz"],
   ["tipo-oferta", "Tipo de oferta"], ["categorias", "Categorías"], ["banner", "Banner"],
 ] as const;
 const forced = (css: string) => css.replaceAll(".hib-glass:hover", ".hib-glass.is-hover").replaceAll(".hib-glass:active", ".hib-glass.is-active");
@@ -324,6 +372,16 @@ export default function ComponentsLibrary({ sources }: { sources: LibSources }):
           desktop={<Gallery />} mobile={<div className="cx-inset"><Gallery /></div>} />}
         files={[{ name: "pills.css", code: PILL_CSS.trim() }]} usage={USE_BADGE}
         props={[["lc-pill--live", "clase", "—", "En vivo, naranja"], ["lc-pill--negotiable", "clase", "—", "Recibe ofertas, cian a violeta"], ["lc-pill--featured", "clase", "—", "Destacado, violeta"], ["lc-pills", "clase", "—", "Grupo arriba a la izquierda de la card (la card con position: relative)"]]} />
+
+      <Section id="badges-publicaciones" name="Badges de Mis publicaciones" tag="PublicationBadge"
+        summary="Dicen en qué etapa está cada publicación del vendedor."
+        guide={<PubGuide />}
+        preview={<Preview width={435} desktop={<PubList />} mobile={<PubList />} />}
+        files={[f("PublicationBadge.tsx"), f("publication-badge.css")]} usage={USE_PUB}
+        props={[
+          ["status", "\"revision\" | \"publicada\" | \"negociacion\" | \"subaschat\" | \"vendido\" | \"no-concretada\"", "—", "Etapa de la publicación"],
+          ["label", "string", "—", "Texto propio (por defecto el de la etapa)"],
+        ]} />
 
       <Section id="carta-destacada" name="Carta destacada" tag="FeaturedCard"
         summary="Carta de lote destacado. Se inclina hacia el mouse."
@@ -473,6 +531,31 @@ const PAGE_CSS = `
 .cx-seg button { padding: 6px 12px; border: 1px solid #DCD5F3; border-radius: 999px; background: #fff; color: #3D2299; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
 .cx-seg button[aria-pressed="true"] { border-color: #3D2299; background: #3D2299; color: #fff; }
 
+/* Guía de badges de Mis publicaciones */
+.cx-guide { display: grid; gap: 16px; }
+.cx-flow { display: grid; gap: 10px; padding: 16px 18px; border: 1px solid #ECE8F7; border-radius: 14px; background: #FAF9FE; }
+.cx-flow__lane { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.cx-flow__k { width: 84px; font-size: 12px; font-weight: 700; color: #6B6492; }
+.cx-flow__arrow { color: #B3A8DA; }
+.cx-flow__end { display: inline-flex; align-items: center; gap: 6px; }
+.cx-flow__end small { font-size: 12px; color: #6B6492; }
+.cx-meaning { margin: 0; display: grid; border: 1px solid #ECE8F7; border-radius: 14px; overflow: hidden; }
+.cx-meaning div { display: grid; grid-template-columns: 130px 1fr; align-items: center; gap: 14px; padding: 10px 16px; }
+.cx-meaning div + div { border-top: 1px solid #F0EDF8; }
+.cx-meaning dt { display: flex; }
+.cx-meaning dd { margin: 0; font-size: 14px; line-height: 1.5; color: #3F3866; }
+/* Fila de Mis publicaciones (medidas de Mi Garaje: foto 48 × 36, nombre 14 px, dato 12 px) */
+.cx-pubs { display: grid; background: #fff; border-radius: 12px; }
+.cx-pub { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 12px; }
+.cx-pub img { width: 48px; height: 36px; border-radius: 6px; object-fit: cover; }
+.cx-pub__main { display: grid; gap: 4px; min-width: 0; }
+.cx-pub__main b { overflow: hidden; font-size: 14px; font-weight: 300; color: #191C1C; text-overflow: ellipsis; white-space: nowrap; }
+.cx-pub__main small { font-size: 12px; font-weight: 300; line-height: 16.8px; color: #6B6878; }
+.cx-pub__main small.is-deal { font-weight: 400; color: #191C1C; }
+.cx-pub__side { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.cx-pub__side small { font-size: 12px; color: #6B6878; }
+.cx-pub__side small b { margin-left: 4px; font-weight: 400; }
+
 /* Cómo usarlo */
 .cx-steps { margin: 0; padding-left: 20px; display: grid; gap: 6px; font-size: 14px; line-height: 1.6; color: #3F3866; }
 .cx-files { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
@@ -508,6 +591,7 @@ const PAGE_CSS = `
   .cx-sec { padding: 18px 14px; scroll-margin-top: 64px; }
   .cx-view__box { padding: 16px; }
   .cx-states { grid-template-columns: 1fr; }
+  .cx-meaning div { grid-template-columns: 1fr; gap: 6px; }
   .cx-table th:nth-child(3), .cx-table td:nth-child(3) { display: none; }
 }
 `;
