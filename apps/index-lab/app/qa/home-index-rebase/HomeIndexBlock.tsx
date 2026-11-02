@@ -64,7 +64,7 @@ type HeroSlide = {
 // Fotos 2K generadas para el hero (persona + vehículo seminuevo a la derecha, izquierda libre para el texto). Copy provisional: Julio lo ajusta.
 const SLIDES: HeroSlide[] = [
   { label: "Entérate primero de las subastas por WhatsApp", pill: "whatsapp",
-    title: <>Entérate <em>primero</em><br />de las subastas</>, lead: <>Únete al canal de VMC y recibe los lotes nuevos antes que nadie.</>,
+    title: <>Entérate <em>primero</em><br />de las subastas</>, lead: <>Únete al canal de VMC y recibe los lotes<br />nuevos antes que nadie.</>, // corte fijo (Julio, 02/11)
     cta: "Unirme al canal", bg: "linear-gradient(100deg, #2A1670 0%, #3D2299 34%, #0E7A5A 78%, #25D366 100%)",
     photo: { src: ["/banners/vmc/hero-whatsapp-c.jpg", "/banners/vmc/hero-whatsapp.jpg"], side: "r", width: "100%", position: "70% 30%", alto: true }, copy: "left" },
   { label: "Publica tu auto en VMC y recibe ofertas", pill: "seller",

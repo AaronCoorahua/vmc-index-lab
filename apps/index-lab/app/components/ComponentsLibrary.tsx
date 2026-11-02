@@ -127,7 +127,7 @@ const WA = <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M12
 const SLIDES = [
   { image: "/banners/vmc/hero-whatsapp-c.jpg", imagePosition: "70% 30%", label: "Canal de WhatsApp",
     pill: { text: "Canal de WhatsApp", icon: WA, background: "linear-gradient(135deg, #25D366 0%, #0E7A5A 100%)" },
-    title: <>Entérate <em>primero</em><br />de las subastas</>, lead: "Únete al canal de VMC y recibe los lotes nuevos antes que nadie.", cta: "Unirme al canal",
+    title: <>Entérate <em>primero</em><br />de las subastas</>, lead: <>Únete al canal de VMC y recibe los lotes<br />nuevos antes que nadie.</>, cta: "Unirme al canal",
     background: "linear-gradient(100deg, #2A1670 0%, #3D2299 34%, #0E7A5A 78%, #25D366 100%)" },
   { image: "/banners/vmc/hero-publica.jpg", imagePosition: "30% 30%", align: "right" as const, label: "Publica en VMC",
     pill: { text: "Publica en VMC" }, title: <>Publica tu auto<br />y <em>recibe ofertas</em></>, lead: "Recibe propuestas y elige la que más te convenga.", cta: "Publicar mi auto" },
@@ -225,7 +225,7 @@ const USE_HERO = `import { HeroBanner } from "./HeroBanner";
       image: "/banners/whatsapp.jpg",
       pill: { text: "Canal de WhatsApp", background: "linear-gradient(135deg, #25D366, #0E7A5A)" },
       title: <>Entérate <em>primero</em><br />de las subastas</>,
-      lead: "Únete al canal de VMC y recibe los lotes nuevos antes que nadie.",
+      lead: <>Únete al canal de VMC y recibe los lotes<br />nuevos antes que nadie.</>,
       cta: "Unirme al canal",
       href: "/whatsapp",
     },
