@@ -1,18 +1,7 @@
 "use client";
 
-/**
- * FeaturedCard · carta destacada del Index (estilo «Holo curva», la del Toyota Yaris).
- * - Se inclina en 3D hacia el puntero (perspective + rotateX/rotateY).
- * - Un foil holográfico (lila, cian, naranja) y un reflejo blanco siguen al puntero; sin puntero, el foil se mueve solo.
- * - Foto con borde curvo, pills (Destacado, En vivo o Recibe ofertas), favorito, contador de fotos y puntos.
- * - Abajo, la LightBar: la franja con la luz que corre.
- * Independiente: solo React, featured-card.css y LightBar (light-bar.css).
- *
- *   <FeaturedCard image="/yaris.png" title="Toyota Yaris" subtitle="2022 · Hatchback" featured live
- *     chips={[{ icon: CardIcons.gear, label: "Automática" }, { icon: CardIcons.fuel, label: "Gasolina" }]}
- *     stats={[{ icon: CardIcons.gauge, label: "45,000 km" }, { icon: CardIcons.seats, label: "5 asientos" }]}
- *     startsIn="01:24:36" price="US$ 2,799" progress={0.62} photos={12} />
- */
+/** FeaturedCard: carta destacada que se inclina hacia el mouse, con brillo holográfico y LightBar abajo.
+ *  Solo depende de React, featured-card.css y LightBar (light-bar.css). */
 import { useId, useState } from "react";
 import type { CSSProperties, JSX, PointerEvent, ReactNode } from "react";
 import { LightBar } from "./LightBar";
@@ -86,21 +75,21 @@ export type CardItem = { icon?: ReactNode; label: string };
 export type FeaturedCardProps = {
   image: string;
   title: string;
-  /** Debajo del nombre, p. ej. «2022 · Hatchback». */
+  /** Debajo del nombre, p. ej. "2022 · Hatchback". */
   subtitle?: string;
-  /** live = subasta (naranja, precio); negotiable = Recibe ofertas (turquesa, «Haz tu oferta»). */
+  /** live = subasta (naranja, precio); negotiable = Recibe ofertas (turquesa, "Haz tu oferta"). */
   tone?: "live" | "negotiable";
-  /** Pill «Destacado». */
+  /** Pill "Destacado". */
   featured?: boolean;
-  /** Pill «En vivo» (solo con tone="live"). */
+  /** Pill "En vivo" (solo con tone="live"). */
   live?: boolean;
-  /** Total de fotos del contador «1/12». */
+  /** Total de fotos del contador "1/12". */
   photos?: number;
   /** Etiquetas con borde (transmisión, combustible…). */
   chips?: CardItem[];
   /** Datos en dos columnas (km, asientos o ciudad…). */
   stats?: CardItem[];
-  /** «Empieza en …» (solo en vivo). */
+  /** "Empieza en …" (solo en vivo). */
   startsIn?: string;
   priceLabel?: string;
   price?: string;

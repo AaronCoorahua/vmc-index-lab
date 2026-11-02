@@ -1,17 +1,5 @@
-/**
- * OfferTypeCards · tarjetas de «Tipo de oferta» del Index (Recibe ofertas / En vivo).
- * - Degradado de la modalidad con el auto de fondo a la derecha, brillo de vidrio arriba, un foco de luz que respira
- *   y un destello que cruza la tarjeta cada 5 s.
- * - Al pasar el mouse (o con foco de teclado): la tarjeta crece un poco, la foto y el texto se desenfocan suave
- *   y aparece al centro un botón de vidrio.
- * - Se apilan en una columna cuando el contenedor mide menos de 560 px.
- * Independiente: solo React y offer-type-cards.css.
- *
- *   <OfferTypeCards items={[
- *     { tone: "negotiable", title: "Recibe ofertas", text: "Encuentra vehículos con precio conversable", cta: "Ver lotes", image: "/agya.png", href: "/negociables" },
- *     { tone: "live", title: "En vivo", text: "Participa en subastas en tiempo real", cta: "Ver subastas", image: "/yaris.png", href: "/subastas" },
- *   ]} />
- */
+/** OfferTypeCards: tarjetas de tipo de oferta. Al pasar el mouse crecen, se desenfocan y muestran un botón.
+ *  Solo depende de React y offer-type-cards.css. */
 import type { CSSProperties, JSX, MouseEvent, ReactNode } from "react";
 import "./offer-type-cards.css";
 
@@ -36,7 +24,7 @@ const TagIcon = () => <svg width="13" height="13" viewBox="0 0 24 24" aria-hidde
 
 export type OfferTypeItem = {
   tone: OfferTone;
-  /** Texto de la pill (p. ej. «Recibe ofertas»). */
+  /** Texto de la pill (p. ej. "Recibe ofertas"). */
   title: string;
   text: string;
   /** Texto del botón de vidrio que aparece al pasar el mouse. */

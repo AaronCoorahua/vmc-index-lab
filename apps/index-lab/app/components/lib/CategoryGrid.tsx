@@ -1,23 +1,11 @@
-/**
- * CategoryGrid · «Explora por categoría» del Index: card con foto, ícono, nombre, conteo y flecha.
- * Las cards se apilan solas: en `layout="auto"` caben tantas por fila como permita el ancho (mínimo `minWidth`
- * cada una) y el resto baja a la fila siguiente. También puedes fijar las columnas o usar una fila con scroll.
- * Al pasar el mouse la card sube 3 px y la foto se acerca.
- * Independiente: solo React y category-grid.css. El ícono es cualquier ReactNode (SVG, <img>, emoji…).
- *
- *   <CategoryGrid items={[
- *     { label: "Vehicular", count: "21 lotes", image: "/suv.png", icon: <MiIcono />, href: "/vehicular" },
- *     { label: "Maquinaria", count: "2 lotes", image: "/excavadora.png", href: "/maquinaria" },
- *   ]} />
- *   <CategoryGrid items={items} layout="columns" columns={3} />
- *   <CategoryGrid items={items} layout="scroll" />
- */
+/** CategoryGrid: cards de categoría que se apilan según el ancho disponible.
+ *  Solo depende de React y category-grid.css. */
 import type { CSSProperties, JSX, MouseEvent, ReactNode } from "react";
 import "./category-grid.css";
 
 export type CategoryItem = {
   label: string;
-  /** Texto pequeño bajo el nombre, p. ej. «21 lotes». */
+  /** Texto pequeño bajo el nombre, p. ej. "21 lotes". */
   count?: string;
   image: string;
   icon?: ReactNode;

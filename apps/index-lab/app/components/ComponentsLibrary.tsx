@@ -1,52 +1,27 @@
 "use client";
 
 /**
- * /components — librería de componentes del Index para desarrollo (30/10, Aaron).
- * Cada ficha: los estados (normal, hover, active) lado a lado —normal es un botón real para probarlo—, la especificación y el código para copiar.
- * El CSS sale del mismo archivo que usa el Index (glass.ts): si el botón cambia allá, aquí cambia solo.
- * Los estados forzados reescriben ese CSS (:hover → .is-hover, etc.) en vez de copiarlo a mano.
+ * /components: componentes del Index para copiar a otro proyecto.
+ * Cada sección: vista en escritorio y en móvil (375 px), cómo usarlo (archivos + ejemplo + código) y sus propiedades.
+ * El código de los archivos de ./lib lo lee page.tsx al compilar; el del botón y el badge sale de glass.ts y pills.ts.
  */
 import Link from "next/link";
 import { useState } from "react";
-import type { JSX } from "react";
+import type { JSX, ReactNode } from "react";
 import { GLASS_CSS } from "../qa/home-index-rebase/glass";
 import { PILL_CSS } from "../qa/home-index-rebase/pills";
-import LibrarySections, { LIB_NAV, type LibSources } from "./LibrarySections";
+import { Vidrio } from "../qa/home-index-rebase/Vidrio";
+import { CardIcons, FeaturedCard } from "./lib/FeaturedCard";
+import { LightBar } from "./lib/LightBar";
+import { OfferTypeCards } from "./lib/OfferTypeCards";
+import { CategoryGrid } from "./lib/CategoryGrid";
+import { HeroBanner, type HeroBannerEffect } from "./lib/HeroBanner";
 
-const forced = (css: string, cls: string) => css
-  .replaceAll(`.${cls}:hover`, `.${cls}.is-hover`)
-  .replaceAll(`.${cls}:active`, `.${cls}.is-active`);
+export type LibSources = Record<string, string>;
+type Prop = [name: string, type: string, def: string, desc: string];
+type File = { name: string; code: string };
 
-type Comp = {
-  id: string; name: string; cls: string; label: string; css: string; react: string;
-  // La especificación repite en palabras los valores de glass.ts: al cambiar uno, actualizar el otro.
-  spec: [string, string][];
-};
-
-const COMPONENTS: Comp[] = [{
-  id: "boton-vidrio", name: "Botón de vidrio", cls: "hib-glass", label: "Publicar mi auto", css: GLASS_CSS.trim(),
-  react: `import type { ButtonHTMLAttributes } from "react";
-import "./glass-button.css"; // el CSS de la pestaña «CSS», tal cual
-
-export function GlassButton({ children, ...props }: ButtonHTMLAttributes<HTMLButtonElement>) {
-  return <button type="button" className="hib-glass" {...props}>{children}</button>;
-}
-
-// Uso: <GlassButton>Publicar mi auto</GlassButton>`,
-  spec: [
-    ["Tamaño", "Alto 35 px · padding 0 29 px · radio 100 px (en celular, contenedor ≤ 480 px: alto 34 px · padding 0 22 px)"],
-    ["Texto", "Plus Jakarta Sans 600 · 14 px · blanco · sombra 0 1px 3px rgba(0,0,0,.25)"],
-    ["Fondo", "Dos degradados blancos verticales (35 % → 0 y 18 % → 3 %) + backdrop-filter: blur(5px)"],
-    ["Borde", "1.5 px con degradado VYStrokes1 a 94°: #FFFFFF → #F4AC59 22.1 % → #8460E5 74.5 % → #FFFFFF (máscara en ::before)"],
-    ["Sombra", "0 8px 24px rgba(0,0,0,.10) + interior 0 1px 6px rgba(255,255,255,.45)"],
-    ["Hover", "Sube 1 px · fondo rgba(255,255,255,.10) · sombra 0 12px 28px rgba(0,0,0,.16) + interior más brillante"],
-    ["Active (clic)", "Baja 1 px y escala a 0.97 · fondo violeta rgba(32,0,104,.22) · sombra interior violeta"],
-    ["Transición", "background-color y box-shadow 0.25 s (ease) · transform 0.2 s cubic-bezier(0.25, 0.8, 0.25, 1)"],
-  ],
-}];
-
-const STATES = [["", "Normal"], ["is-hover", "Hover"], ["is-active", "Active (clic)"]] as const;
-
+// ── Piezas de la página ─────────────────────────────────────────────────────────
 function copy(text: string): Promise<void> {
   if (navigator.clipboard?.writeText) return navigator.clipboard.writeText(text);
   const t = document.createElement("textarea"); t.value = text; document.body.append(t); t.select();
@@ -54,162 +29,418 @@ function copy(text: string): Promise<void> {
   return Promise.resolve();
 }
 
-function Code({ title, text }: { title: string; text: string }): JSX.Element {
+function Code({ usage, files }: { usage: string; files: File[] }): JSX.Element {
+  const tabs = [{ name: "Ejemplo", code: usage }, ...files];
+  const [tab, setTab] = useState(0);
   const [done, setDone] = useState(false);
-  return <figure className="cmp-code">
-    <figcaption><b>{title}</b><button type="button" onClick={() => copy(text).then(() => { setDone(true); setTimeout(() => setDone(false), 1600); })}>{done ? "Copiado ✓" : "Copiar"}</button></figcaption>
-    <pre><code>{text}</code></pre>
-  </figure>;
-}
-
-function Card({ c }: { c: Comp }): JSX.Element {
-  const [tab, setTab] = useState<"react" | "css">("react");
-  return <article id={c.id} className="cmp-card">
-    <style>{c.css + "\n" + forced(c.css, c.cls)}</style>
-    <header className="cmp-card__head"><h2>{c.name}</h2><code className="cmp-pill">.{c.cls}</code></header>
-    <div className="cmp-states">{STATES.map(([k, l]) => <div key={l} className="cmp-stage cmp-stage--mini">
-      {k ? <span className={`${c.cls} ${k}`} aria-hidden>{c.label}</span> : <button type="button" className={c.cls}>{c.label}</button>}<small>{l}</small></div>)}</div>
-    <dl className="cmp-spec">{c.spec.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
-    <div className="cmp-tabs" role="tablist" aria-label="Código">
-      <button type="button" role="tab" aria-selected={tab === "react"} onClick={() => setTab("react")}>React</button>
-      <button type="button" role="tab" aria-selected={tab === "css"} onClick={() => setTab("css")}>CSS</button>
+  const cur = tabs[tab];
+  return <div className="cx-code">
+    <div className="cx-code__bar">
+      <div className="cx-code__tabs" role="tablist" aria-label="Archivos">
+        {tabs.map((t, i) => <button key={t.name} type="button" role="tab" aria-selected={tab === i} onClick={() => setTab(i)}>{t.name}</button>)}
+      </div>
+      <button type="button" className="cx-code__copy" onClick={() => copy(cur.code).then(() => { setDone(true); setTimeout(() => setDone(false), 1500); })}>{done ? "Copiado" : "Copiar"}</button>
     </div>
-    {tab === "react" ? <Code title="GlassButton.tsx" text={c.react} /> : <Code title="glass-button.css" text={c.css} />}
-  </article>;
+    <pre><code>{cur.code.split("\n").map((l, i) => <span key={i}>{l}{"\n"}</span>)}</code></pre>
+  </div>;
 }
 
-/* Badge (30/10): las pills de las cards de lotes del Index (LotCards). El markup de aquí es el mismo del Index
-   (se verificó igual al HTML que pinta la página) y es el que va en la pestaña React. */
+function Props({ rows }: { rows: Prop[] }): JSX.Element {
+  return <div className="cx-table"><table>
+    <thead><tr><th>Propiedad</th><th>Tipo</th><th>Por defecto</th><th>Qué hace</th></tr></thead>
+    <tbody>{rows.map(([n, t, d, x]) => <tr key={n}><td><code>{n}</code></td><td><code>{t}</code></td><td>{d === "—" ? "—" : <code>{d}</code>}</td><td>{x}</td></tr>)}</tbody>
+  </table></div>;
+}
+
+/** Vista previa. Con `mobile`, muestra escritorio arriba y el teléfono de 375 px abajo; sin él, una sola vista. */
+function Preview({ desktop, mobile, controls, note, tone = "light" }: { desktop: ReactNode; mobile?: ReactNode; controls?: ReactNode; note?: string; tone?: "light" | "lilac" }): JSX.Element {
+  return <div className="cx-prev">
+    {controls ? <div className="cx-prev__controls">{controls}</div> : null}
+    <div className="cx-view">
+      <span className="cx-view__label">{mobile ? "Escritorio" : "Vista"}</span>
+      <div className={`cx-view__box cx-view__box--${tone}`}><div className={mobile ? "cx-desk" : undefined}>{desktop}</div></div>
+    </div>
+    {mobile ? <div className="cx-view">
+      <span className="cx-view__label">Móvil · 375 px</span>
+      <div className={`cx-view__box cx-view__box--${tone} cx-view__box--phone`}><div className="cx-phone">{mobile}</div></div>
+    </div> : null}
+    {note ? <p className="cx-note">{note}</p> : null}
+  </div>;
+}
+
+function Section({ id, name, tag, summary, preview, files, usage, props }: {
+  id: string; name: string; tag: string; summary: string; preview: ReactNode; files: File[]; usage: string; props: Prop[];
+}): JSX.Element {
+  return <section id={id} className="cx-sec" aria-labelledby={`${id}-t`}>
+    <header className="cx-sec__head"><h2 id={`${id}-t`}>{name}</h2><code>{tag}</code></header>
+    <p className="cx-sum">{summary}</p>
+    {preview}
+    <h3>Cómo usarlo</h3>
+    <ol className="cx-steps">
+      <li>Copia {files.length === 1 ? "este archivo" : "estos archivos"} en una misma carpeta:<span className="cx-files">{files.map((f) => <code key={f.name}>{f.name}</code>)}</span></li>
+      <li>Impórtalo y pásale tus datos, como en el ejemplo.</li>
+    </ol>
+    <Code usage={usage} files={files} />
+    <h3>Propiedades</h3>
+    <Props rows={props} />
+  </section>;
+}
+
+const Seg = <T extends string>({ label, value, options, onChange }: { label: string; value: T; options: [T, string][]; onChange: (v: T) => void }) =>
+  <div className="cx-seg" role="group" aria-label={label}><span>{label}</span>
+    {options.map(([v, l]) => <button key={v} type="button" aria-pressed={value === v} onClick={() => onChange(v)}>{l}</button>)}</div>;
+
+// ── Datos de las vistas (fotos e íconos de este proyecto; los componentes no dependen de ellos) ─────────────
 const ICON = {
   star: <svg width="10" height="10" viewBox="0 0 24 24" aria-hidden><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5-4.8-4.6 6.6-.9z" fill="currentColor" /></svg>,
   live: <svg width="10" height="10" viewBox="0 0 24 24" aria-hidden><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="2.6" /><circle cx="12" cy="12" r="4" fill="currentColor" /></svg>,
   tag: <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden><path d="M3 12V4h8l10 10-8 8z" fill="currentColor" /><circle cx="7.5" cy="8.5" r="1.6" fill="#fff" /></svg>,
 };
 type PillKind = "live" | "negotiable" | "featured";
-const PILL: Record<PillKind, [JSX.Element, string, string]> = {
-  live: [ICON.live, "En vivo", "Subasta en vivo"], negotiable: [ICON.tag, "Recibe ofertas", "Negociable"], featured: [ICON.star, "Destacado", "Lote destacado"],
-};
+const PILL: Record<PillKind, [JSX.Element, string]> = { live: [ICON.live, "En vivo"], negotiable: [ICON.tag, "Recibe ofertas"], featured: [ICON.star, "Destacado"] };
 const Pill = ({ kind }: { kind: PillKind }) => <span className={`lc-pill lc-pill--${kind}`}>{PILL[kind][0]}{PILL[kind][1]}</span>;
-const BADGE_REACT = `import type { JSX } from "react";
-import "./pills.css"; // el CSS de la pestaña «CSS», tal cual
-
-const ICON = {
-  star: <svg width="10" height="10" viewBox="0 0 24 24" aria-hidden><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5-4.8-4.6 6.6-.9z" fill="currentColor" /></svg>,
-  live: <svg width="10" height="10" viewBox="0 0 24 24" aria-hidden><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="2.6" /><circle cx="12" cy="12" r="4" fill="currentColor" /></svg>,
-  tag: <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden><path d="M3 12V4h8l10 10-8 8z" fill="currentColor" /><circle cx="7.5" cy="8.5" r="1.6" fill="#fff" /></svg>,
-};
-
-export type PillKind = "live" | "negotiable" | "featured";
-const PILL: Record<PillKind, [JSX.Element, string]> = {
-  live: [ICON.live, "En vivo"],
-  negotiable: [ICON.tag, "Recibe ofertas"],
-  featured: [ICON.star, "Destacado"],
-};
-
-export function Pill({ kind }: { kind: PillKind }) {
-  return <span className={\`lc-pill lc-pill--\${kind}\`}>{PILL[kind][0]}{PILL[kind][1]}</span>;
-}
-
-/** Grupo de la card: arriba a la izquierda (la card va con position: relative). Destacado siempre primero. */
-export function Pills({ kind, featured = false }: { kind: "live" | "negotiable"; featured?: boolean }) {
-  return <span className="lc-pills">{featured ? <Pill kind="featured" /> : null}<Pill kind={kind} /></span>;
-}
-
-// Uso: <Pills kind="live" featured /> · <Pills kind="negotiable" />`;
-const BADGE_SPEC: [string, string][] = [
-  ["Tamaño", "Alto 18 px · padding 0 8 px 0 6 px · radio 999 px · 5 px entre ícono y texto"],
-  ["Texto", "Plus Jakarta Sans 700 · 9 px · mayúsculas · tracking 0.07em · blanco"],
-  ["Ícono", "10 × 10 px, en blanco (currentColor)"],
-  ["Sombra", "0 2px 6px rgba(0,0,0,.18)"],
-  ["En vivo", "Degradado 135°: #FF9639 → #EF852E 40 % → #BE3D00 · ícono aro con punto"],
-  ["Recibe ofertas", "Lotes negociables. Degradado 110°: #00A9B0 → #3F7FD0 45 % → #6A35D6 · ícono etiqueta"],
-  ["Destacado", "Degradado 135°: #8460E5 → #3B1782 · ícono estrella"],
-  ["En la card", "Grupo .lc-pills arriba a la izquierda (top 8 · left 8), 4 px entre pills; Destacado va primero"],
-];
-const CARDS: { kind: "live" | "negotiable"; featured?: boolean; name: string; photo: string }[] = [
+const LOTS: { kind: "live" | "negotiable"; featured?: boolean; name: string; photo: string }[] = [
   { kind: "live", name: "Toyota Yaris 2022", photo: "/demo/vehicles/autoplan-sedan.png" },
   { kind: "negotiable", name: "Toyota Agya 2023", photo: "/demo/vehicles/autoplan-agya.png" },
   { kind: "live", featured: true, name: "Toyota Hilux 2019", photo: "/demo/vehicles/mapfre-pickup.png" },
 ];
 
-function BadgeCard(): JSX.Element {
-  const [tab, setTab] = useState<"react" | "css">("react");
-  return <article id="badge" className="cmp-card">
-    <style>{PILL_CSS}</style>
-    <header className="cmp-card__head"><h2>Badge</h2><code className="cmp-pill">.lc-pill</code></header>
-    <div className="cmp-badges">{(Object.keys(PILL) as PillKind[]).map((k) => <div key={k} className="cmp-badges__one"><Pill kind={k} /><small>{PILL[k][2]}</small></div>)}</div>
-    <div className="cmp-lots">{CARDS.map((c) => <div key={c.name} className="cmp-lot">
-      <span className="cmp-lot__img"><img src={c.photo} alt="" /><span className="lc-pills">{c.featured ? <Pill kind="featured" /> : null}<Pill kind={c.kind} /></span></span>
-      <b>{c.name}</b></div>)}</div>
-    <dl className="cmp-spec">{BADGE_SPEC.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
-    <div className="cmp-tabs" role="tablist" aria-label="Código">
-      <button type="button" role="tab" aria-selected={tab === "react"} onClick={() => setTab("react")}>React</button>
-      <button type="button" role="tab" aria-selected={tab === "css"} onClick={() => setTab("css")}>CSS</button>
-    </div>
-    {tab === "react" ? <Code title="Pills.tsx" text={BADGE_REACT} /> : <Code title="pills.css" text={PILL_CSS.trim()} />}
-  </article>;
+const YARIS = { image: "/demo/vehicles/autoplan-yaris.png", title: "Toyota Yaris", subtitle: "2022 · Hatchback", photos: 12, startsIn: "01:24:36", price: "US$ 2,799", progress: 0.62,
+  chips: [{ icon: CardIcons.gear, label: "Automática" }, { icon: CardIcons.fuel, label: "Gasolina" }],
+  stats: [{ icon: CardIcons.gauge, label: "45,000 km" }, { icon: CardIcons.seats, label: "5 asientos" }] };
+const AGYA = { image: "/demo/vehicles/autoplan-agya.png", title: "Toyota Agya", subtitle: "2023 · Hatchback", photos: 9,
+  chips: [{ icon: CardIcons.gear, label: "Automática" }, { icon: CardIcons.fuel, label: "Gasolina" }],
+  stats: [{ icon: CardIcons.gauge, label: "32,000 km" }, { icon: CardIcons.pin, label: "Lima" }] };
+const OFFERS = [
+  { tone: "negotiable" as const, title: "Recibe ofertas", text: "Encuentra vehículos con precio conversable", cta: "Ver lotes", image: "/demo/vehicles/autoplan-agya.png" },
+  { tone: "live" as const, title: "En vivo", text: "Participa en subastas en tiempo real", cta: "Ver subastas", image: "/demo/vehicles/autoplan-yaris.png" },
+];
+const CATS = [
+  { label: "Vehicular", count: "21 lotes", image: "/demo/inventory-suv-v1.png", icon: <Vidrio s="vehicular" size={32} /> },
+  { label: "Equipos diversos", count: "12 lotes", image: "/demo/inventory-forklift-v1.png", icon: <Vidrio s="equipos" size={32} /> },
+  { label: "Maquinaria", count: "2 lotes", image: "/demo/inventory-excavator-v1.png", icon: <Vidrio s="maquinaria" size={32} /> },
+  { label: "Materiales", count: "1 lote", image: "/demo/inventory-steel-v1.png", icon: <Vidrio s="materiales" size={32} /> },
+  { label: "Mobiliario", count: "3 lotes", image: "/demo/inventory-furniture-v1.jpg", icon: <Vidrio s="mobiliario" size={32} /> },
+  { label: "Artículos diversos", count: "1 lote", image: "/demo/inventory-mosaic-v1.png", icon: <Vidrio s="articulos" size={32} /> },
+];
+const WA = <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.3-.5.1-1 .1-3.2-.7-2.7-1.1-4.4-3.8-4.5-4s-1.1-1.5-1.1-2.8.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.4.6-.4.4c-.1.2-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.3.2.5.1.6 0l.9-1c.2-.3.4-.2.6-.1l1.9.9c.3.1.4.2.5.3.1.2.1.7-.1 1.4Z" /></svg>;
+const SLIDES = [
+  { image: "/banners/vmc/hero-whatsapp-c.jpg", imagePosition: "70% 30%", label: "Canal de WhatsApp",
+    pill: { text: "Canal de WhatsApp", icon: WA, background: "linear-gradient(135deg, #25D366 0%, #0E7A5A 100%)" },
+    title: <>Entérate <em>primero</em><br />de las subastas</>, lead: "Únete al canal de VMC y recibe los lotes nuevos antes que nadie.", cta: "Unirme al canal",
+    background: "linear-gradient(100deg, #2A1670 0%, #3D2299 34%, #0E7A5A 78%, #25D366 100%)" },
+  { image: "/banners/vmc/hero-publica.jpg", imagePosition: "30% 30%", align: "right" as const, label: "Publica en VMC",
+    pill: { text: "Publica en VMC" }, title: <>Publica tu auto<br />y <em>recibe ofertas</em></>, lead: "Recibe propuestas y elige la que más te convenga.", cta: "Publicar mi auto" },
+  { image: "/banners/vmc/hero-negociable-a.jpg", imagePosition: "70% 20%", label: "Recibe ofertas",
+    pill: { text: "Recibe ofertas", background: "linear-gradient(110deg, #00A9B0 0%, #3F7FD0 45%, #6A35D6 100%)" },
+    title: <>Tú pones el precio<br />y <em>ellos te proponen</em></>, lead: "Activa Recibe ofertas y negocia directo con los compradores.", cta: "Publicar",
+    background: "linear-gradient(100deg, #2A1670 0%, #3D2299 35%, #00838C 78%, #00D2D3 100%)" },
+];
+
+// ── Ejemplos ────────────────────────────────────────────────────────────────────
+const USE_BUTTON = `import "./glass-button.css";
+
+export function GlassButton(props: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  return <button type="button" className="hib-glass" {...props} />;
 }
 
-const NAV = [...COMPONENTS.map((c) => ({ id: c.id, name: c.name })), { id: "badge", name: "Badge" }, ...LIB_NAV];
+<GlassButton onClick={publicar}>Publicar mi auto</GlassButton>`;
+const USE_BADGE = `import "./pills.css";
+
+<span className="lc-pills">
+  <span className="lc-pill lc-pill--featured">Destacado</span>
+  <span className="lc-pill lc-pill--live">En vivo</span>
+</span>
+
+<span className="lc-pill lc-pill--negotiable">Recibe ofertas</span>`;
+const USE_CARD = `import { FeaturedCard, CardIcons } from "./FeaturedCard";
+
+<FeaturedCard
+  image="/fotos/yaris.png"
+  title="Toyota Yaris"
+  subtitle="2022 · Hatchback"
+  featured
+  photos={12}
+  chips={[
+    { icon: CardIcons.gear, label: "Automática" },
+    { icon: CardIcons.fuel, label: "Gasolina" },
+  ]}
+  stats={[
+    { icon: CardIcons.gauge, label: "45,000 km" },
+    { icon: CardIcons.seats, label: "5 asientos" },
+  ]}
+  startsIn="01:24:36"
+  price="US$ 2,799"
+  progress={0.62}
+  width={220}
+  height={380}
+  fillMedia
+  onClick={() => abrirLote("yaris")}
+/>
+
+<FeaturedCard tone="negotiable" image="/fotos/agya.png" title="Toyota Agya" subtitle="2023 · Hatchback" />`;
+const USE_BAR = `import { LightBar } from "./LightBar";
+
+<LightBar value={0.62} />
+<LightBar value={1} tone="negotiable" />
+<LightBar value={0.35} rounded height={6} label="Tiempo transcurrido" />`;
+const USE_OFFER = `import { OfferTypeCards } from "./OfferTypeCards";
+
+<OfferTypeCards
+  items={[
+    {
+      tone: "negotiable",
+      title: "Recibe ofertas",
+      text: "Encuentra vehículos con precio conversable",
+      cta: "Ver lotes",
+      image: "/fotos/agya.png",
+      href: "/negociables",
+    },
+    {
+      tone: "live",
+      title: "En vivo",
+      text: "Participa en subastas en tiempo real",
+      cta: "Ver subastas",
+      image: "/fotos/yaris.png",
+      href: "/subastas",
+    },
+  ]}
+/>`;
+const USE_CATS = `import { CategoryGrid } from "./CategoryGrid";
+
+const categorias = [
+  { label: "Vehicular", count: "21 lotes", image: "/fotos/suv.png", icon: <IconoAuto />, href: "/vehicular" },
+  { label: "Maquinaria", count: "2 lotes", image: "/fotos/excavadora.png", icon: <IconoMaquina />, href: "/maquinaria" },
+];
+
+<CategoryGrid items={categorias} />
+<CategoryGrid items={categorias} layout="columns" columns={3} />
+<CategoryGrid items={categorias} layout="scroll" />`;
+const USE_HERO = `import { HeroBanner } from "./HeroBanner";
+
+<HeroBanner
+  height={300}
+  slides={[
+    {
+      image: "/banners/whatsapp.jpg",
+      pill: { text: "Canal de WhatsApp", background: "linear-gradient(135deg, #25D366, #0E7A5A)" },
+      title: <>Entérate <em>primero</em><br />de las subastas</>,
+      lead: "Únete al canal de VMC y recibe los lotes nuevos antes que nadie.",
+      cta: "Unirme al canal",
+      href: "/whatsapp",
+    },
+    {
+      image: "/banners/publica.jpg",
+      align: "right",
+      pill: { text: "Publica en VMC" },
+      title: <>Publica tu auto<br />y <em>recibe ofertas</em></>,
+      cta: "Publicar mi auto",
+      onCta: () => abrirPublicar(),
+    },
+  ]}
+/>`;
+
+// ── Página ──────────────────────────────────────────────────────────────────────
+const NAV = [
+  ["boton-vidrio", "Botón de vidrio"], ["badge", "Badge"], ["carta-destacada", "Carta destacada"], ["barra-luz", "Barra de luz"],
+  ["tipo-oferta", "Tipo de oferta"], ["categorias", "Categorías"], ["banner", "Banner"],
+] as const;
+const forced = (css: string) => css.replaceAll(".hib-glass:hover", ".hib-glass.is-hover").replaceAll(".hib-glass:active", ".hib-glass.is-active");
 
 export default function ComponentsLibrary({ sources }: { sources: LibSources }): JSX.Element {
-  return <div className="cmp">
-    <style>{PAGE_CSS}</style>
-    <aside className="cmp-nav"><p className="cmp-nav__k">VMC Index Lab</p><h1>Componentes</h1>
-      <nav>{NAV.map((c) => <a key={c.id} href={`#${c.id}`}>{c.name}</a>)}</nav>
-      <Link className="cmp-nav__back" href="/qa/home-index-rebase">← Volver al Index</Link></aside>
-    <main className="cmp-main">
-      {COMPONENTS.map((c) => <Card key={c.id} c={c} />)}
-      <BadgeCard />
-      <LibrarySections sources={sources} />
+  const f = (name: string): File => ({ name, code: sources[name] ?? "" });
+  const [layout, setLayout] = useState<"auto" | "columns" | "scroll">("auto");
+  const [fx, setFx] = useState<HeroBannerEffect>("letters");
+  return <div className="cx">
+    <style>{PAGE_CSS + GLASS_CSS + forced(GLASS_CSS) + PILL_CSS}</style>
+    <aside className="cx-nav">
+      <p className="cx-nav__k">VMC Index Lab</p>
+      <h1>Componentes</h1>
+      <nav>{NAV.map(([id, name]) => <a key={id} href={`#${id}`}>{name}</a>)}</nav>
+      <Link className="cx-nav__back" href="/qa/home-index-rebase">Volver al Index</Link>
+    </aside>
+    <main className="cx-main">
+      <Section id="boton-vidrio" name="Botón de vidrio" tag=".hib-glass"
+        summary="Botón translúcido con borde degradado, para fondos con foto o color."
+        preview={<Preview tone="lilac" desktop={<div className="cx-states">
+          {([["", "Normal"], ["is-hover", "Al pasar el mouse"], ["is-active", "Al hacer clic"]] as const).map(([k, l]) =>
+            <div key={l} className="cx-photo">{k ? <span className={`hib-glass ${k}`} aria-hidden>Publicar mi auto</span> : <button type="button" className="hib-glass">Publicar mi auto</button>}<small>{l}</small></div>)}
+        </div>} />}
+        files={[{ name: "glass-button.css", code: GLASS_CSS.trim() }]} usage={USE_BUTTON}
+        props={[["children", "ReactNode", "—", "Texto del botón"], ["...props", "ButtonHTMLAttributes", "—", "onClick, disabled y demás atributos de <button>"]]} />
+
+      <Section id="badge" name="Badge" tag=".lc-pill"
+        summary="Etiquetas de estado de los lotes: En vivo, Recibe ofertas y Destacado."
+        preview={<Preview desktop={<div className="cx-badges">
+          <div className="cx-badges__row">{(Object.keys(PILL) as PillKind[]).map((k) => <Pill key={k} kind={k} />)}</div>
+          <div className="cx-lots">{LOTS.map((c) => <div key={c.name} className="cx-lot"><span className="cx-lot__img"><img src={c.photo} alt="" />
+            <span className="lc-pills">{c.featured ? <Pill kind="featured" /> : null}<Pill kind={c.kind} /></span></span><b>{c.name}</b></div>)}</div>
+        </div>} />}
+        files={[{ name: "pills.css", code: PILL_CSS.trim() }]} usage={USE_BADGE}
+        props={[["lc-pill--live", "clase", "—", "En vivo, naranja"], ["lc-pill--negotiable", "clase", "—", "Recibe ofertas, cian a violeta"], ["lc-pill--featured", "clase", "—", "Destacado, violeta"], ["lc-pills", "clase", "—", "Grupo arriba a la izquierda de la card (la card con position: relative)"]]} />
+
+      <Section id="carta-destacada" name="Carta destacada" tag="FeaturedCard"
+        summary="Se inclina hacia el mouse, el brillo holográfico lo sigue y abajo corre la barra de luz."
+        preview={<Preview tone="lilac" note="Pasa el mouse sobre la carta."
+          desktop={<div className="cx-row"><FeaturedCard {...YARIS} featured width={220} height={380} fillMedia /><FeaturedCard {...AGYA} tone="negotiable" width={220} height={380} fillMedia /></div>}
+          mobile={<FeaturedCard {...YARIS} featured height={400} fillMedia />} />}
+        files={[f("FeaturedCard.tsx"), f("featured-card.css"), f("LightBar.tsx"), f("light-bar.css")]} usage={USE_CARD}
+        props={[
+          ["image", "string", "—", "Foto del lote"], ["title", "string", "—", "Nombre"], ["subtitle", "string", "—", "Año y tipo"],
+          ["tone", "\"live\" | \"negotiable\"", "\"live\"", "En vivo (naranja, precio) o Recibe ofertas (turquesa)"],
+          ["featured", "boolean", "false", "Muestra la pill Destacado"], ["photos", "number", "—", "Total del contador de fotos"],
+          ["chips", "{ icon?, label }[]", "[]", "Etiquetas con borde"], ["stats", "{ icon?, label }[]", "[]", "Datos en dos columnas"],
+          ["startsIn", "string", "—", "Tiempo para que empiece (en vivo)"], ["price", "string", "—", "Precio"], ["priceLabel", "string", "\"Precio base\"", "Texto sobre el precio"],
+          ["progress", "number", "0.4", "Llenado de la barra de luz, de 0 a 1"], ["tilt", "number", "12", "Inclinación máxima en grados; 0 la apaga"],
+          ["width / height", "number | string", "\"100%\" / \"auto\"", "Tamaño de la carta"], ["fillMedia", "boolean", "false", "La foto crece para llenar el alto"],
+          ["onClick", "() => void", "—", "Clic en la carta"], ["liked / onLikeChange", "boolean / (v) => void", "—", "Favorito controlado desde afuera (opcional)"],
+        ]} />
+
+      <Section id="barra-luz" name="Barra de luz" tag="LightBar"
+        summary="Barra de avance con una luz que la recorre. Es la franja de la carta destacada y también se usa sola."
+        preview={<Preview desktop={<div className="cx-bars">
+          <div><small>En vivo, 62 %</small><LightBar value={0.62} /></div>
+          <div><small>Recibe ofertas, llena</small><LightBar value={1} tone="negotiable" /></div>
+          <div><small>Redondeada, 6 px, 35 %</small><LightBar value={0.35} rounded height={6} label="Tiempo transcurrido" /></div>
+        </div>} />}
+        files={[f("LightBar.tsx"), f("light-bar.css")]} usage={USE_BAR}
+        props={[
+          ["value", "number", "1", "Llenado, de 0 a 1"], ["tone", "\"live\" | \"negotiable\"", "\"live\"", "Naranja o turquesa"],
+          ["height", "number", "9", "Alto en px"], ["speed", "number", "1.8", "Segundos que tarda la luz en cruzar"],
+          ["rounded", "boolean", "false", "Puntas redondeadas"], ["label", "string", "—", "Si lo pasas, se anuncia como barra de progreso"],
+        ]} />
+
+      <Section id="tipo-oferta" name="Tipo de oferta" tag="OfferTypeCards"
+        summary="Al pasar el mouse la tarjeta crece, se desenfoca y aparece el botón. Cada 5 s cruza un destello."
+        preview={<Preview note="Pasa el mouse sobre una tarjeta." desktop={<OfferTypeCards items={OFFERS} />} mobile={<OfferTypeCards items={OFFERS} />} />}
+        files={[f("OfferTypeCards.tsx"), f("offer-type-cards.css")]} usage={USE_OFFER}
+        props={[
+          ["items", "OfferTypeItem[]", "—", "Una tarjeta por elemento"], ["items[].tone", "\"live\" | \"negotiable\"", "—", "Colores de la tarjeta"],
+          ["items[].title", "string", "—", "Texto de la pill"], ["items[].text", "string", "—", "Descripción"], ["items[].cta", "string", "—", "Texto del botón"],
+          ["items[].image", "string", "—", "Foto a la derecha (opcional)"], ["items[].href / onClick", "string / () => void", "—", "Destino o acción"],
+          ["items[].colors", "{ bg, shade, glow, ink }", "—", "Colores propios para otra modalidad"],
+        ]} />
+
+      <Section id="categorias" name="Categorías" tag="CategoryGrid"
+        summary="Cards de categoría que se apilan solas según el ancho disponible."
+        preview={<Preview
+          controls={<Seg label="Distribución" value={layout} onChange={setLayout} options={[["auto", "Se apilan solas"], ["columns", "3 columnas"], ["scroll", "Una fila con scroll"]]} />}
+          desktop={<CategoryGrid items={CATS} layout={layout} />} mobile={<CategoryGrid items={CATS} layout={layout} />} />}
+        files={[f("CategoryGrid.tsx"), f("category-grid.css")]} usage={USE_CATS}
+        props={[
+          ["items", "CategoryItem[]", "—", "{ label, count?, image, icon?, href?, onClick? }"],
+          ["layout", "\"auto\" | \"columns\" | \"scroll\"", "\"auto\"", "Se apilan solas, columnas fijas o una fila deslizable"],
+          ["minWidth", "number", "140", "Ancho mínimo de cada card en auto; si no entra, baja a la fila siguiente"],
+          ["columns", "number", "3", "Columnas en columns"], ["imageHeight", "number", "92", "Alto de la foto en px"],
+        ]} />
+
+      <Section id="banner" name="Banner" tag="HeroBanner"
+        summary="Carrusel con fundido, zoom lento de la foto y el título entrando letra por letra. Los puntos van en una pestaña de vidrio."
+        preview={<Preview note="Toca los puntos de abajo para cambiar de imagen. Avanza solo cada 7 s."
+          controls={<Seg label="Efecto del título" value={fx} onChange={setFx} options={[["letters", "Letras"], ["rise", "Subir"], ["blur", "Desenfoque"], ["mask", "Revelar"], ["none", "Ninguno"]]} />}
+          desktop={<HeroBanner key={`d-${fx}`} slides={SLIDES} effect={fx} height={300} />} mobile={<HeroBanner key={`m-${fx}`} slides={SLIDES} effect={fx} height={340} />} />}
+        files={[f("HeroBanner.tsx"), f("hero-banner.css")]} usage={USE_HERO}
+        props={[
+          ["slides", "HeroBannerSlide[]", "—", "Una diapositiva por elemento"], ["slides[].image", "string", "—", "Foto de fondo"],
+          ["slides[].title", "ReactNode", "—", "Título; <em> lo resalta y <br /> parte la línea"], ["slides[].lead", "ReactNode", "—", "Texto bajo el título"],
+          ["slides[].cta / href / onCta", "string / string / () => void", "—", "Botón de vidrio"], ["slides[].pill", "{ text, icon?, background? }", "—", "Etiqueta sobre el título"],
+          ["slides[].align", "\"left\" | \"right\"", "\"left\"", "Lado del texto"], ["slides[].imagePosition", "string", "—", "Encuadre de la foto, como object-position"],
+          ["slides[].background", "string", "violeta", "Degradado detrás de la foto"],
+          ["interval", "number", "7000", "Milisegundos por imagen; 0 lo detiene"], ["effect", "\"letters\" | \"rise\" | \"blur\" | \"mask\" | \"none\"", "\"letters\"", "Entrada del texto"],
+          ["height", "number | string", "300", "Alto del banner"],
+        ]} />
     </main>
   </div>;
 }
 
 const PAGE_CSS = `
-.cmp { min-height: 100vh; display: grid; grid-template-columns: 240px minmax(0, 1fr); background: #F4F2FA; color: #1B1340;
+.cx { min-height: 100vh; display: grid; grid-template-columns: 220px minmax(0, 1fr); background: #F4F2FA; color: #1B1340;
   font-family: var(--vmc-font-display, 'Plus Jakarta Sans', system-ui, sans-serif); }
-.cmp-nav { position: sticky; top: 0; height: 100vh; box-sizing: border-box; padding: 28px 20px; background: #2E0F70; color: #fff; display: flex; flex-direction: column; gap: 6px; }
-.cmp-nav__k { margin: 0; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; opacity: .7; }
-.cmp-nav h1 { margin: 0 0 16px; font-size: 24px; }
-.cmp-nav nav { display: flex; flex-direction: column; gap: 4px; overflow-y: auto; }
-.cmp-nav nav a { padding: 8px 12px; border-radius: 10px; color: #fff; text-decoration: none; font-size: 14px; font-weight: 600; background: rgba(255,255,255,.08); }
-.cmp-nav nav a:hover { background: rgba(255,255,255,.16); }
-.cmp-nav__back { margin-top: auto; color: #fff; opacity: .8; font-size: 13px; text-decoration: none; }
-.cmp-main { padding: 32px clamp(16px, 4vw, 48px) 64px; display: flex; flex-direction: column; gap: 24px; min-width: 0; }
-.cmp-card { background: #fff; border: 1px solid #E6E1F5; border-radius: 20px; padding: 24px; display: flex; flex-direction: column; gap: 20px; box-shadow: 0 6px 24px rgba(46,15,112,.06); }
-.cmp-card__head { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
-.cmp-card__head h2 { margin: 0; font-size: 20px; }
-.cmp-pill { flex: none; padding: 4px 10px; border-radius: 999px; background: #EFEAFD; color: #3D2299; font: 600 13px var(--vmc-font-mono, monospace); }
-/* Mismo fondo del banner «Publicar mi auto»: la foto con el degradado encima, para que el blur se vea como en el Index. */
-.cmp-stage { position: relative; display: grid; place-items: center; border-radius: 16px; overflow: hidden; isolation: isolate;
+.cx-nav { position: sticky; top: 0; height: 100vh; box-sizing: border-box; display: flex; flex-direction: column; gap: 4px; padding: 28px 16px; background: #2E0F70; color: #fff; }
+.cx-nav__k { margin: 0; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; opacity: .7; }
+.cx-nav h1 { margin: 0 0 16px; font-size: 22px; }
+.cx-nav nav { display: flex; flex-direction: column; gap: 2px; overflow-y: auto; }
+.cx-nav nav a { padding: 8px 12px; border-radius: 10px; color: #fff; font-size: 14px; font-weight: 600; text-decoration: none; }
+.cx-nav nav a:hover { background: rgba(255,255,255,.12); }
+.cx-nav__back { margin-top: auto; padding: 8px 12px; color: #fff; font-size: 13px; text-decoration: none; opacity: .8; }
+.cx-main { display: flex; flex-direction: column; gap: 24px; min-width: 0; padding: 32px clamp(16px, 4vw, 48px) 80px; }
+.cx-sec { display: flex; flex-direction: column; gap: 16px; min-width: 0; padding: 28px; border: 1px solid #E6E1F5; border-radius: 20px; background: #fff; scroll-margin-top: 16px; }
+.cx-sec__head { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.cx-sec__head h2 { margin: 0; font-size: 22px; }
+.cx-sec__head code { padding: 3px 10px; border-radius: 999px; background: #EFEAFD; color: #3D2299; font: 600 13px var(--vmc-font-mono, ui-monospace, monospace); }
+.cx-sum { margin: -6px 0 4px; font-size: 15px; line-height: 1.5; color: #4A4370; }
+.cx-sec h3 { margin: 12px 0 0; font-size: 15px; }
+
+/* Vista previa: escritorio arriba y teléfono de 375 px abajo */
+.cx-prev { display: flex; flex-direction: column; gap: 16px; }
+.cx-prev__controls { display: flex; flex-wrap: wrap; gap: 12px; }
+.cx-view { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.cx-view__label { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #6B6492; }
+.cx-view__box { min-width: 0; padding: 24px; overflow-x: auto; border-radius: 16px; }
+.cx-view__box--light { background: #F7F6FB; border: 1px solid #ECE8F7; }
+.cx-view__box--lilac { background: radial-gradient(120% 120% at 0% 0%, #F4EFFF 0%, #EEE8FF 45%, #F8F5FF 100%); border: 1px solid #E6DEFF; }
+.cx-desk { min-width: 720px; }
+.cx-view__box--phone { display: flex; justify-content: center; padding: 28px 16px; }
+.cx-phone { box-sizing: border-box; flex: none; width: 375px; max-width: 100%; padding: 16px; border: 8px solid #1B1340; border-radius: 36px; background: #fff; box-shadow: 0 20px 40px -20px rgba(27,19,64,.4); }
+.cx-note { margin: 0; font-size: 13px; color: #6B6492; }
+.cx-row { display: flex; flex-wrap: wrap; gap: 24px; }
+.cx-states { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.cx-photo { display: grid; place-items: center; align-content: center; gap: 10px; min-height: 120px; padding: 12px; border-radius: 14px; overflow: hidden;
   background: linear-gradient(100deg, rgba(42,22,112,.92) 0%, rgba(61,34,153,.82) 40%, rgba(107,72,221,.55) 76%, rgba(132,96,229,.35) 100%), url(/banners/vmc/hero-publica.jpg) 30% 30% / cover; }
-.cmp-states { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-.cmp-stage--mini { min-height: 120px; gap: 10px; align-content: center; padding: 12px; }
-.cmp-stage--mini small { color: rgba(255,255,255,.85); font-size: 12px; font-weight: 600; }
-.cmp-badges { display: flex; flex-wrap: wrap; gap: 12px; }
-.cmp-badges__one { flex: 1 1 160px; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 22px 12px 14px; border: 1px solid #ECE8F7; border-radius: 14px; background: #FAF9FE; }
-.cmp-badges__one small { color: #5E5785; font-size: 12px; font-weight: 600; }
-.cmp-lots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-.cmp-lot { display: flex; flex-direction: column; gap: 8px; padding: 8px 8px 12px; border-radius: 14px; background: #fff; box-shadow: rgba(0,0,0,.07) 0 0 16px 4px; font-size: 13px; }
-.cmp-lot__img { position: relative; display: block; aspect-ratio: 16 / 10; border-radius: 10px; overflow: hidden; background: #F1EFF7; }
-.cmp-lot__img img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.cmp-lot b { padding: 0 4px; }
-.cmp-spec { margin: 0; display: grid; gap: 0; border: 1px solid #ECE8F7; border-radius: 14px; overflow: hidden; }
-.cmp-spec div { display: grid; grid-template-columns: 150px 1fr; gap: 12px; padding: 10px 14px; font-size: 13.5px; line-height: 1.45; }
-.cmp-spec div:nth-child(odd) { background: #FAF9FE; }
-.cmp-spec dt { font-weight: 700; } .cmp-spec dd { margin: 0; color: #3F3866; }
-.cmp-tabs { display: flex; gap: 6px; }
-.cmp-tabs button { padding: 8px 16px; border: 1px solid #DCD5F3; border-radius: 999px; background: #fff; color: #3D2299; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
-.cmp-tabs button[aria-selected="true"] { background: #3D2299; border-color: #3D2299; color: #fff; }
-.cmp-code { margin: -8px 0 0; border-radius: 14px; overflow: hidden; background: #160A3A; }
-.cmp-code figcaption { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #21104F; color: #fff; font-size: 13px; }
-.cmp-code figcaption button { padding: 6px 14px; border: 0; border-radius: 999px; background: #fff; color: #2E0F70; font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
-.cmp-code pre { margin: 0; padding: 16px; max-height: 420px; overflow: auto; color: #E9E4FF; font: 12.5px/1.6 var(--vmc-font-mono, ui-monospace, monospace); white-space: pre; }
-@media (max-width: 860px) {
-  .cmp { grid-template-columns: 1fr; }
-  .cmp-nav { position: static; height: auto; }
-  .cmp-states, .cmp-lots { grid-template-columns: 1fr; }
-  .cmp-spec div { grid-template-columns: 1fr; gap: 2px; }
+.cx-photo small { color: rgba(255,255,255,.88); font-size: 12px; font-weight: 600; }
+.cx-badges { display: flex; flex-direction: column; gap: 20px; }
+.cx-badges__row { display: flex; flex-wrap: wrap; gap: 12px; }
+.cx-lots { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.cx-lot { display: flex; flex-direction: column; gap: 8px; padding: 8px 8px 12px; border-radius: 14px; background: #fff; box-shadow: rgba(0,0,0,.07) 0 0 16px 4px; font-size: 13px; }
+.cx-lot__img { position: relative; display: block; aspect-ratio: 16 / 10; overflow: hidden; border-radius: 10px; background: #F1EFF7; }
+.cx-lot__img img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.cx-lot b { padding: 0 4px; }
+.cx-bars { display: grid; gap: 16px; max-width: 440px; }
+.cx-bars div { display: grid; gap: 6px; }
+.cx-bars small { font-size: 12px; font-weight: 600; color: #5E5785; }
+.cx-seg { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.cx-seg span { margin-right: 4px; font-size: 13px; font-weight: 700; }
+.cx-seg button { padding: 6px 12px; border: 1px solid #DCD5F3; border-radius: 999px; background: #fff; color: #3D2299; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.cx-seg button[aria-pressed="true"] { border-color: #3D2299; background: #3D2299; color: #fff; }
+
+/* Cómo usarlo */
+.cx-steps { margin: 0; padding-left: 20px; display: grid; gap: 6px; font-size: 14px; line-height: 1.6; color: #3F3866; }
+.cx-files { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.cx-steps code { padding: 2px 8px; border-radius: 6px; background: #F1EDFC; color: #3D2299; font: 600 12.5px var(--vmc-font-mono, ui-monospace, monospace); white-space: nowrap; }
+.cx-code { overflow: hidden; border-radius: 14px; background: #160A3A; }
+.cx-code__bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 8px 8px 10px; background: #21104F; }
+.cx-code__tabs { display: flex; gap: 4px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.cx-code__tabs button { flex: none; padding: 7px 12px; border: 0; border-radius: 8px; background: transparent; color: rgba(255,255,255,.7); font: 600 12.5px var(--vmc-font-mono, ui-monospace, monospace); cursor: pointer; }
+.cx-code__tabs button:hover { color: #fff; }
+.cx-code__tabs button[aria-selected="true"] { background: rgba(255,255,255,.12); color: #fff; }
+.cx-code__copy { flex: none; padding: 7px 14px; border: 0; border-radius: 999px; background: #fff; color: #2E0F70; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.cx-code pre { margin: 0; max-height: 460px; overflow: auto; padding: 16px 16px 16px 0; color: #E9E4FF; font: 13px/1.65 var(--vmc-font-mono, ui-monospace, monospace); counter-reset: ln; }
+.cx-code code > span { display: block; padding-left: 52px; position: relative; white-space: pre; }
+.cx-code code > span::before { counter-increment: ln; content: counter(ln); position: absolute; left: 0; width: 36px; text-align: right; color: rgba(255,255,255,.3); user-select: none; }
+
+/* Propiedades */
+.cx-table { overflow-x: auto; border: 1px solid #ECE8F7; border-radius: 14px; }
+.cx-table table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.cx-table th, .cx-table td { padding: 10px 14px; text-align: left; vertical-align: top; border-bottom: 1px solid #F0EDF8; }
+.cx-table tr:last-child td { border-bottom: 0; }
+.cx-table th { background: #FAF9FE; font-size: 12px; font-weight: 700; color: #6B6492; white-space: nowrap; }
+.cx-table td { color: #3F3866; line-height: 1.5; }
+.cx-table td code { color: #3D2299; font: 600 12.5px var(--vmc-font-mono, ui-monospace, monospace); white-space: nowrap; }
+
+@media (max-width: 900px) {
+  .cx { grid-template-columns: 1fr; }
+  .cx-nav { position: sticky; top: 0; z-index: 10; height: auto; flex-direction: row; align-items: center; gap: 12px; padding: 12px 16px; overflow: hidden; }
+  .cx-nav__k, .cx-nav__back { display: none; }
+  .cx-nav h1 { margin: 0; font-size: 16px; flex: none; }
+  .cx-nav nav { flex-direction: row; overflow-x: auto; scrollbar-width: none; }
+  .cx-nav nav a { flex: none; padding: 6px 10px; font-size: 13px; }
+  .cx-main { padding: 16px 12px 64px; }
+  .cx-sec { padding: 18px 14px; scroll-margin-top: 64px; }
+  .cx-view__box { padding: 16px; }
+  .cx-states { grid-template-columns: 1fr; }
+  .cx-table th:nth-child(3), .cx-table td:nth-child(3) { display: none; }
+  /* En un teléfono real la vista móvil ya es la pantalla: sin marco de teléfono. */
+  .cx-view__box--phone { padding: 12px; }
+  .cx-phone { width: 100%; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; }
 }
 `;

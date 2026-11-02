@@ -1,19 +1,7 @@
 "use client";
 
-/**
- * HeroBanner · banner principal del Index con su transición.
- * - Fundido entre diapositivas (0.5 s) y la foto entra con un zoom lento (de 108 % a 100 % en 7.5 s).
- * - El texto entra con un efecto: «letters» (el título letra por letra, en cascada), «rise», «blur», «mask» o «none».
- * - Abajo al centro, la «montaña de vidrio»: una pestaña curva de vidrio con los puntos; el activo se alarga.
- * - Avanza solo cada `interval` ms; se pausa con el mouse o el foco dentro. Flechas ← → del teclado.
- * Independiente: solo React y hero-banner.css.
- *
- *   <HeroBanner height={300} slides={[
- *     { image: "/hero-1.jpg", pill: { text: "Canal de WhatsApp" }, title: <>Entérate <em>primero</em><br />de las subastas</>,
- *       lead: "Únete al canal y recibe los lotes nuevos antes que nadie.", cta: "Unirme al canal", href: "/whatsapp" },
- *     { image: "/hero-2.jpg", align: "right", title: <>Publica tu auto<br />y <em>recibe ofertas</em></>, cta: "Publicar mi auto" },
- *   ]} />
- */
+/** HeroBanner: carrusel con fundido, zoom lento de la foto, texto animado y puntos en una pestaña de vidrio.
+ *  Solo depende de React y hero-banner.css. */
 import { Fragment, cloneElement, isValidElement, useEffect, useState } from "react";
 import type { CSSProperties, JSX, ReactNode } from "react";
 import "./hero-banner.css";
@@ -50,7 +38,7 @@ export type HeroBannerProps = {
   className?: string;
 };
 
-/** Parte el título en palabras y letras (efecto «letters»); conserva <em> y <br>. */
+/** Parte el título en palabras y letras (efecto "letters"); conserva <em> y <br>. */
 function Letters({ children }: { children: ReactNode }): JSX.Element {
   let n = 0;
   const walk = (node: ReactNode): ReactNode => {

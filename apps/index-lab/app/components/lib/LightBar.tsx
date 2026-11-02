@@ -1,11 +1,4 @@
-/**
- * LightBar · barra de avance con una luz que la recorre sin parar (la franja de la carta destacada del Index).
- * Independiente: solo React y light-bar.css.
- *
- *   <LightBar value={0.62} />                      // en vivo (naranja), 62 % lleno
- *   <LightBar value={1} tone="negotiable" />        // negociable (turquesa), llena
- *   <LightBar value={0.4} rounded height={6} label="Tiempo transcurrido" />
- */
+/** LightBar: barra de avance con una luz que la recorre. Solo depende de React y light-bar.css. */
 import type { CSSProperties, JSX } from "react";
 import "./light-bar.css";
 

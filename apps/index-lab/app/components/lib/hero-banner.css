@@ -1,21 +1,21 @@
-/* HeroBanner: banner principal del Index (fundido, zoom lento de la foto, efectos de texto y montaña de vidrio con puntos). */
+/* HeroBanner */
 .vbn { position: relative; width: 100%; min-width: 0; box-sizing: border-box; container: vbn / inline-size; overflow: hidden; isolation: isolate; border-radius: 16px;
   font-family: var(--vmc-font-display, 'Plus Jakarta Sans', -apple-system, sans-serif); color: #fff; background: #2A1670; box-shadow: rgba(0,0,0,0.07) 0 0 16px 4px; }
 .vbn *, .vbn *::before, .vbn *::after { box-sizing: border-box; }
 
-/* Fundido entre diapositivas. */
+/* Fundido entre diapositivas */
 .vbn-slide { position: absolute; inset: 0; opacity: 0; visibility: hidden; transition: opacity 0.5s ease, visibility 0s linear 0.5s; }
 .vbn-slide.is-on { opacity: 1; visibility: visible; transition: opacity 0.5s ease, visibility 0s; }
 .vbn-bg { position: absolute; inset: 0; }
 
-/* Foto a lo ancho con un velo violeta del lado del texto; el otro lado queda limpio. */
+/* Foto con velo violeta del lado del texto */
 .vbn-photo { position: absolute; inset: 0; overflow: hidden; }
 .vbn-photo img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; }
 .vbn-photo::after { content: ""; position: absolute; inset: 0; pointer-events: none;
   background: linear-gradient(90deg, rgba(34,16,92,0.92) 0%, rgba(42,22,112,0.8) 34%, rgba(42,22,112,0.3) 56%, rgba(42,22,112,0) 72%),
     linear-gradient(0deg, rgba(20,8,60,0.35) 0%, rgba(20,8,60,0) 30%); }
 .vbn-photo--flip::after { transform: scaleX(-1); }
-/* Zoom lento al entrar (Ken Burns). */
+/* Zoom lento de la foto */
 @keyframes vbn-kb { from { transform: scale(1.08); } to { transform: scale(1); } }
 .vbn-slide.is-on .vbn-photo img { animation: vbn-kb 7.5s ease-out both; }
 .vbn--fx-none .vbn-slide.is-on .vbn-photo img { animation: none; }
@@ -32,7 +32,7 @@
 .vbn-lead { margin: 0; max-width: 28ch; font-size: 14px; line-height: 20px; font-weight: 500; }
 .vbn-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
-/* Botón de vidrio (blanco translúcido + blur + borde degradado naranja/lila). */
+/* Botón de vidrio */
 .vbn-cta { position: relative; display: inline-flex; align-items: center; justify-content: center; height: 35px; padding: 0 29px; border: 0; border-radius: 100px;
   font-family: inherit; font-size: 14px; font-weight: 600; line-height: 1; color: #fff; white-space: nowrap; text-decoration: none; cursor: pointer; text-shadow: rgba(0,0,0,0.25) 0 1px 3px;
   background-color: transparent;
@@ -46,7 +46,7 @@
 .vbn-cta:active { transform: translateY(1px) scale(0.97); background-color: rgba(32,0,104,0.22); box-shadow: rgba(0,0,0,0.12) 0 2px 6px, inset 0 2px 8px rgba(32,0,104,0.4); }
 .vbn-cta:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
 
-/* Efectos del texto al entrar la diapositiva. */
+/* Efectos del texto */
 @keyframes vbn-rise { from { opacity: 0; transform: translateY(18px); } }
 @keyframes vbn-blur { from { opacity: 0; filter: blur(10px); transform: scale(1.03); } }
 @keyframes vbn-mask { from { clip-path: inset(0 0 100% 0); transform: translateY(40%); } to { clip-path: inset(0 0 0 0); transform: none; } }
@@ -59,13 +59,12 @@
 .vbn-slide.is-on .vbn-copy > :nth-child(4) { animation-delay: 0.24s; }
 .vbn--fx-letters .vbn-slide.is-on .vbn-copy > :nth-child(n+3) { animation-delay: 0.45s; }
 .vbn--fx-letters .vbn-slide.is-on .vbn-copy > :nth-child(n+4) { animation-delay: 0.55s; }
-/* Letras: cada letra del título sube y se enfoca, en cascada (22 ms entre letras). */
+/* Letras: cada letra entra 22 ms después de la anterior */
 .vbn-word { display: inline-block; white-space: nowrap; }
 .vbn-ch { display: inline-block; }
 .vbn--fx-letters .vbn-slide.is-on .vbn-ch { animation: vbn-ch 0.6s cubic-bezier(0.2,0.8,0.2,1) both; animation-delay: calc(var(--i) * 22ms); }
 
-/* Montaña de vidrio: pestaña de hombros curvos que sube desde el borde inferior, con los puntos adentro (el activo se alarga).
-   El recorte va en un contenedor aparte: en Chromium el blur no respeta un clip-path puesto en el mismo elemento. */
+/* Puntos dentro de una pestaña de vidrio curva (el recorte va en un contenedor aparte para que el blur funcione en Chrome) */
 .vbn-mtn { position: absolute; left: 50%; bottom: 0; z-index: 5; width: 132px; height: 26px; transform: translateX(-50%); }
 .vbn-mtn__clip { position: absolute; inset: 0; overflow: hidden; clip-path: path("M0 26C22 26 26 2 48 2H84C106 2 110 26 132 26Z"); }
 .vbn-mtn__glass { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255,255,255,0.42) 0%, rgba(255,255,255,0.16) 100%);
@@ -78,7 +77,7 @@
 .vbn-mtn__dots button.is-on { width: 18px; background: #fff; }
 .vbn-mtn__dots button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 
-/* Anchos chicos: el texto ocupa todo el ancho y el título baja de tamaño. */
+/* Anchos chicos */
 @container vbn (max-width: 700px) {
   .vbn-copy, .vbn-copy--right { left: 20px; right: 20px; width: auto; }
   .vbn-title { font-size: 24px; line-height: 29px; }
