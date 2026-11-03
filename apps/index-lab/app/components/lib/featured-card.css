@@ -63,6 +63,7 @@
 .vfc-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font-size: 11px; line-height: 1.2; color: #3F3F4A; white-space: nowrap; }
 .vfc-stats span { display: flex; align-items: center; gap: 4px; }
 .vfc-time { display: flex; align-items: center; gap: 4px; font-size: 11px; color: #3F3F4A; }
+.vfc-count-down { font-variant-numeric: tabular-nums; }
 .vfc-spacer { flex: 1; }
 .vfc-pricerow { display: flex; align-items: center; gap: 8px; }
 .vfc-label { margin: 0 0 1px; display: flex; align-items: center; gap: 4px; font-size: 11px; color: #6B6880; }

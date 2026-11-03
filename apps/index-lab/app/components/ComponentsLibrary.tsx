@@ -121,7 +121,7 @@ type PillKind = "live" | "negotiable" | "featured";
 const PILL: Record<PillKind, [JSX.Element, string]> = { live: [ICON.live, "En vivo"], negotiable: [ICON.tag, "Recibe ofertas"], featured: [ICON.star, "Destacado"] };
 const Pill = ({ kind }: { kind: PillKind }) => <span className={`lc-pill lc-pill--${kind}`}>{PILL[kind][0]}{PILL[kind][1]}</span>;
 
-const YARIS = { image: "/demo/vehicles/autoplan-yaris.png", title: "Toyota Yaris", subtitle: "2022 · Hatchback", photos: 12, startsIn: "01:24:36", price: "US$ 2,799", progress: 0.62,
+const YARIS = { image: "/demo/vehicles/autoplan-yaris.png", title: "Toyota Yaris", subtitle: "2022 · Hatchback", photos: 12, startsIn: "01:24:36", price: "US$ 2,799",
   chips: [{ icon: CardIcons.gear, label: "Automática" }, { icon: CardIcons.fuel, label: "Gasolina" }],
   stats: [{ icon: CardIcons.gauge, label: "45,000 km" }, { icon: CardIcons.seats, label: "5 asientos" }] };
 // Galería de lotes (Autoplan): los 6 lotes que van a la derecha de la destacada.
@@ -134,7 +134,7 @@ const LOT_ROWS: LotRowItem[] = [
   { image: "/demo/vehicles/autoplan-suv.png", title: "Kia Sportage 2020", tone: "live", price: "US$ 8,450", details: "52,300 km · Automática · Gasolina", location: "Lima", startsIn: "07:45:00" },
 ];
 const Gallery = ({ count = 6 }: { count?: number }) =>
-  <LotGallery featured={<FeaturedCard {...YARIS} featured progress={0.72} height="100%" fillMedia />} items={LOT_ROWS.slice(0, count)} />;
+  <LotGallery featured={<FeaturedCard {...YARIS} featured height="100%" fillMedia />} items={LOT_ROWS.slice(0, count)} />;
 const OFFERS = [
   { tone: "negotiable" as const, title: "Recibe ofertas", text: "Envía tu propuesta y negocia directo con el vendedor", cta: "Ver lotes", image: "/banners/vmc/tipo-oferta-recibe-ofertas.jpg" },
   { tone: "live" as const, title: "En vivo", text: "Participa en subastas en tiempo real", cta: "Ver subastas", image: "/banners/vmc/tipo-oferta-en-vivo.jpg" },
@@ -171,14 +171,16 @@ const USE_CARD = `import { FeaturedCard, CardIcons } from "./FeaturedCard";
     { icon: CardIcons.gauge, label: "45,000 km" },
     { icon: CardIcons.seats, label: "5 asientos" },
   ]}
-  startsIn="01:24:36"
+  startsIn="01:24:36"          // cuenta regresiva: "Inicia en 01:24:36"
   price="US$ 2,799"
-  progress={0.62}
   width={220}
   height={380}
   fillMedia
   onClick={() => abrirLote("yaris")}
 />
+
+// Con la fecha en vez de la cuenta regresiva: "Fecha de inicio: 05/11 · 3:00 pm"
+<FeaturedCard image="/fotos/yaris.png" title="Toyota Yaris" startsAt="05/11 · 3:00 pm" price="US$ 2,799" />
 
 <FeaturedCard tone="negotiable" image="/fotos/agya.png" title="Toyota Agya" subtitle="2023 · Hatchback" />`;
 const USE_GALLERY = `import { LotGallery } from "./LotGallery";
@@ -205,9 +207,8 @@ import { FeaturedCard, CardIcons } from "./FeaturedCard";
 />`;
 const USE_BAR = `import { LightBar } from "./LightBar";
 
-<LightBar value={0.62} />
-<LightBar value={1} tone="negotiable" />
-<LightBar value={0.35} rounded height={6} label="Tiempo transcurrido" />`;
+<LightBar />                    // en vivo, naranja
+<LightBar tone="negotiable" />  // Recibe ofertas, turquesa`;
 const USE_OFFER = `import { OfferTypeCards } from "./OfferTypeCards";
 
 <OfferTypeCards
@@ -267,17 +268,24 @@ export default function ComponentsLibrary({ sources }: { sources: LibSources }):
 
       <Section id="carta-destacada" name="Carta destacada" tag="FeaturedCard"
         summary="Carta de lote destacado. Se inclina hacia el mouse."
-        preview={<Preview note="Pasa el mouse sobre la carta." width={292}
-          desktop={<FeaturedCard {...YARIS} featured width={292} height={386} fillMedia />}
-          mobile={<div className="cx-inset"><FeaturedCard {...YARIS} featured height={416} fillMedia /></div>} />}
+        guide={<dl className="cx-meaning">
+          <div><dt>Inicia en</dt><dd>Cuenta regresiva hasta que empiece la subasta (<code>startsIn</code>). Baja cada segundo.</dd></div>
+          <div><dt>Fecha de inicio</dt><dd>El día y la hora en que empieza (<code>startsAt</code>).</dd></div>
+        </dl>}
+        preview={<Preview note="Pasa el mouse sobre la carta." width={604}
+          desktop={<div className="cx-pair">
+            <figure><figcaption>Inicia en</figcaption><FeaturedCard {...YARIS} featured width={292} height={386} fillMedia /></figure>
+            <figure><figcaption>Fecha de inicio</figcaption><FeaturedCard {...YARIS} startsIn={undefined} startsAt="05/11 · 3:00 pm" featured width={292} height={386} fillMedia /></figure>
+          </div>}
+          mobile={<div className="cx-inset cx-stack"><FeaturedCard {...YARIS} featured height={416} fillMedia /><FeaturedCard {...YARIS} startsIn={undefined} startsAt="05/11 · 3:00 pm" featured height={416} fillMedia /></div>} />}
         files={[f("FeaturedCard.tsx"), f("featured-card.css"), f("LightBar.tsx"), f("light-bar.css")]} usage={USE_CARD}
         props={[
           ["image", "string", "—", "Foto del lote"], ["title", "string", "—", "Nombre"], ["subtitle", "string", "—", "Año y tipo"],
           ["tone", "\"live\" | \"negotiable\"", "\"live\"", "En vivo (naranja, precio) o Recibe ofertas (turquesa)"],
           ["featured", "boolean", "false", "Muestra la pill Destacado"], ["photos", "number", "—", "Total del contador de fotos"],
           ["chips", "{ icon?, label }[]", "[]", "Etiquetas con borde"], ["stats", "{ icon?, label }[]", "[]", "Datos en dos columnas"],
-          ["startsIn", "string", "—", "Tiempo para que inicie (en vivo)"], ["price", "string", "—", "Precio"], ["priceLabel", "string", "\"Precio base\"", "Texto sobre el precio"],
-          ["progress", "number", "0.4", "Llenado de la barra de luz, de 0 a 1"], ["tilt", "number", "12", "Inclinación máxima en grados; 0 la apaga"],
+          ["startsIn", "string", "—", "Cuenta regresiva hh:mm:ss para que inicie (en vivo)"], ["startsAt", "string", "—", "Fecha de inicio en texto; si la pasas, reemplaza la cuenta regresiva"], ["price", "string", "—", "Precio"], ["priceLabel", "string", "\"Precio base\"", "Texto sobre el precio"],
+          ["tilt", "number", "12", "Inclinación máxima en grados; 0 la apaga"],
           ["width / height", "number | string", "\"100%\" / \"auto\"", "Tamaño de la carta"], ["fillMedia", "boolean", "false", "La foto crece para llenar el alto"],
           ["onClick", "() => void", "—", "Clic en la carta"], ["liked / onLikeChange", "boolean / (v) => void", "—", "Favorito controlado desde afuera (opcional)"],
         ]} />
@@ -299,21 +307,14 @@ export default function ComponentsLibrary({ sources }: { sources: LibSources }):
         ]} />
 
       <Section id="barra-luz" name="Barra de luz" tag="LightBar"
-        summary="Barra de avance con una luz que la recorre."
-        guide={<dl className="cx-meaning">
-          <div><dt>En vivo</dt><dd>Muestra cuánto falta para que inicie la subasta. Se llena a medida que se acerca la hora de inicio y va junto a "Inicia en".</dd></div>
-          <div><dt>Recibe ofertas</dt><dd>Va llena siempre: la publicación negociable no tiene hora de inicio.</dd></div>
-        </dl>}
+        summary="Barra llena con una luz que la recorre: naranja en vivo, turquesa en Recibe ofertas."
         preview={<Preview desktop={<div className="cx-bars">
-          <div><small>En vivo · inicia en 01:24:36 (62 %)</small><LightBar value={0.62} label="Tiempo para que inicie la subasta" /></div>
-          <div><small>Recibe ofertas · llena</small><LightBar value={1} tone="negotiable" /></div>
-          <div><small>Redondeada, 6 px · inicia en 03:10:00 (35 %)</small><LightBar value={0.35} rounded height={6} label="Tiempo para que inicie la subasta" /></div>
+          <div><small>En vivo</small><LightBar /></div>
+          <div><small>Recibe ofertas</small><LightBar tone="negotiable" /></div>
         </div>} />}
         files={[f("LightBar.tsx"), f("light-bar.css")]} usage={USE_BAR}
         props={[
-          ["value", "number", "1", "Llenado, de 0 a 1. En vivo: cuánto falta para que inicie (1 = ya inicia)"], ["tone", "\"live\" | \"negotiable\"", "\"live\"", "Naranja o turquesa"],
-          ["height", "number", "9", "Alto en px"], ["speed", "number", "1.8", "Segundos que tarda la luz en cruzar"],
-          ["rounded", "boolean", "false", "Puntas redondeadas"], ["label", "string", "—", "Si lo pasas, se anuncia como barra de progreso"],
+          ["tone", "\"live\" | \"negotiable\"", "\"live\"", "Naranja (en vivo) o turquesa (Recibe ofertas)"], ["height", "number", "9", "Alto en px"],
         ]} />
 
       <Section id="tipo-oferta" name="Tipo de oferta" tag="OfferTypeCards"
@@ -395,6 +396,12 @@ const PAGE_CSS = `
 .cx-meaning div + div { border-top: 1px solid #F0EDF8; }
 .cx-meaning dt { font-size: 13px; font-weight: 700; color: #3D2299; }
 .cx-meaning dd { margin: 0; font-size: 14px; line-height: 1.5; color: #3F3866; }
+
+.cx-pair { display: flex; flex-wrap: wrap; gap: 20px; }
+.cx-pair figure { margin: 0; display: grid; gap: 8px; }
+.cx-pair figcaption { font-size: 12px; font-weight: 700; color: #6B6492; }
+.cx-stack { display: grid; gap: 16px; }
+.cx-meaning dd code { padding: 1px 6px; border-radius: 5px; background: #F1EDFC; color: #3D2299; font: 600 12px var(--vmc-font-mono, ui-monospace, monospace); }
 
 /* Cómo usarlo */
 .cx-steps { margin: 0; padding-left: 20px; display: grid; gap: 6px; font-size: 14px; line-height: 1.6; color: #3F3866; }

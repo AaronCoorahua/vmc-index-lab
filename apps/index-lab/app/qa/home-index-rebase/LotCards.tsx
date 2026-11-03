@@ -721,7 +721,7 @@ export function FichaLegend({ lot, tier, featured, width, height, mediaFill, cur
         onPointerMove={onMove} onPointerLeave={onLeave}>
         {media}
         <div className="lc-body" style={bodyStyle}>{head}{chips}{stats}{time}<span className="lc-spacer" />{price}</div>
-        <span className="lg-track" aria-hidden><i style={{ width: live ? progress : "100%" }} /></span>
+        <span className="lg-track" aria-hidden><i style={{ width: "100%" }} /></span> {/* 03/11: llena en vivo y en negociable */}
         <span className="lg-holo" aria-hidden />
         <span className="lg-glare" aria-hidden />
       </article>
