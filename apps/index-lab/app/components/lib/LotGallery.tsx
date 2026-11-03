@@ -19,8 +19,6 @@ export type LotRowItem = {
   /** Línea de datos, p. ej. "38,200 km · Mecánica · Gasolina". */
   details?: string;
   location?: string;
-  /** "Inicia en …" (solo en vivo). */
-  startsIn?: string;
   onClick?: () => void;
 };
 
@@ -28,7 +26,7 @@ export type LotRowItem = {
 export function LotRow({ item }: { item: LotRowItem }): JSX.Element {
   const [liked, setLiked] = useState(false);
   const live = item.tone === "live";
-  const foot = [item.location, live && item.startsIn ? `Inicia en ${item.startsIn}` : ""].filter(Boolean).join(" · ");
+  const foot = item.location;
   return (
     <article className={`vlg-row vlg-row--${item.tone}`} aria-label={item.title} onClick={item.onClick}>
       <span className="vlg-row__thumb"><img src={item.image} alt="" /></span>

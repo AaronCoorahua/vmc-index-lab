@@ -2,7 +2,7 @@
 
 /** FeaturedCard: carta destacada que se inclina hacia el mouse, con brillo holográfico y LightBar abajo.
  *  Solo depende de React, featured-card.css y LightBar (light-bar.css). */
-import { useEffect, useId, useState } from "react";
+import { useId, useState } from "react";
 import type { CSSProperties, JSX, PointerEvent, ReactNode } from "react";
 import { LightBar } from "./LightBar";
 import "./featured-card.css";
@@ -70,15 +70,6 @@ export function LikeButton({ name, on, onToggle, size = 30 }: { name: string; on
   );
 }
 
-/** Cuenta regresiva "hh:mm:ss" que baja cada segundo y se detiene en 00:00:00. */
-function Countdown({ from }: { from: string }): JSX.Element {
-  const toSec = (t: string) => t.split(":").reduce((acc, n) => acc * 60 + (Number(n) || 0), 0);
-  const [left, setLeft] = useState(() => toSec(from));
-  useEffect(() => { setLeft(toSec(from)); const id = setInterval(() => setLeft((n) => Math.max(0, n - 1)), 1000); return () => clearInterval(id); }, [from]);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return <span className="vfc-count-down" suppressHydrationWarning>{pad(Math.floor(left / 3600))}:{pad(Math.floor((left % 3600) / 60))}:{pad(left % 60)}</span>;
-}
-
 export type CardItem = { icon?: ReactNode; label: string };
 
 export type FeaturedCardProps = {
@@ -98,10 +89,6 @@ export type FeaturedCardProps = {
   chips?: CardItem[];
   /** Datos en dos columnas (km, asientos o ciudad…). */
   stats?: CardItem[];
-  /** Cuenta regresiva para que inicie, "hh:mm:ss" (solo en vivo). Baja cada segundo: "Inicia en 01:24:36". */
-  startsIn?: string;
-  /** Fecha de inicio en texto, p. ej. "05/11 · 3:00 pm" (solo en vivo). Si la pasas, se muestra en vez de la cuenta regresiva. */
-  startsAt?: string;
   priceLabel?: string;
   price?: string;
   /** Texto en negociable. */
@@ -118,7 +105,7 @@ export type FeaturedCardProps = {
 };
 
 export function FeaturedCard({
-  image, title, subtitle, tone = "live", featured = false, live = tone === "live", photos, chips = [], stats = [], startsIn, startsAt,
+  image, title, subtitle, tone = "live", featured = false, live = tone === "live", photos, chips = [], stats = [],
   priceLabel = "Precio base", price, offerText = "Haz tu oferta", tilt = 12, fillMedia = false,
   width = "100%", height = "auto", liked, onLikeChange, onClick,
 }: FeaturedCardProps): JSX.Element {
@@ -153,8 +140,6 @@ export function FeaturedCard({
         <div><p className="vfc-name">{title}</p>{subtitle ? <p className="vfc-sub">{subtitle}</p> : null}</div>
         {chips.length ? <div className="vfc-chips">{chips.map((c) => <span key={c.label} className="vfc-chip">{c.icon}{c.label}</span>)}</div> : null}
         {stats.length ? <div className="vfc-stats">{stats.map((s) => <span key={s.label}>{s.icon}{s.label}</span>)}</div> : null}
-        {tone === "live" && startsAt ? <span className="vfc-time">{CardIcons.clock}Fecha de inicio: {startsAt}</span>
-          : tone === "live" && startsIn ? <span className="vfc-time">{CardIcons.clock}Inicia en <Countdown from={startsIn} /></span> : null}
         <span className="vfc-spacer" />
         {tone === "live"
           ? <div className="vfc-pricerow"><SubasCoin size={28} /><div><p className="vfc-label">{priceLabel}</p><p className="vfc-price">{price ?? "Por definir"}</p></div></div>

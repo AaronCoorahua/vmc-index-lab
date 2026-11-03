@@ -121,17 +121,17 @@ type PillKind = "live" | "negotiable" | "featured";
 const PILL: Record<PillKind, [JSX.Element, string]> = { live: [ICON.live, "En vivo"], negotiable: [ICON.tag, "Recibe ofertas"], featured: [ICON.star, "Destacado"] };
 const Pill = ({ kind }: { kind: PillKind }) => <span className={`lc-pill lc-pill--${kind}`}>{PILL[kind][0]}{PILL[kind][1]}</span>;
 
-const YARIS = { image: "/demo/vehicles/autoplan-yaris.png", title: "Toyota Yaris", subtitle: "2022 · Hatchback", photos: 12, startsIn: "01:24:36", price: "US$ 2,799",
+const YARIS = { image: "/demo/vehicles/autoplan-yaris.png", title: "Toyota Yaris", subtitle: "2022 · Hatchback", photos: 12, price: "US$ 2,799",
   chips: [{ icon: CardIcons.gear, label: "Automática" }, { icon: CardIcons.fuel, label: "Gasolina" }],
   stats: [{ icon: CardIcons.gauge, label: "45,000 km" }, { icon: CardIcons.seats, label: "5 asientos" }] };
 // Galería de lotes (Autoplan): los 6 lotes que van a la derecha de la destacada.
 const LOT_ROWS: LotRowItem[] = [
-  { image: "/demo/vehicles/autoplan-grand-i10.png", title: "Hyundai Grand i10 2021", tone: "live", price: "US$ 2,199", details: "38,200 km · Mecánica · Gasolina", location: "Lima", startsIn: "05:10:00" },
+  { image: "/demo/vehicles/autoplan-grand-i10.png", title: "Hyundai Grand i10 2021", tone: "live", price: "US$ 2,199", details: "38,200 km · Mecánica · Gasolina", location: "Lima" },
   { image: "/demo/vehicles/autoplan-agya.png", title: "Toyota Agya 2023", tone: "negotiable", details: "32,000 km · Automática · Gasolina", location: "Lima" },
   { image: "/demo/vehicles/autoplan-refine.png", title: "Jac Refine 2022", tone: "negotiable", details: "61,500 km · Mecánica · Diésel", location: "Arequipa" },
-  { image: "/demo/inventory-excavator-v1.png", title: "Caterpillar 320 2019", tone: "live", price: "US$ 45,000", details: "6,200 h · Hidráulica · Diésel", location: "Lima", startsIn: "03:02:10" },
+  { image: "/demo/inventory-excavator-v1.png", title: "Caterpillar 320 2019", tone: "live", price: "US$ 45,000", details: "6,200 h · Hidráulica · Diésel", location: "Lima" },
   { image: "/demo/inventory-steel-v1.png", title: "Lote de vigas 2024", tone: "negotiable", details: "12 t · Acero A36 · Vigas H", location: "Callao" },
-  { image: "/demo/vehicles/autoplan-suv.png", title: "Kia Sportage 2020", tone: "live", price: "US$ 8,450", details: "52,300 km · Automática · Gasolina", location: "Lima", startsIn: "07:45:00" },
+  { image: "/demo/vehicles/autoplan-suv.png", title: "Kia Sportage 2020", tone: "live", price: "US$ 8,450", details: "52,300 km · Automática · Gasolina", location: "Lima" },
 ];
 const Gallery = ({ count = 6 }: { count?: number }) =>
   <LotGallery featured={<FeaturedCard {...YARIS} featured height="100%" fillMedia />} items={LOT_ROWS.slice(0, count)} />;
@@ -171,16 +171,12 @@ const USE_CARD = `import { FeaturedCard, CardIcons } from "./FeaturedCard";
     { icon: CardIcons.gauge, label: "45,000 km" },
     { icon: CardIcons.seats, label: "5 asientos" },
   ]}
-  startsIn="01:24:36"          // cuenta regresiva: "Inicia en 01:24:36"
   price="US$ 2,799"
   width={220}
   height={380}
   fillMedia
   onClick={() => abrirLote("yaris")}
 />
-
-// Con la fecha en vez de la cuenta regresiva: "Fecha de inicio: 05/11 · 3:00 pm"
-<FeaturedCard image="/fotos/yaris.png" title="Toyota Yaris" startsAt="05/11 · 3:00 pm" price="US$ 2,799" />
 
 <FeaturedCard tone="negotiable" image="/fotos/agya.png" title="Toyota Agya" subtitle="2023 · Hatchback" />`;
 const USE_GALLERY = `import { LotGallery } from "./LotGallery";
@@ -200,7 +196,7 @@ import { FeaturedCard, CardIcons } from "./FeaturedCard";
   }
   items={[
     { image: "/fotos/i10.png", title: "Hyundai Grand i10 2021", tone: "live", price: "US$ 2,199",
-      details: "38,200 km · Mecánica · Gasolina", location: "Lima", startsIn: "05:10:00" },
+      details: "38,200 km · Mecánica · Gasolina", location: "Lima" },
     { image: "/fotos/agya.png", title: "Toyota Agya 2023", tone: "negotiable",
       details: "32,000 km · Automática · Gasolina", location: "Lima" },
   ]}
@@ -268,23 +264,16 @@ export default function ComponentsLibrary({ sources }: { sources: LibSources }):
 
       <Section id="carta-destacada" name="Carta destacada" tag="FeaturedCard"
         summary="Carta de lote destacado. Se inclina hacia el mouse."
-        guide={<dl className="cx-meaning">
-          <div><dt>Inicia en</dt><dd>Cuenta regresiva hasta que empiece la subasta (<code>startsIn</code>). Baja cada segundo.</dd></div>
-          <div><dt>Fecha de inicio</dt><dd>El día y la hora en que empieza (<code>startsAt</code>).</dd></div>
-        </dl>}
-        preview={<Preview note="Pasa el mouse sobre la carta." width={604}
-          desktop={<div className="cx-pair">
-            <figure><figcaption>Inicia en</figcaption><FeaturedCard {...YARIS} featured width={292} height={386} fillMedia /></figure>
-            <figure><figcaption>Fecha de inicio</figcaption><FeaturedCard {...YARIS} startsIn={undefined} startsAt="05/11 · 3:00 pm" featured width={292} height={386} fillMedia /></figure>
-          </div>}
-          mobile={<div className="cx-inset cx-stack"><FeaturedCard {...YARIS} featured height={416} fillMedia /><FeaturedCard {...YARIS} startsIn={undefined} startsAt="05/11 · 3:00 pm" featured height={416} fillMedia /></div>} />}
+        preview={<Preview note="Pasa el mouse sobre la carta." width={292}
+          desktop={<FeaturedCard {...YARIS} featured width={292} height={386} fillMedia />}
+          mobile={<div className="cx-inset"><FeaturedCard {...YARIS} featured height={416} fillMedia /></div>} />}
         files={[f("FeaturedCard.tsx"), f("featured-card.css"), f("LightBar.tsx"), f("light-bar.css")]} usage={USE_CARD}
         props={[
           ["image", "string", "—", "Foto del lote"], ["title", "string", "—", "Nombre"], ["subtitle", "string", "—", "Año y tipo"],
           ["tone", "\"live\" | \"negotiable\"", "\"live\"", "En vivo (naranja, precio) o Recibe ofertas (turquesa)"],
           ["featured", "boolean", "false", "Muestra la pill Destacado"], ["photos", "number", "—", "Total del contador de fotos"],
           ["chips", "{ icon?, label }[]", "[]", "Etiquetas con borde"], ["stats", "{ icon?, label }[]", "[]", "Datos en dos columnas"],
-          ["startsIn", "string", "—", "Cuenta regresiva hh:mm:ss para que inicie (en vivo)"], ["startsAt", "string", "—", "Fecha de inicio en texto; si la pasas, reemplaza la cuenta regresiva"], ["price", "string", "—", "Precio"], ["priceLabel", "string", "\"Precio base\"", "Texto sobre el precio"],
+          ["price", "string", "—", "Precio"], ["priceLabel", "string", "\"Precio base\"", "Texto sobre el precio"],
           ["tilt", "number", "12", "Inclinación máxima en grados; 0 la apaga"],
           ["width / height", "number | string", "\"100%\" / \"auto\"", "Tamaño de la carta"], ["fillMedia", "boolean", "false", "La foto crece para llenar el alto"],
           ["onClick", "() => void", "—", "Clic en la carta"], ["liked / onLikeChange", "boolean / (v) => void", "—", "Favorito controlado desde afuera (opcional)"],
@@ -301,7 +290,7 @@ export default function ComponentsLibrary({ sources }: { sources: LibSources }):
           ["items", "LotRowItem[]", "—", "Lotes de la derecha, en orden: llenan la primera columna de arriba abajo y luego la siguiente"],
           ["items[].tone", "\"live\" | \"negotiable\"", "—", "En vivo (precio) o Recibe ofertas"],
           ["items[].title / image", "string", "—", "Nombre y foto"], ["items[].price", "string", "—", "Precio (en vivo)"],
-          ["items[].details / location / startsIn", "string", "—", "Datos, ciudad y tiempo para que inicie"],
+          ["items[].details / location", "string", "—", "Datos y ciudad"],
           ["columns", "number", "2", "Columnas a la derecha; se reservan aunque estén vacías"],
           ["featuredWidth", "number", "292", "Ancho de la destacada en px"], ["height", "number", "386", "Alto mínimo de la galería en px"],
         ]} />
@@ -397,10 +386,6 @@ const PAGE_CSS = `
 .cx-meaning dt { font-size: 13px; font-weight: 700; color: #3D2299; }
 .cx-meaning dd { margin: 0; font-size: 14px; line-height: 1.5; color: #3F3866; }
 
-.cx-pair { display: flex; flex-wrap: wrap; gap: 20px; }
-.cx-pair figure { margin: 0; display: grid; gap: 8px; }
-.cx-pair figcaption { font-size: 12px; font-weight: 700; color: #6B6492; }
-.cx-stack { display: grid; gap: 16px; }
 .cx-meaning dd code { padding: 1px 6px; border-radius: 5px; background: #F1EDFC; color: #3D2299; font: 600 12px var(--vmc-font-mono, ui-monospace, monospace); }
 
 /* Cómo usarlo */

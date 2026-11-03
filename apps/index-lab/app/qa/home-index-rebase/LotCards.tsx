@@ -474,7 +474,6 @@ export function FichaCard({ lot, featured, width, height, mediaFill }: {
           <div className="lc-chips"><span className="lc-chip">{I.gear}{lot.transmission}</span><span className="lc-chip">{I.fuel}{lot.fuel}</span></div>
           <div className="lc-stats"><span>{I.gauge}{lot.km}</span>{lot.seats ? <span>{I.seats}{lot.seats} asientos</span> : <span>{I.pin}{lot.city}</span>}</div>
           <div className="lc-bar" aria-hidden><i style={{ width: `${Math.round((lot.progress ?? 0.4) * 100)}%` }} /></div>
-          <span className="lc-time">{I.clock}Inicia en {lot.remaining ?? "02:10:00"}</span>
           <span className="lc-spacer" />
           <div className="lc-pricerow"><SubasCoin /><div><p className="lc-label">{lot.price ? "Precio actual" : "Precio base"}</p><p className="lc-price">{lot.price ?? "Por definir"}</p></div></div>
         </> : <>
@@ -511,7 +510,6 @@ export function FichaPlus({ lot, layout, featured, width, height, mediaFill }: {
   const inline = <p className="lc-inline">{[lot.km, lot.transmission, lot.fuel, lot.city].join(" · ")}</p>;
   const timer = live ? <>
     <div className="lc-bar" aria-hidden><i style={{ width: `${Math.round((lot.progress ?? 0.4) * 100)}%` }} /></div>
-    <span className="lc-time">{I.clock}Inicia en {lot.remaining ?? "02:10:00"}</span>
   </> : null;
   const price = (big?: boolean) => live
     ? <div className={`lc-pricerow${big ? " lc-pricerow--big" : ""}`}><SubasCoin size={big ? 30 : 28} /><div><p className="lc-label">{lot.price ? "Precio actual" : "Precio base"}</p><p className="lc-price">{lot.price ?? "Por definir"}</p></div></div>
@@ -539,9 +537,7 @@ export function FichaPlus({ lot, layout, featured, width, height, mediaFill }: {
         <img src={lot.imageSrc} alt="" />
         <Pills lot={lot} featured={featured} />
         <Like name={lot.name} />
-        {layout === "cuenta" && live ? (
-          <span className="lc-countdown"><span>Inicia en<i><span style={{ width: `${Math.round((lot.progress ?? 0.4) * 100)}%` }} /></i></span><b>{lot.remaining ?? "02:10:00"}</b></span>
-        ) : <><span className="lc-count">{I.camera}1/{lot.photos}</span><Dots /></>}
+        <span className="lc-count">{I.camera}1/{lot.photos}</span><Dots />
       </div>
       <div className="lc-body" style={mediaFill ? { flex: "none" } : undefined}>{body}</div>
     </article>
@@ -603,7 +599,6 @@ export function FichaPro({ lot, theme, featured, width, height, mediaFill }: {
         </>}
         {live ? <>
           <div className="lc-bar" aria-hidden><i style={{ width: `${Math.round((lot.progress ?? 0.4) * 100)}%` }} /></div>
-          <span className="lc-time">{I.clock}Inicia en {lot.remaining ?? "02:10:00"}</span>
         </> : null}
         <span className="lc-spacer" />
         {live
@@ -662,7 +657,6 @@ export function FichaLegend({ lot, tier, featured, width, height, mediaFill, cur
         : <span className="lc-pill lc-pill--negotiable">{I.tag}Recibe ofertas</span>}
     </span>
   );
-  const time = live ? <span className="lc-time">{I.clock}Inicia en {lot.remaining ?? "02:10:00"}</span> : null;
   const price = live
     ? <div className="lc-pricerow"><SubasCoin size={28} /><div><p className="lc-label">{curve || !lot.price ? "Precio base" : "Precio actual"}</p><p className="lc-price">{lot.price ?? "Por definir"}</p></div></div>
     : <span className="lc-offer">{I.hands}Haz tu oferta</span>;
@@ -696,7 +690,6 @@ export function FichaLegend({ lot, tier, featured, width, height, mediaFill, cur
             <p className="lc-name">{lot.name}</p>
             <span className="lg-divider" aria-hidden />
             <div className="lg-stats">{eliteStats(lot).map(([v, l]) => <span key={l}><b>{v}</b><small>{l}</small></span>)}</div>
-            {time}
             <span className="lc-spacer" />
             {price}
           </div>
@@ -720,7 +713,7 @@ export function FichaLegend({ lot, tier, featured, width, height, mediaFill, cur
       <article className={`lc lg lg--holo lc--${lot.variant}${curve ? " lc--featured-curve" : ""}`} style={sizeStyle(width, height)} aria-label={`${lot.name} ${lot.year}`}
         onPointerMove={onMove} onPointerLeave={onLeave}>
         {media}
-        <div className="lc-body" style={bodyStyle}>{head}{chips}{stats}{time}<span className="lc-spacer" />{price}</div>
+        <div className="lc-body" style={bodyStyle}>{head}{chips}{stats}<span className="lc-spacer" />{price}</div>
         <span className="lg-track" aria-hidden><i style={{ width: "100%" }} /></span> {/* 03/11: llena en vivo y en negociable */}
         <span className="lg-holo" aria-hidden />
         <span className="lg-glare" aria-hidden />
@@ -734,7 +727,6 @@ export function FichaLegend({ lot, tier, featured, width, height, mediaFill, cur
         <div className="lc-body" style={bodyStyle}>
           {head}{chips}{stats}
           {live ? <div className="lc-bar" aria-hidden><i style={{ width: progress }} /></div> : null}
-          {time}
         </div>
         <div className="lg-plaque">
           {live ? <><SubasCoin size={26} /><span><small>{lot.price ? "Precio actual" : "Precio base"}</small><b>{lot.price ?? "Por definir"}</b></span></>
@@ -781,7 +773,7 @@ export function EbayLotRow({ lot, store, size = "md" }: { lot: LotData; store: s
         {lot.price ? <b className="lc-eb__price"><SubasCoin size={17} />{lot.price}</b> : <b className="lc-eb__offer">Haz tu oferta</b>}
         <span className="lc-eb__rest">{lot.km} · {lot.transmission} · {lot.fuel}</span>
         <span className="lc-eb__foot">
-          <span>{lot.city}{live && lot.remaining ? ` · Inicia en ${lot.remaining}` : ""}</span>
+          <span>{lot.city}</span>
         </span>
       </div>
     </article>
