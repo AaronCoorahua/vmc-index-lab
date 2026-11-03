@@ -267,7 +267,7 @@ export default function ComponentsLibrary({ sources }: { sources: LibSources }):
 
       <Section id="carta-destacada" name="Carta destacada" tag="FeaturedCard"
         summary="Carta de lote destacado. Se inclina hacia el mouse."
-        preview={<Preview tone="lilac" note="Pasa el mouse sobre la carta." width={292}
+        preview={<Preview note="Pasa el mouse sobre la carta." width={292}
           desktop={<FeaturedCard {...YARIS} featured width={292} height={386} fillMedia />}
           mobile={<div className="cx-inset"><FeaturedCard {...YARIS} featured height={416} fillMedia /></div>} />}
         files={[f("FeaturedCard.tsx"), f("featured-card.css"), f("LightBar.tsx"), f("light-bar.css")]} usage={USE_CARD}
@@ -338,7 +338,7 @@ const PAGE_CSS = `
 .cx-nav nav a:hover { background: rgba(255,255,255,.12); }
 .cx-nav__back { margin-top: auto; padding: 8px 12px; color: #fff; font-size: 13px; text-decoration: none; opacity: .8; }
 .cx-main { display: flex; flex-direction: column; gap: 24px; min-width: 0; padding: 32px clamp(16px, 4vw, 48px) 80px; }
-.cx-sec { display: flex; flex-direction: column; gap: 16px; min-width: 0; padding: 28px; border: 1px solid #E6E1F5; border-radius: 20px; background: #fff; scroll-margin-top: 16px; }
+.cx-sec { display: flex; flex-direction: column; gap: 16px; min-width: 0; padding: 28px; border: 1px solid #E6E1F5; border-radius: 20px; background: #F7F6FB; scroll-margin-top: 16px; }
 .cx-sec__head { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
 .cx-sec__head h2 { margin: 0; font-size: 22px; }
 .cx-sec__head code { padding: 3px 10px; border-radius: 999px; background: #EFEAFD; color: #3D2299; font: 600 13px var(--vmc-font-mono, ui-monospace, monospace); }
@@ -353,7 +353,7 @@ const PAGE_CSS = `
 .cx-view--phone { flex: none; }
 .cx-view__label { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #6B6492; }
 .cx-view__box { min-width: 0; max-width: 100%; padding: 24px; overflow-x: auto; border-radius: 16px; }
-.cx-view__box--light { background: #F7F6FB; border: 1px solid #ECE8F7; }
+.cx-view__box--light { background: #fff; border: 1px solid #ECE8F7; box-shadow: rgba(0,0,0,0.05) 0 0 16px 2px; } /* blanco, como la sección del Index */
 .cx-view__box--lilac { background: radial-gradient(120% 120% at 0% 0%, #F4EFFF 0%, #EEE8FF 45%, #F8F5FF 100%); border: 1px solid #E6DEFF; }
 .cx-view__box--phone { padding: 20px 24px; }
 /* iPhone 14 Pro de la vista móvil del Index, a tamaño real y escalado con --s */
@@ -401,7 +401,7 @@ const PAGE_CSS = `
 .cx-code code > span::before { counter-increment: ln; content: counter(ln); position: absolute; left: 0; width: 36px; text-align: right; color: rgba(255,255,255,.3); user-select: none; }
 
 /* Propiedades */
-.cx-table { overflow-x: auto; border: 1px solid #ECE8F7; border-radius: 14px; }
+.cx-table { overflow-x: auto; border: 1px solid #ECE8F7; border-radius: 14px; background: #fff; }
 .cx-table table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
 .cx-table th, .cx-table td { padding: 10px 14px; text-align: left; vertical-align: top; border-bottom: 1px solid #F0EDF8; }
 .cx-table tr:last-child td { border-bottom: 0; }
