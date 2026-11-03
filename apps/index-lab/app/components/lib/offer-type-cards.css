@@ -24,7 +24,7 @@
 /* Foto */
 .vot__img { position: absolute; top: 0; right: 0; bottom: 0; z-index: 0; width: 66%; pointer-events: none; transition: filter 0.35s;
   -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 38%); mask-image: linear-gradient(90deg, transparent 0%, #000 38%); }
-.vot__img img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 55%; }
+.vot__img img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: var(--vot-pos, 68% 40%); }
 .vot__shade { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
 
 /* Contenido: se desenfoca al pasar el mouse */

@@ -136,8 +136,8 @@ const LOT_ROWS: LotRowItem[] = [
 const Gallery = ({ count = 6 }: { count?: number }) =>
   <LotGallery featured={<FeaturedCard {...YARIS} featured progress={0.72} height="100%" fillMedia />} items={LOT_ROWS.slice(0, count)} />;
 const OFFERS = [
-  { tone: "negotiable" as const, title: "Recibe ofertas", text: "Envía tu propuesta y negocia directo con el vendedor", cta: "Ver lotes", image: "/demo/vehicles/autoplan-agya.png" },
-  { tone: "live" as const, title: "En vivo", text: "Participa en subastas en tiempo real", cta: "Ver subastas", image: "/demo/vehicles/autoplan-yaris.png" },
+  { tone: "negotiable" as const, title: "Recibe ofertas", text: "Envía tu propuesta y negocia directo con el vendedor", cta: "Ver lotes", image: "/banners/vmc/tipo-oferta-recibe-ofertas.jpg" },
+  { tone: "live" as const, title: "En vivo", text: "Participa en subastas en tiempo real", cta: "Ver subastas", image: "/banners/vmc/tipo-oferta-en-vivo.jpg" },
 ];
 // ── Ejemplos ────────────────────────────────────────────────────────────────────
 const USE_BUTTON = `import "./glass-button.css";

@@ -1242,7 +1242,7 @@ const OFFER_GRAD_CSS = `
 .hib-otg--photo .hib-otg__body { grid-template-columns: minmax(0, 1fr); padding: 20px 24px; }
 .hib-otg__bgimg { position: absolute; top: 0; right: 0; bottom: 0; z-index: 0; width: 66%; pointer-events: none;
   -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 38%); mask-image: linear-gradient(90deg, transparent 0%, #000 38%); }
-.hib-otg__bgimg img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 55%; }
+.hib-otg__bgimg img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 68% 40%; } /* tomas de estudio (03/11): la persona con el auto, a la derecha */
 .hib-otg__shade { position: absolute; inset: 0; z-index: 0; pointer-events: none; background: var(--shade); }
 .hib-otg--photo .hib-otg__txt { gap: 6px; max-width: 60%; }
 .hib-otg--photo .hib-otg__txt b { font-size: 16px; letter-spacing: 0; text-transform: none; }
@@ -1265,11 +1265,11 @@ const OFFER_GRAD_CSS = `
   box-shadow: rgba(0,0,0,0.12) 0 2px 6px, inset 0 2px 8px rgba(32,0,104,0.4); }
 `;
 const OFFER_GRAD = [
-  { id: "negotiable" as const, title: "Recibe ofertas", text: "Envía tu propuesta y negocia directo con el vendedor", cta: "Ver lotes", photo: "/demo/vehicles/autoplan-agya.png", ink: "#00777A",
+  { id: "negotiable" as const, title: "Recibe ofertas", text: "Envía tu propuesta y negocia directo con el vendedor", cta: "Ver lotes", photo: "/banners/vmc/tipo-oferta-recibe-ofertas.jpg", ink: "#00777A",
     // Recibe ofertas: cian → morado, como su pill (feature nuevo).
     shade: "linear-gradient(90deg, rgba(0,150,160,0.96) 0%, rgba(40,120,205,0.82) 34%, rgba(95,60,215,0.25) 68%, rgba(95,60,215,0.05) 100%)",
     bg: "linear-gradient(135deg, #12C6CF 0%, #2F8FD4 35%, #5A3FD8 70%, #3B1FA8 100%)", glow: "rgba(90,70,215,0.45)" },
-  { id: "live" as const, title: "En vivo", text: "Participa en subastas en tiempo real", cta: "Ver subastas", photo: "/demo/vehicles/autoplan-yaris.png", ink: "#C2410C",
+  { id: "live" as const, title: "En vivo", text: "Participa en subastas en tiempo real", cta: "Ver subastas", photo: "/banners/vmc/tipo-oferta-en-vivo.jpg", ink: "#C2410C",
     shade: "linear-gradient(90deg, rgba(225,95,20,0.96) 0%, rgba(240,120,40,0.82) 34%, rgba(255,140,50,0.25) 68%, rgba(255,140,50,0.05) 100%)",
     bg: "linear-gradient(135deg, #FFB25E 0%, #FF8F2E 30%, #EF6A1C 65%, #B83A00 100%)", glow: "rgba(255,130,40,0.45)" },
 ];
