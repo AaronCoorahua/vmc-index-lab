@@ -89,7 +89,7 @@ export type FeaturedCardProps = {
   chips?: CardItem[];
   /** Datos en dos columnas (km, asientos o ciudad…). */
   stats?: CardItem[];
-  /** "Empieza en …" (solo en vivo). */
+  /** "Inicia en …" (solo en vivo). */
   startsIn?: string;
   priceLabel?: string;
   price?: string;
@@ -144,7 +144,7 @@ export function FeaturedCard({
         <div><p className="vfc-name">{title}</p>{subtitle ? <p className="vfc-sub">{subtitle}</p> : null}</div>
         {chips.length ? <div className="vfc-chips">{chips.map((c) => <span key={c.label} className="vfc-chip">{c.icon}{c.label}</span>)}</div> : null}
         {stats.length ? <div className="vfc-stats">{stats.map((s) => <span key={s.label}>{s.icon}{s.label}</span>)}</div> : null}
-        {tone === "live" && startsIn ? <span className="vfc-time">{CardIcons.clock}Empieza en {startsIn}</span> : null}
+        {tone === "live" && startsIn ? <span className="vfc-time">{CardIcons.clock}Inicia en {startsIn}</span> : null}
         <span className="vfc-spacer" />
         {tone === "live"
           ? <div className="vfc-pricerow"><SubasCoin size={28} /><div><p className="vfc-label">{priceLabel}</p><p className="vfc-price">{price ?? "Por definir"}</p></div></div>

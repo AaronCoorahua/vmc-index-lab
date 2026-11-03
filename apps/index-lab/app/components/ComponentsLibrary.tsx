@@ -10,14 +10,10 @@ import { useState } from "react";
 import type { CSSProperties, JSX, ReactNode } from "react";
 import { GLASS_CSS } from "../qa/home-index-rebase/glass";
 import { PILL_CSS } from "../qa/home-index-rebase/pills";
-import { Vidrio } from "../qa/home-index-rebase/Vidrio";
 import { CardIcons, FeaturedCard } from "./lib/FeaturedCard";
 import { LightBar } from "./lib/LightBar";
 import { OfferTypeCards } from "./lib/OfferTypeCards";
-import { CategoryGrid } from "./lib/CategoryGrid";
-import { HeroBanner, type HeroBannerEffect } from "./lib/HeroBanner";
 import { LotGallery, type LotRowItem } from "./lib/LotGallery";
-import { PublicationBadge, type PublicationStatus } from "./lib/PublicationBadge";
 
 export type LibSources = Record<string, string>;
 type Prop = [name: string, type: string, def: string, desc: string];
@@ -143,60 +139,6 @@ const OFFERS = [
   { tone: "negotiable" as const, title: "Recibe ofertas", text: "Encuentra vehículos con precio conversable", cta: "Ver lotes", image: "/demo/vehicles/autoplan-agya.png" },
   { tone: "live" as const, title: "En vivo", text: "Participa en subastas en tiempo real", cta: "Ver subastas", image: "/demo/vehicles/autoplan-yaris.png" },
 ];
-const CATS = [
-  { label: "Vehicular", count: "21 lotes", image: "/demo/inventory-suv-v1.png", icon: <Vidrio s="vehicular" size={32} /> },
-  { label: "Equipos diversos", count: "12 lotes", image: "/demo/inventory-forklift-v1.png", icon: <Vidrio s="equipos" size={32} /> },
-  { label: "Maquinaria", count: "2 lotes", image: "/demo/inventory-excavator-v1.png", icon: <Vidrio s="maquinaria" size={32} /> },
-  { label: "Materiales", count: "1 lote", image: "/demo/inventory-steel-v1.png", icon: <Vidrio s="materiales" size={32} /> },
-  { label: "Mobiliario", count: "3 lotes", image: "/demo/inventory-furniture-v1.jpg", icon: <Vidrio s="mobiliario" size={32} /> },
-  { label: "Artículos diversos", count: "1 lote", image: "/demo/inventory-mosaic-v1.png", icon: <Vidrio s="articulos" size={32} /> },
-];
-const WA = <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.3-.5.1-1 .1-3.2-.7-2.7-1.1-4.4-3.8-4.5-4s-1.1-1.5-1.1-2.8.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.4.6-.4.4c-.1.2-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.3.2.5.1.6 0l.9-1c.2-.3.4-.2.6-.1l1.9.9c.3.1.4.2.5.3.1.2.1.7-.1 1.4Z" /></svg>;
-const SLIDES = [
-  { image: "/banners/vmc/hero-whatsapp-c.jpg", imagePosition: "70% 30%", label: "Canal de WhatsApp",
-    pill: { text: "Canal de WhatsApp", icon: WA, background: "linear-gradient(135deg, #25D366 0%, #0E7A5A 100%)" },
-    title: <>Entérate <em>primero</em><br />de las subastas</>, lead: <>Únete al canal de VMC y recibe los lotes<br />nuevos antes que nadie.</>, cta: "Unirme al canal",
-    background: "linear-gradient(100deg, #2A1670 0%, #3D2299 34%, #0E7A5A 78%, #25D366 100%)" },
-  { image: "/banners/vmc/hero-publica.jpg", imagePosition: "30% 30%", align: "right" as const, label: "Publica en VMC",
-    pill: { text: "Publica en VMC" }, title: <>Publica tu auto<br />y <em>recibe ofertas</em></>, lead: "Recibe propuestas y elige la que más te convenga.", cta: "Publicar mi auto" },
-  { image: "/banners/vmc/hero-negociable-a.jpg", imagePosition: "70% 20%", label: "Recibe ofertas",
-    pill: { text: "Recibe ofertas", icon: ICON.tag, background: "linear-gradient(110deg, #00A9B0 0%, #3F7FD0 45%, #6A35D6 100%)" },
-    title: <>¡Tú pones el precio<br />y <em>el 100% es tuyo</em>!</>, lead: "Publica tu auto en minutos y negocia directo con los compradores.", cta: "¡Publica ahora!",
-    background: "linear-gradient(100deg, #2A1670 0%, #3D2299 35%, #00838C 78%, #00D2D3 100%)" },
-];
-
-// ── Badges de Mis publicaciones ──
-const PUB_GUIDE: [PublicationStatus, string][] = [
-  ["revision", "El equipo de VMC revisa la publicación antes de publicarla. Los compradores todavía no la ven."],
-  ["publicada", "Pasó la revisión y ya está publicada. Es el estado de las publicaciones en vivo (subasta)."],
-  ["negociacion", "Es negociable, ya está publicada y está recibiendo propuestas. Debajo se ve cuántas tiene."],
-  ["subaschat", "Se aceptó una propuesta. Comprador y vendedor coordinan la visita, la transferencia y el recojo en el chat."],
-  ["vendido", "A las dos semanas, los dos confirmaron en el chat que se hizo la transferencia y el recojo."],
-  ["no-concretada", "Uno de los dos indicó en el chat que la venta no se dio."],
-];
-const Arrow = () => <svg className="cx-flow__arrow" width="14" height="14" viewBox="0 0 20 20" aria-hidden><path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>;
-const PubGuide = () => <div className="cx-guide">
-  <div className="cx-flow" aria-label="Recorrido de una publicación">
-    <div className="cx-flow__lane"><span className="cx-flow__k">Subasta</span><PublicationBadge status="revision" /><Arrow /><PublicationBadge status="publicada" /></div>
-    <div className="cx-flow__lane"><span className="cx-flow__k">Negociable</span><PublicationBadge status="revision" /><Arrow /><PublicationBadge status="negociacion" /><Arrow /><PublicationBadge status="subaschat" /><Arrow />
-      <span className="cx-flow__end"><PublicationBadge status="vendido" /><small>o</small><PublicationBadge status="no-concretada" /></span></div>
-  </div>
-  <dl className="cx-meaning">{PUB_GUIDE.map(([st, txt]) => <div key={st}><dt><PublicationBadge status={st} /></dt><dd>{txt}</dd></div>)}</dl>
-</div>;
-const PUB_ROWS: { photo: string; name: string; meta: string; status: PublicationStatus; proposals?: number; deal?: boolean }[] = [
-  { photo: "/demo/vehicles/autoplan-sedan.png", name: "Toyota Yaris 2022", meta: "Enviada a revisión", status: "revision" },
-  { photo: "/demo/vehicles/mapfre-tucson.png", name: "Hyundai Tucson 2021", meta: "Publicado: 28/10/2026", status: "publicada" },
-  { photo: "/demo/vehicles/autoplan-agya.png", name: "Toyota Agya 2023", meta: "Publicado: 27/10/2026", status: "negociacion", proposals: 3 },
-  { photo: "/demo/vehicles/mapfre-rio.png", name: "Kia Rio 2020", meta: "Acuerdo por US$ 12,500", status: "subaschat", deal: true },
-  { photo: "/demo/vehicles/autoplan-suv.png", name: "Kia Sportage 2020", meta: "Vendido por US$ 8,450", status: "vendido", deal: true },
-  { photo: "/demo/vehicles/mapfre-pickup.png", name: "Toyota Hilux 2019", meta: "La venta no se concretó", status: "no-concretada", deal: true },
-];
-const PubList = () => <div className="cx-pubs">{PUB_ROWS.map((r) => <div key={r.name} className="cx-pub">
-  <img src={r.photo} alt="" />
-  <span className="cx-pub__main"><b>{r.name}</b><small className={r.deal ? "is-deal" : undefined}>{r.meta}</small></span>
-  <span className="cx-pub__side"><PublicationBadge status={r.status} />{r.proposals ? <small>Propuestas <b>{r.proposals}</b></small> : null}</span>
-</div>)}</div>;
-
 // ── Ejemplos ────────────────────────────────────────────────────────────────────
 const USE_BUTTON = `import "./glass-button.css";
 
@@ -261,20 +203,6 @@ import { FeaturedCard, CardIcons } from "./FeaturedCard";
       details: "32,000 km · Automática · Gasolina", location: "Lima" },
   ]}
 />`;
-const USE_PUB = `import { PublicationBadge } from "./PublicationBadge";
-
-<PublicationBadge status="revision" />       // En revisión
-<PublicationBadge status="publicada" />      // Publicada
-<PublicationBadge status="negociacion" />    // En negociación
-<PublicationBadge status="subaschat" />      // SubasChat
-<PublicationBadge status="vendido" />        // Vendido
-<PublicationBadge status="no-concretada" />  // No concretada
-
-// En la fila, a la derecha; con propuestas, el número va debajo del badge
-<span className="fila__derecha">
-  <PublicationBadge status="negociacion" />
-  <small>Propuestas <b>3</b></small>
-</span>`;
 const USE_BAR = `import { LightBar } from "./LightBar";
 
 <LightBar value={0.62} />
@@ -302,51 +230,15 @@ const USE_OFFER = `import { OfferTypeCards } from "./OfferTypeCards";
     },
   ]}
 />`;
-const USE_CATS = `import { CategoryGrid } from "./CategoryGrid";
-
-const categorias = [
-  { label: "Vehicular", count: "21 lotes", image: "/fotos/suv.png", icon: <IconoAuto />, href: "/vehicular" },
-  { label: "Maquinaria", count: "2 lotes", image: "/fotos/excavadora.png", icon: <IconoMaquina />, href: "/maquinaria" },
-];
-
-<CategoryGrid items={categorias} />
-<CategoryGrid items={categorias} layout="columns" columns={3} />
-<CategoryGrid items={categorias} layout="scroll" />`;
-const USE_HERO = `import { HeroBanner } from "./HeroBanner";
-
-<HeroBanner
-  height={300}
-  slides={[
-    {
-      image: "/banners/whatsapp.jpg",
-      pill: { text: "Canal de WhatsApp", background: "linear-gradient(135deg, #25D366, #0E7A5A)" },
-      title: <>Entérate <em>primero</em><br />de las subastas</>,
-      lead: <>Únete al canal de VMC y recibe los lotes<br />nuevos antes que nadie.</>,
-      cta: "Unirme al canal",
-      href: "/whatsapp",
-    },
-    {
-      image: "/banners/publica.jpg",
-      align: "right",
-      pill: { text: "Publica en VMC" },
-      title: <>Publica tu auto<br />y <em>recibe ofertas</em></>,
-      cta: "Publicar mi auto",
-      onCta: () => abrirPublicar(),
-    },
-  ]}
-/>`;
-
 // ── Página ──────────────────────────────────────────────────────────────────────
 const NAV = [
-  ["boton-vidrio", "Botón de vidrio"], ["badge", "Badge"], ["badges-publicaciones", "Badges de publicaciones"], ["carta-destacada", "Carta destacada"], ["galeria", "Galería de lotes"], ["barra-luz", "Barra de luz"],
-  ["tipo-oferta", "Tipo de oferta"], ["categorias", "Categorías"], ["banner", "Banner"],
+  ["boton-vidrio", "Botón de vidrio"], ["badge", "Badge"], ["carta-destacada", "Carta destacada"], ["galeria", "Galería de lotes"], ["barra-luz", "Barra de luz"],
+  ["tipo-oferta", "Tipo de oferta"],
 ] as const;
 const forced = (css: string) => css.replaceAll(".hib-glass:hover", ".hib-glass.is-hover").replaceAll(".hib-glass:active", ".hib-glass.is-active");
 
 export default function ComponentsLibrary({ sources }: { sources: LibSources }): JSX.Element {
   const f = (name: string): File => ({ name, code: sources[name] ?? "" });
-  const [layout, setLayout] = useState<"auto" | "columns" | "scroll">("auto");
-  const [fx, setFx] = useState<HeroBannerEffect>("letters");
   const [count, setCount] = useState("6");
   return <div className="cx">
     <style>{PAGE_CSS + GLASS_CSS + forced(GLASS_CSS) + PILL_CSS}</style>
@@ -373,16 +265,6 @@ export default function ComponentsLibrary({ sources }: { sources: LibSources }):
         files={[{ name: "pills.css", code: PILL_CSS.trim() }]} usage={USE_BADGE}
         props={[["lc-pill--live", "clase", "—", "En vivo, naranja"], ["lc-pill--negotiable", "clase", "—", "Recibe ofertas, cian a violeta"], ["lc-pill--featured", "clase", "—", "Destacado, violeta"], ["lc-pills", "clase", "—", "Grupo arriba a la izquierda de la card (la card con position: relative)"]]} />
 
-      <Section id="badges-publicaciones" name="Badges de Mis publicaciones" tag="PublicationBadge"
-        summary="Dicen en qué etapa está cada publicación del vendedor."
-        guide={<PubGuide />}
-        preview={<Preview width={435} desktop={<PubList />} mobile={<PubList />} />}
-        files={[f("PublicationBadge.tsx"), f("publication-badge.css")]} usage={USE_PUB}
-        props={[
-          ["status", "\"revision\" | \"publicada\" | \"negociacion\" | \"subaschat\" | \"vendido\" | \"no-concretada\"", "—", "Etapa de la publicación"],
-          ["label", "string", "—", "Texto propio (por defecto el de la etapa)"],
-        ]} />
-
       <Section id="carta-destacada" name="Carta destacada" tag="FeaturedCard"
         summary="Carta de lote destacado. Se inclina hacia el mouse."
         preview={<Preview tone="lilac" note="Pasa el mouse sobre la carta." width={292}
@@ -394,7 +276,7 @@ export default function ComponentsLibrary({ sources }: { sources: LibSources }):
           ["tone", "\"live\" | \"negotiable\"", "\"live\"", "En vivo (naranja, precio) o Recibe ofertas (turquesa)"],
           ["featured", "boolean", "false", "Muestra la pill Destacado"], ["photos", "number", "—", "Total del contador de fotos"],
           ["chips", "{ icon?, label }[]", "[]", "Etiquetas con borde"], ["stats", "{ icon?, label }[]", "[]", "Datos en dos columnas"],
-          ["startsIn", "string", "—", "Tiempo para que empiece (en vivo)"], ["price", "string", "—", "Precio"], ["priceLabel", "string", "\"Precio base\"", "Texto sobre el precio"],
+          ["startsIn", "string", "—", "Tiempo para que inicie (en vivo)"], ["price", "string", "—", "Precio"], ["priceLabel", "string", "\"Precio base\"", "Texto sobre el precio"],
           ["progress", "number", "0.4", "Llenado de la barra de luz, de 0 a 1"], ["tilt", "number", "12", "Inclinación máxima en grados; 0 la apaga"],
           ["width / height", "number | string", "\"100%\" / \"auto\"", "Tamaño de la carta"], ["fillMedia", "boolean", "false", "La foto crece para llenar el alto"],
           ["onClick", "() => void", "—", "Clic en la carta"], ["liked / onLikeChange", "boolean / (v) => void", "—", "Favorito controlado desde afuera (opcional)"],
@@ -411,7 +293,7 @@ export default function ComponentsLibrary({ sources }: { sources: LibSources }):
           ["items", "LotRowItem[]", "—", "Lotes de la derecha, en orden: llenan la primera columna de arriba abajo y luego la siguiente"],
           ["items[].tone", "\"live\" | \"negotiable\"", "—", "En vivo (precio) o Recibe ofertas"],
           ["items[].title / image", "string", "—", "Nombre y foto"], ["items[].price", "string", "—", "Precio (en vivo)"],
-          ["items[].details / location / startsIn", "string", "—", "Datos, ciudad y tiempo para que empiece"],
+          ["items[].details / location / startsIn", "string", "—", "Datos, ciudad y tiempo para que inicie"],
           ["columns", "number", "2", "Columnas a la derecha; se reservan aunque estén vacías"],
           ["featuredWidth", "number", "292", "Ancho de la destacada en px"], ["height", "number", "386", "Alto mínimo de la galería en px"],
         ]} />
@@ -441,34 +323,6 @@ export default function ComponentsLibrary({ sources }: { sources: LibSources }):
           ["items[].colors", "{ bg, shade, glow, ink }", "—", "Colores propios para otra modalidad"],
         ]} />
 
-      <Section id="categorias" name="Categorías" tag="CategoryGrid"
-        summary="Cards de categoría. Se acomodan según el ancho."
-        preview={<Preview width={916}
-          controls={<Seg label="Distribución" value={layout} onChange={setLayout} options={[["auto", "Se apilan solas"], ["columns", "3 columnas"], ["scroll", "Una fila con scroll"]]} />}
-          desktop={<CategoryGrid items={CATS} layout={layout} />} mobile={<CategoryGrid items={CATS} layout={layout} />} />}
-        files={[f("CategoryGrid.tsx"), f("category-grid.css")]} usage={USE_CATS}
-        props={[
-          ["items", "CategoryItem[]", "—", "{ label, count?, image, icon?, href?, onClick? }"],
-          ["layout", "\"auto\" | \"columns\" | \"scroll\"", "\"auto\"", "Se apilan solas, columnas fijas o una fila deslizable"],
-          ["minWidth", "number", "140", "Ancho mínimo de cada card en auto; si no entra, baja a la fila siguiente"],
-          ["columns", "number", "3", "Columnas en columns"], ["imageHeight", "number", "92", "Alto de la foto en px"],
-        ]} />
-
-      <Section id="banner" name="Banner" tag="HeroBanner"
-        summary="Carrusel de banners."
-        preview={<Preview width={600} note="Toca los puntos de abajo para cambiar de imagen."
-          controls={<Seg label="Efecto del título" value={fx} onChange={setFx} options={[["letters", "Letras"], ["rise", "Subir"], ["blur", "Desenfoque"], ["mask", "Revelar"], ["none", "Ninguno"]]} />}
-          desktop={<HeroBanner key={`d-${fx}`} slides={SLIDES} effect={fx} height={300} />} mobile={<HeroBanner key={`m-${fx}`} slides={SLIDES} effect={fx} height={300} />} />}
-        files={[f("HeroBanner.tsx"), f("hero-banner.css")]} usage={USE_HERO}
-        props={[
-          ["slides", "HeroBannerSlide[]", "—", "Una diapositiva por elemento"], ["slides[].image", "string", "—", "Foto de fondo"],
-          ["slides[].title", "ReactNode", "—", "Título; <em> lo resalta y <br /> parte la línea"], ["slides[].lead", "ReactNode", "—", "Texto bajo el título"],
-          ["slides[].cta / href / onCta", "string / string / () => void", "—", "Botón de vidrio"], ["slides[].pill", "{ text, icon?, background? }", "—", "Etiqueta sobre el título"],
-          ["slides[].align", "\"left\" | \"right\"", "\"left\"", "Lado del texto"], ["slides[].imagePosition", "string", "—", "Encuadre de la foto, como object-position"],
-          ["slides[].background", "string", "violeta", "Degradado detrás de la foto"],
-          ["interval", "number", "7000", "Milisegundos por imagen; 0 lo detiene"], ["effect", "\"letters\" | \"rise\" | \"blur\" | \"mask\" | \"none\"", "\"letters\"", "Entrada del texto"],
-          ["height", "number | string", "300", "Alto del banner"],
-        ]} />
     </main>
   </div>;
 }
@@ -531,31 +385,6 @@ const PAGE_CSS = `
 .cx-seg button { padding: 6px 12px; border: 1px solid #DCD5F3; border-radius: 999px; background: #fff; color: #3D2299; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
 .cx-seg button[aria-pressed="true"] { border-color: #3D2299; background: #3D2299; color: #fff; }
 
-/* Guía de badges de Mis publicaciones */
-.cx-guide { display: grid; gap: 16px; }
-.cx-flow { display: grid; gap: 10px; padding: 16px 18px; border: 1px solid #ECE8F7; border-radius: 14px; background: #FAF9FE; }
-.cx-flow__lane { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.cx-flow__k { width: 84px; font-size: 12px; font-weight: 700; color: #6B6492; }
-.cx-flow__arrow { color: #B3A8DA; }
-.cx-flow__end { display: inline-flex; align-items: center; gap: 6px; }
-.cx-flow__end small { font-size: 12px; color: #6B6492; }
-.cx-meaning { margin: 0; display: grid; border: 1px solid #ECE8F7; border-radius: 14px; overflow: hidden; }
-.cx-meaning div { display: grid; grid-template-columns: 130px 1fr; align-items: center; gap: 14px; padding: 10px 16px; }
-.cx-meaning div + div { border-top: 1px solid #F0EDF8; }
-.cx-meaning dt { display: flex; }
-.cx-meaning dd { margin: 0; font-size: 14px; line-height: 1.5; color: #3F3866; }
-/* Fila de Mis publicaciones (medidas de Mi Garaje: foto 48 × 36, nombre 14 px, dato 12 px) */
-.cx-pubs { display: grid; background: #fff; border-radius: 12px; }
-.cx-pub { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 12px; }
-.cx-pub img { width: 48px; height: 36px; border-radius: 6px; object-fit: cover; }
-.cx-pub__main { display: grid; gap: 4px; min-width: 0; }
-.cx-pub__main b { overflow: hidden; font-size: 14px; font-weight: 300; color: #191C1C; text-overflow: ellipsis; white-space: nowrap; }
-.cx-pub__main small { font-size: 12px; font-weight: 300; line-height: 16.8px; color: #6B6878; }
-.cx-pub__main small.is-deal { font-weight: 400; color: #191C1C; }
-.cx-pub__side { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
-.cx-pub__side small { font-size: 12px; color: #6B6878; }
-.cx-pub__side small b { margin-left: 4px; font-weight: 400; }
-
 /* Cómo usarlo */
 .cx-steps { margin: 0; padding-left: 20px; display: grid; gap: 6px; font-size: 14px; line-height: 1.6; color: #3F3866; }
 .cx-files { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
@@ -591,7 +420,6 @@ const PAGE_CSS = `
   .cx-sec { padding: 18px 14px; scroll-margin-top: 64px; }
   .cx-view__box { padding: 16px; }
   .cx-states { grid-template-columns: 1fr; }
-  .cx-meaning div { grid-template-columns: 1fr; gap: 6px; }
   .cx-table th:nth-child(3), .cx-table td:nth-child(3) { display: none; }
 }
 `;

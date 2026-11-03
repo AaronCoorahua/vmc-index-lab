@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 // Archivos de la librería (./lib): se leen al compilar y se muestran tal cual en las pestañas de código.
 const LIB_FILES = [
   "FeaturedCard.tsx", "featured-card.css", "LightBar.tsx", "light-bar.css", "OfferTypeCards.tsx", "offer-type-cards.css",
-  "CategoryGrid.tsx", "category-grid.css", "HeroBanner.tsx", "hero-banner.css", "LotGallery.tsx", "lot-gallery.css", "PublicationBadge.tsx", "publication-badge.css",
+  "LotGallery.tsx", "lot-gallery.css",
 ];
 function libSources(): Record<string, string> {
   const dir = [path.join(process.cwd(), "app/components/lib"), path.join(process.cwd(), "apps/index-lab/app/components/lib")].find((d) => existsSync(d));
