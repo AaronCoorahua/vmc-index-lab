@@ -5,7 +5,7 @@ import "./light-bar.css";
 export type LightBarTone = "live" | "negotiable";
 
 export type LightBarProps = {
-  /** Cuánto se llena, de 0 a 1. */
+  /** Cuánto se llena, de 0 a 1. En vivo: cuánto falta para que inicie la subasta. */
   value?: number;
   tone?: LightBarTone;
   /** Alto en px (9 en la carta). */

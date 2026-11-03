@@ -300,14 +300,18 @@ export default function ComponentsLibrary({ sources }: { sources: LibSources }):
 
       <Section id="barra-luz" name="Barra de luz" tag="LightBar"
         summary="Barra de avance con una luz que la recorre."
+        guide={<dl className="cx-meaning">
+          <div><dt>En vivo</dt><dd>Muestra cuánto falta para que inicie la subasta. Se llena a medida que se acerca la hora de inicio y va junto a "Inicia en".</dd></div>
+          <div><dt>Recibe ofertas</dt><dd>Va llena siempre: la publicación negociable no tiene hora de inicio.</dd></div>
+        </dl>}
         preview={<Preview desktop={<div className="cx-bars">
-          <div><small>En vivo, 62 %</small><LightBar value={0.62} /></div>
-          <div><small>Recibe ofertas, llena</small><LightBar value={1} tone="negotiable" /></div>
-          <div><small>Redondeada, 6 px, 35 %</small><LightBar value={0.35} rounded height={6} label="Tiempo transcurrido" /></div>
+          <div><small>En vivo · inicia en 01:24:36 (62 %)</small><LightBar value={0.62} label="Tiempo para que inicie la subasta" /></div>
+          <div><small>Recibe ofertas · llena</small><LightBar value={1} tone="negotiable" /></div>
+          <div><small>Redondeada, 6 px · inicia en 03:10:00 (35 %)</small><LightBar value={0.35} rounded height={6} label="Tiempo para que inicie la subasta" /></div>
         </div>} />}
         files={[f("LightBar.tsx"), f("light-bar.css")]} usage={USE_BAR}
         props={[
-          ["value", "number", "1", "Llenado, de 0 a 1"], ["tone", "\"live\" | \"negotiable\"", "\"live\"", "Naranja o turquesa"],
+          ["value", "number", "1", "Llenado, de 0 a 1. En vivo: cuánto falta para que inicie (1 = ya inicia)"], ["tone", "\"live\" | \"negotiable\"", "\"live\"", "Naranja o turquesa"],
           ["height", "number", "9", "Alto en px"], ["speed", "number", "1.8", "Segundos que tarda la luz en cruzar"],
           ["rounded", "boolean", "false", "Puntas redondeadas"], ["label", "string", "—", "Si lo pasas, se anuncia como barra de progreso"],
         ]} />
@@ -385,6 +389,13 @@ const PAGE_CSS = `
 .cx-seg button { padding: 6px 12px; border: 1px solid #DCD5F3; border-radius: 999px; background: #fff; color: #3D2299; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
 .cx-seg button[aria-pressed="true"] { border-color: #3D2299; background: #3D2299; color: #fff; }
 
+/* Guía */
+.cx-meaning { margin: 0; display: grid; border: 1px solid #ECE8F7; border-radius: 14px; overflow: hidden; background: #fff; }
+.cx-meaning div { display: grid; grid-template-columns: 130px 1fr; align-items: center; gap: 14px; padding: 10px 16px; }
+.cx-meaning div + div { border-top: 1px solid #F0EDF8; }
+.cx-meaning dt { font-size: 13px; font-weight: 700; color: #3D2299; }
+.cx-meaning dd { margin: 0; font-size: 14px; line-height: 1.5; color: #3F3866; }
+
 /* Cómo usarlo */
 .cx-steps { margin: 0; padding-left: 20px; display: grid; gap: 6px; font-size: 14px; line-height: 1.6; color: #3F3866; }
 .cx-files { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
@@ -421,5 +432,6 @@ const PAGE_CSS = `
   .cx-view__box { padding: 16px; }
   .cx-states { grid-template-columns: 1fr; }
   .cx-table th:nth-child(3), .cx-table td:nth-child(3) { display: none; }
+  .cx-meaning div { grid-template-columns: 1fr; gap: 4px; }
 }
 `;
