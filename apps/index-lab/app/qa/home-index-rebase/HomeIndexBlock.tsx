@@ -1265,7 +1265,7 @@ const OFFER_GRAD_CSS = `
   box-shadow: rgba(0,0,0,0.12) 0 2px 6px, inset 0 2px 8px rgba(32,0,104,0.4); }
 `;
 const OFFER_GRAD = [
-  { id: "negotiable" as const, title: "Recibe ofertas", text: "Encuentra vehículos con precio conversable", cta: "Ver lotes", photo: "/demo/vehicles/autoplan-agya.png", ink: "#00777A",
+  { id: "negotiable" as const, title: "Recibe ofertas", text: "Envía tu propuesta y negocia directo con el vendedor", cta: "Ver lotes", photo: "/demo/vehicles/autoplan-agya.png", ink: "#00777A",
     // Recibe ofertas: cian → morado, como su pill (feature nuevo).
     shade: "linear-gradient(90deg, rgba(0,150,160,0.96) 0%, rgba(40,120,205,0.82) 34%, rgba(95,60,215,0.25) 68%, rgba(95,60,215,0.05) 100%)",
     bg: "linear-gradient(135deg, #12C6CF 0%, #2F8FD4 35%, #5A3FD8 70%, #3B1FA8 100%)", glow: "rgba(90,70,215,0.45)" },
