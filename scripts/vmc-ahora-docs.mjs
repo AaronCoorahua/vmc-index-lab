@@ -17,6 +17,7 @@ const ROWS = [
   { label: "Rotación", kinds: ["rotacion"], color: COLORS.negociable },
   { label: "Propuestas", kinds: ["propuesta"], color: COLORS.negociable },
   { label: "Registros", kinds: ["registro"], color: COLORS.morado },
+  { label: "Valorizaciones", kinds: ["valorizacion"], color: COLORS.morado },
   { label: "Publicidad", kinds: ["ad-valoriza", "ad-publica"], color: COLORS.promo },
   { label: "Blog", kinds: ["blog"], color: COLORS.blog },
 ];
@@ -65,7 +66,7 @@ for (const [name, w, h] of [["indice-escritorio", 1440, 900], ["indice-movil", 3
 // Una entrada de cada tipo (8 + 2, a ×10 sale una cada 4,5 s): se espera a que aparezca y se recorta.
 const KINDS = [
   ["nueva", "Publicó una nueva oferta"], ["rotacion", "Disponible "], ["propuesta", "Se ha enviado una propuesta"],
-  ["registro", "Se registró un nuevo usuario"], ["ad-valoriza", "Valoriza tu auto"], ["ad-publica", "Publica tu auto"], ["blog", "Blog VMC"],
+  ["registro", "Se registró un nuevo usuario"], ["valorizacion", "Se valorizó un"], ["ad-valoriza", "Valoriza tu auto"], ["ad-publica", "Publica tu auto"], ["blog", "Blog VMC"],
 ];
 {
   const page = await open(1440, 900, { feedScenario: "v8n2" });

@@ -18,7 +18,7 @@ export type Offer = {
   /** Negociaciones que ya tenía al empezar el día (solo negociables publicadas antes de hoy). */
   base: number;
 };
-export type Kind = "nueva" | "nueva-subascars" | "registro" | "ad-valoriza" | "ad-publica" | "propuesta" | "blog" | "rotacion";
+export type Kind = "nueva" | "nueva-subascars" | "registro" | "valorizacion" | "ad-valoriza" | "ad-publica" | "propuesta" | "blog" | "rotacion";
 export type PlanEntry = {
   key: string; min: number; kind: Kind; offerId?: number;
   /** Negociaciones de la oferta en ese momento (las propuestas reales del día van sumando). */
@@ -27,9 +27,11 @@ export type PlanEntry = {
   mock?: boolean;
   /** Propuesta simulada: código de oferta aleatorio (no tiene que existir). No lleva foto. */
   code?: number;
+  /** Valorización simulada: el auto del aviso. */
+  lot?: string;
 };
 /** Entradas que por ahora son mockups. Las demás muestran datos reales: ofertas publicadas, publicidad y blog de VMC. */
-export const MOCK_KINDS: readonly Kind[] = ["propuesta", "registro"];
+export const MOCK_KINDS: readonly Kind[] = ["propuesta", "registro", "valorizacion"];
 
 export const DAY_START = 9 * 60;
 export const DAY_MIN = 15 * 60;
@@ -69,9 +71,9 @@ export const BLOG_SIN_NEGOCIABLES = 2;
 
 export type Counts = {
   V: number; N: number; T: number; nuevas: number; rot: number; rotEvery: number; rotRepeat: number;
-  prop: number; propEvery: number; reg: number; ads: number; blog: number; promo: number; total: number; promoShare: number;
+  prop: number; propEvery: number; reg: number; val: number; ads: number; blog: number; promo: number; total: number; promoShare: number;
 };
-export function counts(V: number, N: number): Counts {
+export function counts(V: number, N: number, day = 0): Counts {
   const T = V + N;
   const nuevas = newPerDay(V, N);
   const rot = Math.min(rotationPerDay(T), rotationCap(T) * (T - nuevas));
@@ -81,10 +83,11 @@ export function counts(V: number, N: number): Counts {
   const extra = N === 0 ? BLOG_SIN_NEGOCIABLES : 0;
   const promo = base + extra;
   const blog = Math.round(base / 3) + extra;
-  const total = rot + prop + nuevas + reg + promo;
+  const val = valorizaciones(V, N, day).length; // no entra en la actividad: sumarla movería la publicidad ya definida
+  const total = rot + prop + nuevas + reg + val + promo;
   return {
     V, N, T, nuevas, rot, rotEvery: rot ? DAY_MIN / rot : 0, rotRepeat: rot && T - nuevas ? rot / Math.min(T - nuevas, 30) : 0,
-    prop, propEvery: prop ? DAY_MIN / prop : 0, reg, ads: promo - blog, blog, promo, total, promoShare: promo / total,
+    prop, propEvery: prop ? DAY_MIN / prop : 0, reg, val, ads: promo - blog, blog, promo, total, promoShare: promo / total,
   };
 }
 
@@ -104,6 +107,38 @@ const POOL: { lot: string; price: string; city: string; imageSrc: string }[] = [
   { lot: "Montacargas Toyota 2018", price: "US$ 8,600", city: "Callao", imageSrc: "/demo/inventory-forklift-v1.png" },
 ];
 const EMPRESAS = ["Autoplan", "Mapfre", "Pacífico", "Trupal S.A."];
+
+// ─── Valorizaciones simuladas: juego de números primos ───────────────────────────────────────────────────────────────
+/** Minutos posibles entre un aviso y el siguiente. Con estos primos salen siempre entre 3 y 6 avisos al día. */
+export const VAL_GAPS = [131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281, 283, 293];
+/** Catálogo de los avisos: 8 marcas × 3 modelos, ninguno del inventario de ejemplo (para no parecer un auto en venta del feed). */
+export const VAL_CATALOG: readonly [brand: string, models: readonly string[]][] = [
+  ["Toyota", ["Corolla", "RAV4", "Fortuner"]], ["Hyundai", ["Accent", "Creta", "Santa Fe"]], ["Kia", ["Picanto", "Cerato", "Sorento"]],
+  ["Nissan", ["Versa", "Frontier", "Qashqai"]], ["Suzuki", ["Swift", "Vitara", "Baleno"]], ["Chevrolet", ["Onix", "Tracker", "Captiva"]],
+  ["Mazda", ["3", "CX-5", "CX-3"]], ["Volkswagen", ["Virtus", "Jetta", "Tiguan"]],
+];
+/** Puestos del catálogo que tiene cada día: el máximo de avisos posible (900 / 131 → 6). */
+export const VAL_SLOTS = 6;
+/** Auto del puesto `i`. No se sortea: el azar no garantiza variedad. Marca cada 8 puestos, modelo cada 24, año cada 7 (2018–2024).
+ *  Así un día no repite marca, modelo ni año; un modelo no vuelve en 4 días y la combinación exacta, en 28. */
+export function valLot(i: number): string {
+  const [brand, models] = VAL_CATALOG[i % VAL_CATALOG.length];
+  return `${brand} ${models[Math.floor(i / VAL_CATALOG.length) % models.length]} ${2018 + ((i * 3) % 7)}`;
+}
+/** Cada turno mezcla el estado con primos y elige el siguiente primo; termina cuando se pasa de las 24:00. La cantidad del
+ *  día sale de esa secuencia, no de una fórmula. Pseudoaleatorio a propósito: el mismo día y V, N dan el mismo plan, así el
+ *  servidor y el navegador coinciden. `day` cambia la secuencia y los autos; en producción, el número del día. */
+export function valorizaciones(V: number, N: number, day = 0): { min: number; lot: string }[] {
+  if (V + N <= 0) return [];
+  const out: { min: number; lot: string }[] = [];
+  let s = (V * 31 + N * 37 + day * 41 + 7) % 100003;
+  for (let min = DAY_START; ;) {
+    s = (s * 7919 + 104729) % 100003;
+    min += VAL_GAPS[s % VAL_GAPS.length];
+    if (min >= DAY_START + DAY_MIN) return out;
+    out.push({ min, lot: valLot(day * VAL_SLOTS + out.length) });
+  }
+}
 // Artículos del blog, con una portada de los banners de VMC (fondo morado, para que el botón de vidrio se lea encima).
 // Regla (27/10): cada banner muestra una foto distinta; ni el blog ni los anuncios repiten las del hero ni las del banner secundario.
 export const BLOG = [
@@ -149,9 +184,9 @@ const spread = (k: number, phase: number): number[] => Array.from({ length: k },
 export const isPromo = (k: Kind): boolean => k === "ad-valoriza" || k === "ad-publica" || k === "blog";
 
 /** Plan del día (9:00–24:00) ordenado por hora. */
-export function planDay(V: number, N: number): PlanEntry[] {
+export function planDay(V: number, N: number, day = 0): PlanEntry[] {
   const inv = buildInventory(V, N);
-  const c = counts(V, N);
+  const c = counts(V, N, day);
   const out: PlanEntry[] = [];
   const seen = new Map<number, number[]>(); // minutos en que salió cada oferta (nueva o rotación)
   const mark = (id: number, min: number) => seen.set(id, [...(seen.get(id) ?? []), min]);
@@ -181,16 +216,17 @@ export function planDay(V: number, N: number): PlanEntry[] {
     out.push({ key: `p${code}`, min, kind: "propuesta", code, mock: true });
   });
   spread(c.reg, 0.3).forEach((min, i) => out.push({ key: `u${i}`, min, kind: "registro", mock: true }));
+  valorizaciones(V, N, day).forEach(({ min, lot }, i) => out.push({ key: `z${i}`, min, kind: "valorizacion", lot, mock: true }));
   spread(c.ads, 0.18).forEach((min, i) => out.push({ key: `a${i}`, min, kind: i % 2 ? "ad-publica" : "ad-valoriza" }));
   spread(c.blog, 0.75).forEach((min, i) => out.push({ key: `b${i}`, min, kind: "blog", blog: i % BLOG.length }));
   out.sort((x, y) => x.min - y.min);
 
   // Sin dos promocionales seguidas: si hay una entrada de actividad en los 30 min siguientes, se adelanta entre ambas
-  // (nunca una propuesta, ni una oferta si así queda a menos de 1 h de una propuesta suya).
+  // (nunca una propuesta, ni una valorización, que perdería su minuto primo, ni una oferta si así queda a menos de 1 h de una propuesta suya).
   for (let i = 1; i < out.length; i++) {
     if (!isPromo(out[i].kind) || !isPromo(out[i - 1].kind)) continue;
     const at = (out[i - 1].min + out[i].min) / 2;
-    const j = out.findIndex((e, k) => k > i && !isPromo(e.kind) && e.kind !== "propuesta" && e.min - out[i].min <= 30
+    const j = out.findIndex((e, k) => k > i && !isPromo(e.kind) && e.kind !== "propuesta" && e.kind !== "valorizacion" && e.min - out[i].min <= 30
       && !out.some((p) => p.kind === "propuesta" && p.offerId != null && p.offerId === e.offerId && Math.abs(p.min - at) < 60));
     if (j < 0) continue;
     const [e] = out.splice(j, 1);
@@ -228,7 +264,7 @@ export type EntryText = {
   views: number;
   /** Publicidad: se dibuja como anuncio (foto del banner y botón). `imagePos` encuadra la foto. */
   ad?: boolean; imagePos?: string;
-  /** Botón de la publicidad o del blog. Las propuestas y los registros no son clicables. */
+  /** Botón de la publicidad, del blog o de la valorización. Las propuestas y los registros no son clicables. */
   cta?: string;
 };
 /** Colores de la card de Tipo de oferta: en vivo naranja, negociable cian (también las propuestas, que solo existen en las
@@ -247,7 +283,7 @@ function viewsModel(e: PlanEntry, o: Offer | undefined): [start: number, cap: nu
   if ((e.kind === "nueva" || e.kind === "nueva-subascars") && o) return [0, o.viewsCap, 360]; // recién publicada: 0
   if (e.kind === "ad-valoriza" || e.kind === "ad-publica") return [8 + (h % 8), 120 + (h % 180), 240];
   if (e.kind === "blog") return [5 + (h % 8), 80 + (h % 120), 300];
-  return [0, 40 + (h % 160), 180]; // propuestas y registros
+  return [0, 40 + (h % 160), 180]; // propuestas, registros y valorizaciones
 }
 /** Visitas de una entrada que salió hace `sinceMin` minutos. */
 export function entryViews(e: PlanEntry, o: Offer | undefined, sinceMin: number): number {
@@ -287,6 +323,9 @@ function describeEntry(e: PlanEntry, inv: Offer[]): Omit<EntryText, "views"> {
         pill: "Propuesta enviada", color: COLORS.negociable, imageSrc: o?.imageSrc };
     case "registro":
       return { author: "VMC", title: "Se registró un nuevo usuario en VMC", detail: "", pill: "Nuevo usuario", color: COLORS.morado };
+    case "valorizacion":
+      // Por privacidad, sin el usuario ni el monto. Sin foto, como la propuesta simulada: este auto no existe.
+      return { author: "VMC", title: `Se valorizó un ${e.lot} en VMC`, detail: "¿Cuánto vale el tuyo?", pill: "Valorización", color: COLORS.morado, cta: "Valorizar" };
     case "ad-valoriza":
       return { author: "VMC", title: "Valoriza tu auto en VMC", detail: "Descubre cuánto vale tu auto en minutos, gratis.", pill: "Publicidad",
         color: COLORS.promo, imageSrc: "/banners/vmc/valoriza-auto.jpg", imagePos: "75% 30%", cta: "Valorizar", ad: true };

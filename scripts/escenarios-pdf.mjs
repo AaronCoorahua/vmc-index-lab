@@ -36,7 +36,7 @@ const dec = (x) => (Number.isInteger(x) ? String(x) : x.toFixed(1).replace(".", 
 const zero = (n) => (n ? n : `<span class="muted">0</span>`);
 const KIND = {
   rotacion: ["Rotación", "#00A8AB"], propuesta: ["Propuesta", "#7B5CE6"], nueva: ["Nueva", "#8460E5"], "nueva-subascars": ["Nueva", "#8460E5"],
-  registro: ["Registro", "#9A7BF0"], "ad-valoriza": ["Publicidad", "#3B1782"], "ad-publica": ["Publicidad", "#3B1782"], blog: ["Blog", "#4A2CE0"],
+  registro: ["Registro", "#9A7BF0"], valorizacion: ["Valorización", "#9A7BF0"], "ad-valoriza": ["Publicidad", "#3B1782"], "ad-publica": ["Publicidad", "#3B1782"], blog: ["Blog", "#4A2CE0"],
 };
 // Colores de la card de Tipo de oferta: en vivo naranja, negociable cian (y las propuestas); el resto, morado.
 const tag = (k, mode) => `<span class="tag" style="--k:${mode === "vivo" ? "#C2410C" : mode === "negociable" || k === "propuesta" ? "#00777A" : "#7B5CE6"}">${KIND[k][0]}</span>`;

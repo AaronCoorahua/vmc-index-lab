@@ -2,7 +2,7 @@
 
 /**
  * VmcAhora — feed «VMC ahora» (Secondary Banner, 236 × 388). Las entradas salen del plan del día de feedPlan.ts
- * (rotación del inventario, propuestas enviadas, nuevas ofertas, registros, publicidad y blog, según V y N) y la demo
+ * (rotación del inventario, propuestas enviadas, nuevas ofertas, registros, valorizaciones, publicidad y blog, según V y N) y la demo
  * lo reproduce en orden con 45 s entre entradas simuladas; una acción real entra al instante y reinicia los 45 s.
  * Un solo reloj para toda la página (todas las vistas muestran el mismo feed); se pausa con el puntero encima.
  * Contenido de ejemplo. Vistas:
@@ -15,7 +15,7 @@
 import { useSyncExternalStore, useState } from "react";
 import type { CSSProperties, JSX } from "react";
 import {
-  buildInventory, COLORS, counts, DEFAULT_SCENARIO, describe, GAP_S, planDay, SCENARIOS,
+  buildInventory, COLORS, counts, DEFAULT_SCENARIO, describe, GAP_S, planDay, SCENARIOS, valLot,
   type EntryText, type Offer, type PlanEntry,
 } from "./feedPlan";
 
@@ -56,7 +56,7 @@ const LOGO: Record<string, string | undefined> = {
 type Shown = PlanEntry & { uid: string; at: number; real?: boolean };
 // `skip`: mockups que se descuentan porque ya entró un hecho real del mismo tipo (mockups = objetivo − reales).
 type FeedState = {
-  scenario: string; speed: number; inv: Offer[]; plan: PlanEntry[]; items: Shown[]; next: number; now: number; lastAt: number; seq: number;
+  scenario: string; speed: number; day: number; inv: Offer[]; plan: PlanEntry[]; items: Shown[]; next: number; now: number; lastAt: number; seq: number;
   skip: Partial<Record<PlanEntry["kind"], number>>; real: number; skipped: number; design: FeedDesign;
 };
 const GAP_MS = GAP_S * 1000;
@@ -77,7 +77,7 @@ function initState(scenario: string, speed: number, design = DEFAULT_DESIGN): Fe
   if (inBacklog > 0) items.unshift(...items.splice(inBacklog, 1));
   else if (inBacklog < 0 && nextAd) items.unshift({ ...nextAd, uid: `${nextAd.key}#open` } as Shown);
   items.forEach((e, i) => { e.at = -i * GAP_MS; });
-  return { scenario: s.id, speed, inv: buildInventory(s.V, s.N), plan, items, next: plan.length ? k % plan.length : 0, now: 0, lastAt: 0, seq: 1,
+  return { scenario: s.id, speed, day: 0, inv: buildInventory(s.V, s.N), plan, items, next: plan.length ? k % plan.length : 0, now: 0, lastAt: 0, seq: 1,
     skip: {}, real: 0, skipped: 0, design };
 }
 const INITIAL = initState(DEFAULT_SCENARIO, 1);
@@ -105,6 +105,11 @@ function step() {
       next = (next + 1) % s.plan.length;
     }
     s = { ...push({ ...s, skip, skipped }, s.plan[next]), next: (next + 1) % s.plan.length };
+    // Al terminar el plan empieza el del día siguiente: otras horas y otros autos en las valorizaciones.
+    if (s.next === 0) {
+      const sc = SCENARIOS.find((x) => x.id === s.scenario)!;
+      s = { ...s, day: s.day + 1, plan: planDay(sc.V, sc.N, s.day + 1) };
+    }
   }
   state = s;
   emit();
@@ -141,6 +146,14 @@ export function simulateRealAction(): void {
     ? { key: `real-p${o.id}`, min: 0, kind: "propuesta", offerId: o.id }
     : { key: "real-u", min: 0, kind: "registro" };
   state = { ...push(state, e, true), skip: { ...state.skip, [e.kind]: (state.skip[e.kind] ?? 0) + 1 }, real: state.real + 1 };
+  emit();
+}
+
+/** Control de QA: pone arriba una valorización con el siguiente auto del catálogo. Vista previa: no descuenta ningún mockup. */
+export function previewValorizacion(): void {
+  const val = state.plan.find((e) => e.kind === "valorizacion");
+  if (!val) return;
+  state = push(state, { ...val, lot: valLot(state.seq) });
   emit();
 }
 
@@ -356,6 +369,8 @@ const CSS = `
 .va-glass:active { transform: translateY(1px) scale(0.97); background-color: rgba(32,0,104,0.22); }
 .va-glass:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
 .va-ad__media .va-glass { position: absolute; left: 10px; bottom: 10px; z-index: 2; }
+/* Sin foto debajo (valorización): el mismo botón sobre violeta, porque su texto blanco no se lee sobre la card blanca. */
+.va-glass.va-glass--solid { display: flex; width: fit-content; margin-top: 8px; background-color: #3B1782; }
 .va-ad__badge { position: absolute; top: 8px; left: 8px; z-index: 3; padding: 3px 8px; border-radius: 999px; font-size: 10px; font-weight: 700;
   letter-spacing: 0.03em; color: #3B1782; background: rgba(255,255,255,0.92); box-shadow: rgba(16,0,48,0.18) 0 2px 6px; }
 .va-ad__when { font-weight: 600; color: #8A879C; }
@@ -512,6 +527,7 @@ function Body({ t, kind, d, x = false }: { t: EntryText; kind: PlanEntry["kind"]
       {kind === "blog" && t.imageSrc
         ? <span className="va-post__media va-ad__media"><img src={t.imageSrc} alt="" style={{ objectPosition: t.imagePos }} /><button type="button" className="va-glass">{t.cta}</button></span>
         : t.mode && t.imageSrc ? <span className="va-post__media"><img src={t.imageSrc} alt="" /></span> : null}
+      {kind === "valorizacion" ? <button type="button" className="va-glass va-glass--solid">{t.cta}</button> : null}
       {viewsLine(t, d)}
       <Acts t={t} d={d} x={x} />
     </>
@@ -669,7 +685,7 @@ export function VmcAhoraQa(): JSX.Element {
   const n = (k: PlanEntry["kind"][]) => s.plan.filter((e) => k.includes(e.kind)).length;
   const rows: [string, number][] = [
     ["Rotación del inventario", n(["rotacion"])], ["Propuestas enviadas · mockup", n(["propuesta"])], ["Nuevas ofertas", n(["nueva", "nueva-subascars"])],
-    ["Registros · mockup", n(["registro"])], ["Publicidad", n(["ad-valoriza", "ad-publica"])], ["Blog", n(["blog"])],
+    ["Registros · mockup", n(["registro"])], ["Valorizaciones · mockup", n(["valorizacion"])], ["Publicidad", n(["ad-valoriza", "ad-publica"])], ["Blog", n(["blog"])],
   ];
   return (
     <div className="hib-switch va-qa" role="group" aria-label="VMC ahora · reloj">
@@ -678,6 +694,7 @@ export function VmcAhoraQa(): JSX.Element {
       <p>Próxima entrada simulada en <b>{left} s</b>{s.speed > 1 ? ` (×${s.speed})` : ""}</p>
       <ul aria-label={`Plan del día: ${s.plan.length} entradas`}>{rows.map(([k, v]) => <li key={k} style={{ display: "contents" }}><span>{k}</span><b>{v}</b></li>)}</ul>
       <button type="button" onClick={simulateRealAction}><b>Simular acción real</b><small style={{ margin: 0 }}>Entra ya, reinicia los {GAP_S} s y descuenta un mockup</small></button>
+      <button type="button" onClick={previewValorizacion} disabled={!n(["valorizacion"])} style={{ marginTop: 6 }}><b>Ver valorización ahora</b><small style={{ margin: 0 }}>{n(["valorizacion"]) ? "Cada clic, otro auto arriba del feed; no descuenta nada del plan" : "Sin ofertas no hay valorizaciones"}</small></button>
       {s.real ? <small>Reales: {s.real} · mockups descontados: {s.skipped}{s.real > s.skipped ? ` (${s.real - s.skipped} por descontar)` : ""}</small> : null}
       <small>Plan del día: {s.plan.length} entradas de 9:00 a 24:00, reproducidas cada {GAP_S} s. Ver escenarios.pdf.</small>
       <style>{QA_CSS}</style>

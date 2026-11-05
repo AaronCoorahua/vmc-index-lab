@@ -60,6 +60,7 @@ Lo que hay que hacer en producción es conectar los datos reales y llevar el rel
 | `rotacion` | Dueño de la oferta | "Disponible en vivo: Hyundai Tucson 2021…" o "Disponible para negociar: …" | **Real** (oferta que ya estaba publicada) | ![rotación](docs/vmc-ahora/entrada-rotacion.png) |
 | `propuesta` | VMC | "Se ha enviado una propuesta a la OFERTA 67942" | Simulada hoy, real después | ![propuesta](docs/vmc-ahora/entrada-propuesta.png) |
 | `registro` | VMC | "Se registró un nuevo usuario en VMC" | Simulado hoy, real después | ![registro](docs/vmc-ahora/entrada-registro.png) |
+| `valorizacion` | VMC | "Se valorizó un Toyota Corolla 2018 en VMC. ¿Cuánto vale el tuyo?" + botón Valorizar | Simulada hoy, real después | Sin captura todavía |
 | `ad-valoriza` | VMC | "Valoriza tu auto en VMC" + botón Valorizar | Publicidad fija | ![valoriza](docs/vmc-ahora/entrada-ad-valoriza.png) |
 | `ad-publica` | VMC | "Publica tu auto en VMC y recibe ofertas" + botón Publicar | Publicidad fija | ![publica](docs/vmc-ahora/entrada-ad-publica.png) |
 | `blog` | Blog VMC | Título del artículo + botón Leer | Artículo de VMC | ![blog](docs/vmc-ahora/entrada-blog.png) |
@@ -80,7 +81,7 @@ El aviso de propuesta no tiene enlace. Dice que la propuesta **se envió**, no q
 | `T` | `V + N`. Las propuestas no cuentan: con 8 en vivo, 2 negociables y 20 propuestas, `T` es 10 |
 | Día | De 9:00 a 24:00, hora de Lima. Todo lo simulado se reparte en esas 15 horas |
 | Rotación | Volver a mostrar una oferta ya publicada. Sale como "Disponible…", nunca como nueva |
-| Simulada | Entrada que se inventa mientras no hay un hecho real de ese tipo (hoy: propuestas y registros) |
+| Simulada | Entrada que se inventa mientras no hay un hecho real de ese tipo (hoy: propuestas, registros y valorizaciones) |
 | Actividad (`A`) | Rotaciones + propuestas + registros + nuevas del día. Sirve para calcular cuánta publicidad sale |
 
 ## 5. Reglas
@@ -106,6 +107,9 @@ Estado de cada regla:
 | R12 | Nunca salen dos entradas de publicidad o blog seguidas si hay actividad en los 30 minutos siguientes | 🟡 |
 | R13 | Las ofertas llevan siempre su foto y el blog su portada | 🟡 |
 | R14 | Los contadores cuentan desde que la entrada sale en el feed. Una entrada de hace un minuto tiene pocas visitas | 🟡 |
+| R15 | La valorización simulada sale cada un número **primo** de minutos elegido de forma pseudoaleatoria (sección 6). No dice quién fue ni el monto, no lleva foto y sí lleva botón Valorizar. No se mueve de su minuto ni cuenta para la publicidad | 🟡 |
+| R16 | En un día, las valorizaciones simuladas **no repiten marca, modelo ni año**. Un modelo no vuelve en 4 días y la combinación exacta, en 28. El catálogo no usa modelos del inventario de ejemplo | 🟡 |
+| R17 | Al conectar `valuation.completed` se **apagan** las valorizaciones simuladas: no se mezclan con las reales. Máximo 1 aviso por modelo al día; un modelo fuera del catálogo común dice "un auto", y el aviso sale con demora para no delatar al dueño. Aún sin implementar | 🟡 |
 
 ### Ejemplos
 
@@ -122,7 +126,7 @@ Estado de cada regla:
 
 **R6, sin ofertas**
 - **Dado** 0 ofertas publicadas,
-- **entonces** el feed muestra solo "Valoriza tu auto", "Publica tu auto" y artículos del blog. No sale ninguna rotación, propuesta ni registro.
+- **entonces** el feed muestra solo "Valoriza tu auto", "Publica tu auto" y artículos del blog. No sale ninguna rotación, propuesta, registro ni valorización.
 
 ![Feed con 0 ofertas: solo publicidad y blog](docs/vmc-ahora/feed-0-ofertas.png)
 
@@ -182,11 +186,27 @@ Con 1 negociable salen 2; con 2, salen 4; con 3 o 4, ya se llega al tope de 5. E
 | Ofertas nuevas | Las reales. La demo inventa 2 con `T` ≥ 6: una en vivo a media mañana y una negociable a media tarde |
 | Publicidad + blog | `mín(15, máx(6, ⌈A / 2⌉))`. Un tercio es blog; el resto alterna las dos publicidades. +2 de blog si `N = 0` |
 
-Cada tipo se reparte parejo entre las 9:00 y las 24:00: una rotación cada `900 / R` minutos, una propuesta cada `900 / P` minutos, y así con los demás.
+Cada tipo se reparte parejo entre las 9:00 y las 24:00: una rotación cada `900 / R` minutos, una propuesta cada `900 / P` minutos, y así con los demás. La excepción son las valorizaciones.
+
+### Valorizaciones simuladas: juego de números primos
+
+No tienen fórmula de cantidad; la cantidad sale del juego (`valorizaciones(V, N, day)`):
+
+1. Sin ofertas (`T = 0`) no hay ninguna.
+2. Se parte de las 9:00 con `s = (31V + 37N + 41·día + 7) mod 100003`.
+3. En cada turno, `s = (7919·s + 104729) mod 100003`.
+4. El aviso sale `VAL_GAPS[s mod 31]` minutos después del anterior. `VAL_GAPS` son los 31 primos de 131 a 293.
+5. Termina cuando el siguiente aviso pasaría de las 24:00.
+
+Por esos límites salen entre 3 y 6 al día. En 3 650 combinaciones de escenario y día salieron 3, 4 o 5. Es pseudoaleatorio: el mismo día, `V` y `N` dan el mismo plan, y en producción hay que pasar el número del día para que cambie cada día (la demo avanza un día cada vez que termina el plan). Se comprueba con `node scripts/check-valorizaciones.mjs`.
+
+El auto **no se sortea**, porque el azar no garantiza variedad. Sale de `valLot(i)`, con `i = 6 · día + número del aviso`: 8 marcas, 3 modelos por marca (24 en total) y 7 años (2018 a 2024), cada uno con su propio ciclo. El orden es fijo, pero con 3 a 6 avisos al día no se llega a notar. El catálogo es de ejemplo: antes de producción hay que validar cada modelo y año contra lo que acepta el valorizador.
+
+En la demo el plan se reproduce cada 45 s (R1), así que los minutos solo deciden el orden; los intervalos primos se ven recién con horas reales.
 
 ### Ejemplo: 8 en vivo + 2 negociables
 
-8 rotaciones, 4 propuestas, 3 registros, 2 nuevas, 6 publicidades y 3 artículos de blog: **26 entradas** en el día. Los puntos claros son simulados:
+8 rotaciones, 4 propuestas, 3 registros, 3 valorizaciones, 2 nuevas, 6 publicidades y 3 artículos de blog: **29 entradas** en el día. Los puntos claros son simulados:
 
 ![Día con 8 en vivo + 2 negociables, por hora y tipo](docs/vmc-ahora/dia-8-2.svg)
 
@@ -204,7 +224,7 @@ En producción se usan los contadores **reales** de la ficha de la oferta. Esta 
 | Oferta en rotación | 30 a 60 | igual | 6 h |
 | Publicidad | 8 a 15 | 120 a 300 | 4 h |
 | Blog | 5 a 12 | 80 a 200 | 5 h |
-| Propuesta y registro | 0 | 40 a 200 | 3 h |
+| Propuesta, registro y valorización | 0 | 40 a 200 | 3 h |
 
 Cómo se muestran:
 
@@ -237,6 +257,7 @@ Cómo se muestran:
 | `offer.closed` | `id` | Deja de rotar. Resta 1 a `T` |
 | `proposal.sent` | `offerId`, hora | Entrada `propuesta` con la foto de la oferta, **sin** el usuario. Descuenta una simulada |
 | `user.registered` | Hora | Entrada `registro`, **sin** nombre. Descuenta una simulada |
+| `valuation.completed` | Marca, modelo, año, hora | Entrada `valorizacion`, **sin** usuario, placa ni monto. Apaga las simuladas de este tipo (R17) |
 
 ### Dónde vive cada cosa (recomendación, no decisión)
 
@@ -270,7 +291,10 @@ Las tres últimas filas son recomendación (no están en la demo, que repite el 
 
 Para dar por terminado el pase a producción:
 
-- [ ] Con `T = 0` no sale ninguna rotación, propuesta ni registro en todo el día.
+- [ ] Con `T = 0` no sale ninguna rotación, propuesta, registro ni valorización en todo el día.
+- [ ] Cada valorización simulada sale un número primo de minutos después de la anterior (de 131 a 293), sin usuario ni monto y con botón Valorizar.
+- [ ] En un día, las valorizaciones simuladas no repiten marca, modelo ni año.
+- [ ] Con `valuation.completed` conectado no sale ninguna valorización simulada.
 - [ ] Con `N = 0` no sale ningún aviso de propuesta.
 - [ ] Una propuesta real aparece en el feed en segundos (meta sugerida: menos de 5 s), con la foto de su oferta y sin datos del usuario.
 - [ ] Después de un real, la siguiente simulada no sale antes de 45 s.
