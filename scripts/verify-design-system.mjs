@@ -21,7 +21,7 @@ const contract = readJson(contractPath);
 const source = readJson(resolveInsideRoot(contract.concorde?.source || "config/concorde-source.json"));
 const materializedV2 = source.kind === "materialized-concorde-v2";
 const adapter = readText(resolve(root, "packages", "concorde-adapter", "src", "index.ts"));
-const tokenSource = materializedV2 ? readText(resolve(root, "packages", "concorde-adapter", "src", "tokens.css")) : readText(resolve(root, ".vendor", "chatbot-final-vmc", "frontend", "src", "app", "globals.css"));
+const tokenSource = materializedV2 ? ["tokens.css", "concorde/tokens.css"].map((file) => readText(resolve(root, "packages", "concorde-adapter", "src", file))).join("\n") :readText(resolve(root, ".vendor", "chatbot-final-vmc", "frontend", "src", "app", "globals.css"));
 const errors = [];
 const warnings = [];
 
