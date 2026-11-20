@@ -44,8 +44,11 @@ const BADGESTATUS_STYLES = `
 .badgestatus {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 5px;
   padding: 3px 8px 3px 6px;
+  min-width: 80px; /* EN VIVO y PRÓXIMA con el mismo ancho al apilarse */
+  box-sizing: border-box;
   border-radius: 9999px;
   font-family: var(--vmc-font-display, 'Plus Jakarta Sans', system-ui, sans-serif);
   font-size: 9px;
@@ -64,25 +67,25 @@ const BADGESTATUS_STYLES = `
    bg naranja diagonal + borde gradiente cálido + ring naranja */
 .badgestatus--live {
   background-image:
-    linear-gradient(135deg, #ff9639 0%, #ef852e 40%, #be3d00 100%),
-    linear-gradient(135deg, #ffbc83 0%, rgba(255,255,255,0.45) 40%, #da6c1e 75%, #ffbc83 100%);
+    linear-gradient(135deg, #f4ac59 0%, #ed8936 40%, #b25614 100%),
+    linear-gradient(135deg, #fbc47d 0%, rgba(255,255,255,0.45) 40%, #d46e20 75%, #fbc47d 100%);
   background-origin: padding-box, border-box;
   background-clip: padding-box, border-box;
   box-shadow:
-    rgba(239, 133, 46, 0.45) 0px 2px 10px,
+    rgba(237, 137, 54, 0.45) 0px 2px 10px,
     rgba(255, 255, 255, 0.14) 0px 1px 0px inset;
 }
 
 /* ── PRÓXIMA — sync EXACTO SVG (1310:11797 / 11799) ──
-   bg morado diagonal + borde gradiente lila + glow morado #200068 */
+   bg morado diagonal + borde gradiente lila + glow morado #22005c */
 .badgestatus--proxima {
   background-image:
     linear-gradient(135deg, #8460e5 0%, #3b1782 100%),
-    linear-gradient(135deg, #8776ff 0%, rgba(255,255,255,0.4) 38%, #532bc7 68%, #8776ff 100%);
+    linear-gradient(135deg, #ae8eff 0%, rgba(255,255,255,0.4) 38%, #5a35c2 68%, #ae8eff 100%);
   background-origin: padding-box, border-box;
   background-clip: padding-box, border-box;
   box-shadow:
-    rgba(32, 0, 104, 0.5) 0px 2px 10px,
+    rgba(34, 0, 92, 0.5) 0px 2px 10px,
     rgba(255, 255, 255, 0.1) 0px 1px 0px inset;
 }
 

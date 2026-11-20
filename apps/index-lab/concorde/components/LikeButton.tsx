@@ -78,7 +78,7 @@ const PLIKE_STYLES = `
   overflow: hidden;
   background:
     linear-gradient(#ffffff, #ffffff) padding-box,
-    linear-gradient(135deg, #e8ddff 0%, #ffffff 40%, #cfbaff 75%, #ae8eff 100%) border-box;
+    linear-gradient(135deg, #e8deff 0%, #ffffff 40%, #cfbaff 75%, #ae8eff 100%) border-box;
   box-shadow: none;
   transition:
     transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1),
@@ -114,12 +114,12 @@ const PLIKE_STYLES = `
   z-index: 2;
 }
 
-/* Hover — lift (interacción Concorde) + sombra morada #200068 exacta del SVG */
+/* Hover — lift (interacción Concorde) + sombra morada #22005c exacta del SVG */
 .plike:hover:not(.plike--disabled):not(.plike--skeleton) {
   transform: scale(1.08) translateY(-2px);
   box-shadow:
-    rgba(32, 0, 104, 0.22) 0px 10px 18px,
-    rgba(32, 0, 104, 0.12) 0px 3px 6px;
+    rgba(34, 0, 92, 0.22) 0px 10px 18px,
+    rgba(34, 0, 92, 0.12) 0px 3px 6px;
 }
 /* En hover el glass sube a 0.55 en TODOS los tamaños (SVG hover) */
 .plike:hover:not(.plike--disabled):not(.plike--skeleton):not(.plike--active)::before {
@@ -146,7 +146,7 @@ const PLIKE_STYLES = `
 .plike--sm:not(.plike--active):not(.plike--disabled):not(.plike--skeleton) {
   background:
     linear-gradient(#ffffff, #ffffff) padding-box,
-    linear-gradient(135deg, #e8ddff 0%, #ffffff 40%, #ae8eff 75%, #cfbaff 100%) border-box;
+    linear-gradient(135deg, #e8deff 0%, #ffffff 40%, #ae8eff 75%, #cfbaff 100%) border-box;
 }
 
 /* ── Active / liked — sync EXACTO SVG (1126:11427 sm / 1119:11380 md / 1119:11378 lg):

@@ -23,8 +23,8 @@
   },
   "concorde": {
     "source": "config/concorde-v2-source.json",
-    "revision": "concorde-v2-registry-aligned-2026-10-13",
-    "tree": "31b86922bd412953d2a4dadb28dbe217c75c1a5606fc53a0c24ee7d479508291"
+    "revision": "concorde-v2-registry-aligned-2026-11-20",
+    "tree": "fd5f4a92f6e1f80ff3be02946707d9fb2dc9c80e89159de5e7f8c8f9d30789be"
   },
   "implementation": {
     "entrypoint": "apps/index-lab/app/qa/home-index-rebase/page.tsx",

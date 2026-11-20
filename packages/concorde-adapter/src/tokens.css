@@ -1,16 +1,16 @@
-/* Directly transcribed from the public Concorde V2 component fallbacks. This
-   is the adapter's token surface, not a second palette or local design system. */
+/* Superficie de tokens del adaptador.
+   1) `concorde/tokens.css` es copia literal de AaronCoorahua/ConcordeV2 master
+      (src/styles/tokens.css). Si un valor difiere, mandan esos tokens: no se
+      redefine aquí ninguna variable que Concorde ya declare.
+   2) Debajo, solo las variables que usan los bloques instalados y que Concorde
+      todavía no publica en su tokens.css (transcritas de sus fallbacks). */
+@import "./concorde/tokens.css";
+
 :root {
   --vmc-font-display: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --vmc-font-mono: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-  --vmc-color-base-white: #ffffff;
   --vmc-color-ink: #191c1c;
-  --vmc-color-neutral-700: #667085;
-  --vmc-color-vault-300: #cfbaff;
-  --vmc-color-vault-700: #3b1782;
   --vmc-color-vault-800: #2e0f70;
-  --vmc-color-vault-900: #22005c;
-  --vmc-color-orange-600: #ed8936;
   --vmc-color-glass-stroke: rgba(255, 255, 255, 0.42);
   --vmc-color-glass-dark: rgba(32, 0, 104, 0.58);
   --vmc-color-glass-hero: rgba(34, 0, 92, 0.78);
@@ -21,7 +21,6 @@
   --vmc-border-divider: 1px solid #e8ddff;
   --vmc-radius-md: 8px;
   --vmc-radius-xl: 20px;
-  --vmc-radius-full: 9999px;
   --vmc-shadow-card: rgba(32, 0, 104, 0.10) 0 0 16px 4px;
   --vmc-font-size-caption: 11px;
   --vmc-font-size-label: 13px;
