@@ -10,9 +10,9 @@
  */
 
 import type { JSX } from "react";
-import OfferCard, { type OfferCardVariant } from "./OfferCard";
-import BadgeStatus from "./BadgeStatus";
-import CardTitle from "./CardTitle";
+import OfferCard, { type OfferCardVariant } from "@/concorde/components/OfferCard";
+import BadgeStatus from "@/concorde/components/BadgeStatus";
+import CardTitle from "@/concorde/components/CardTitle";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
