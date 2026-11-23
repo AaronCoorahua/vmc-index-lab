@@ -532,7 +532,7 @@ const BANNER_HEIGHT = 204; // con aire arriba y abajo: el copy y el panel de ben
 // Copy de las plantillas venta-empresa.html y publica-vmc.html (VMC-Laptop); `cut` = PNG recortado, si no la foto va en panel.
 type Campaign = { id: "valoriza" | "moto"; label: string; hint: string; eyebrow: string; title: JSX.Element; aria: string; lead: string; cta: string;
   img: string; pos?: string; fondo: { pos: string; bg: string }; cut?: boolean; points: { icon: VidrioName; text: string }[] };
-const CAMPAIGNS: Campaign[] = [
+export const CAMPAIGNS: Campaign[] = [
   { id: "valoriza", label: "Valoriza tu auto", hint: "Valor estimado en VMC", eyebrow: "Valoriza en VMC", aria: "Cuánto vale tu auto",
     title: <>¿Cuánto <em>vale</em> tu auto?</>, lead: "Responde unas preguntas y conoce el valor estimado de tu auto.", cta: "Valoriza tu auto",
     img: "/banners/vmc/campana-valor.jpg", pos: "68% 28%",
@@ -697,7 +697,7 @@ const BANNER_VIEWS: { id: BannerView; label: string; hint: string }[] = [
   { id: "claro", label: "E · Vidrio claro", hint: "Foto en la mitad derecha, vidrio sobre el corte" },
 ];
 
-function CampaignBanner({ view, camp = "valoriza" }: { view: BannerView; camp?: CampaignId }): JSX.Element {
+export function CampaignBanner({ view, camp = "valoriza" }: { view: BannerView; camp?: CampaignId }): JSX.Element {
   const c = CAMPAIGNS.find((x) => x.id === camp) ?? CAMPAIGNS[0];
   const points = (
     <ul>
