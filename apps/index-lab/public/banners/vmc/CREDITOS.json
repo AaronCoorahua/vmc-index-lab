@@ -2,5 +2,9 @@
  "*.jpg": {
   "source": "Generadas con IA (Nano Banana Pro) por Abraham Huacchillo el 26/10/2026, estilo de los banners «Publica en VMC»",
   "changes": "Redimensionadas a 2000 px (JPEG calidad 80)"
+ },
+ "hero-*-v2.jpg": {
+  "source": "Regeneradas con IA (GPT Image 2.5, Higgsfield) el 23/11/2026 desde las fotos originales del Hero: misma escena, sujeto más pequeño en el ~45 % de arriba",
+  "changes": "Recompuestas a 894×600 con scripts/hero-sizes.py; celular = recorte central 760×600"
  }
 }

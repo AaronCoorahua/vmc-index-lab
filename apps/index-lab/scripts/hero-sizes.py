@@ -1,6 +1,8 @@
 # Recompone las 5 fotos del Hero a las medidas reales del sitio, SIN texto (el título, la bajada y el botón los pone el HTML).
 # Escritorio 447×300 (@2x 894×600) · celular 380×300 (@2x 760×600). Uso: python3 scripts/hero-sizes.py <carpeta_salida>
-# El sujeto (personas + carro) va a la derecha, libre del texto HTML de la izquierda.
+# v2 (23/11): 01, 03, 04 y 05 se regeneraron con IA (GPT Image 2.5, desde la foto original) con la escena completa en el ~45 % de
+# arriba y la mitad de abajo limpia para el texto HTML. De cada una sale UNA maestra 894×600; el celular es su recorte central 760×600.
+# 02 Publica ya se veía bien y sigue con la composición de abajo (sin cambios).
 import sys, numpy as np
 from PIL import Image, ImageFilter
 
@@ -8,12 +10,10 @@ SRC = "public/banners/vmc/"
 # id, archivo, caja del sujeto en px de la fuente (x0, y0, x1, y1), borrar texto horneado (desde x, hasta x) o None, espejo,
 # escala mínima respecto de «llenar el alto» (1 = llena; <1 achica la escena y estira el fondo desde su borde).
 # Publica va espejada: el sujeto estaba a la izquierda, donde ahora va el texto (el emblema del carro no se lee a este tamaño).
+V2 = [("01-whatsapp", "hero-whatsapp-v2.jpg"), ("03-negociable", "hero-negociable-v2.jpg"),
+      ("04-valoriza-hoy", "hero-valoriza-hoy-v2.jpg"), ("05-valoriza-tiempo", "hero-valoriza-tiempo-v2.jpg")]
 HEROES = [
-    ("01-whatsapp", "hero-whatsapp-c.jpg", (980, 140, 2000, 1080), None, False, 1.0),
     ("02-publica", "hero-publica.jpg", (820, 60, 1900, 1116), None, True, 1.0),
-    ("03-negociable", "hero-negociable-a.jpg", (860, 200, 2000, 1116), None, False, 1.0),
-    ("04-valoriza-hoy", "hero-valoriza-hoy.jpg", (505, 8, 1165, 470), (452, 498), False, 0.84),
-    ("05-valoriza-tiempo", "hero-valoriza-tiempo.jpg", (585, 0, 1175, 600), (470, 540), False, 1.0),
 ]
 # Zona donde cae el sujeto (fracción del lienzo). En el sitio, con el Hero ≤ 700 px de ancho (sus dos medidas), el texto va ABAJO
 # a todo el ancho sobre un velo oscuro: las caras deben quedar en el tercio de arriba. Las fotos de estudio ya las tienen ahí;
@@ -72,8 +72,32 @@ def componer(im, caja, size, zona, smin):
     img = estira(estira(img, "t", max(oy, 0)), "b", H - max(oy, 0) - img.size[1])
     return estira(img, "l", max(ox, 0))
 
+K = 0.78  # el texto HTML empieza a ~30 % del alto en celular (título en 2 líneas): la escena baja de ~47 % a ~37 %.
+
+def achica(m, k):
+    # Escala la escena (sin deformar) pegada arriba y centrada; el resto es la misma foto agrandada y muy desenfocada
+    # (los bordes son degradés lisos de estudio, así que el empalme no se nota), fundida con 40 px de borde suave.
+    W, H = m.size; w, h = round(W * k), round(H * k)
+    bg = m.resize((round(W / k), round(H / k)), Image.LANCZOS).filter(ImageFilter.GaussianBlur(30))
+    bg = bg.crop(((bg.width - W) // 2, 0, (bg.width - W) // 2 + W, H))
+    mask = Image.new("L", (w, h), 0); mask.paste(255, (40, 0, w - 40, h - 40))
+    bg.paste(m.resize((w, h), Image.LANCZOS), ((W - w) // 2, 0), mask.filter(ImageFilter.GaussianBlur(16)))
+    return bg
+
+def guarda(x2, out, hid, fmt):
+    x2.save(f"{out}/hero-{hid}-{fmt}@2x.jpg", quality=90, optimize=True, progressive=True)
+    x2.resize((x2.width // 2, x2.height // 2), Image.LANCZOS).save(f"{out}/hero-{hid}-{fmt}.jpg", quality=90, optimize=True, progressive=True)
+    print("✓", hid, fmt)
+
 if __name__ == "__main__":
     out = sys.argv[1]
+    for hid, f in V2:
+        im = Image.open(SRC + f).convert("RGB")
+        h = round(im.width * 600 / im.height)
+        m = im.resize((h, 600), Image.LANCZOS).crop(((h - 894) // 2, 0, (h - 894) // 2 + 894, 600))
+        m = achica(m, K)  # maestra 894×600
+        guarda(m, out, hid, "desktop")
+        guarda(m.crop((67, 0, 827, 600)), out, hid, "mobile")  # zona segura central 760×600
     for hid, f, caja, borrar, espejo, smin in HEROES:
         im = Image.open(SRC + f).convert("RGB")
         if espejo: im = im.transpose(Image.FLIP_LEFT_RIGHT)
@@ -81,6 +105,4 @@ if __name__ == "__main__":
         for fmt, (size, zona) in FMT.items():
             x2 = componer(im, caja, size, ARRIBA[fmt] if borrar else zona, 0 if borrar else smin)
             assert x2.size == size, (hid, fmt, x2.size)
-            x2.save(f"{out}/hero-{hid}-{fmt}@2x.jpg", quality=90, optimize=True, progressive=True)
-            x2.resize((size[0] // 2, size[1] // 2), Image.LANCZOS).save(f"{out}/hero-{hid}-{fmt}.jpg", quality=90, optimize=True, progressive=True)
-            print("✓", hid, fmt)
+            guarda(x2, out, hid, fmt)
