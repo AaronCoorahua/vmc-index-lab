@@ -1043,6 +1043,133 @@ function VendoMisCosasRail(): JSX.Element {
   );
 }
 
+// ── Vendo Mis Cosas · Variación 2 (tendencias 2026): pieza editorial que invita a publicar (descubrir antes que
+// transaccionar, como el rediseño de Poshmark), filtros por categoría para que el carrusel no sea la única vía al
+// catálogo (Baymard), cards livianas en vertical con un solo dato diferenciador, flechas junto a «Ver todo» y barra de avance.
+const COSAS_CAT: Record<string, "Tecnología" | "Electrodomésticos"> = {
+  "nintendo-switch-lite": "Tecnología", ps5: "Tecnología", "macbook-pro": "Tecnología", "iphone-17": "Tecnología", "televisor-samsung": "Tecnología",
+  "refrigerador-lg": "Electrodomésticos", "lavadora-lg": "Electrodomésticos", "cocina-bosch": "Electrodomésticos",
+};
+const COSAS_FILTERS = ["Todo", "Tecnología", "Electrodomésticos"] as const;
+const VMC_COSAS2_CSS = `
+.hib-c2__nav { display: flex; align-items: center; gap: 8px; }
+.hib-c2__arrow { display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 1px solid #e8ddff; border-radius: 50%; background: #fff; color: #6b3fe0; cursor: pointer; transition: background 0.2s, color 0.2s, opacity 0.2s; }
+.hib-c2__arrow:hover:not([disabled]) { color: #fff; background: linear-gradient(135deg, #8460E5, #3B1782); border-color: transparent; }
+.hib-c2__arrow:focus-visible { outline: 2px solid #6b3fe0; outline-offset: 2px; }
+.hib-c2__arrow[disabled] { opacity: 0.35; cursor: default; }
+.hib-c2__body { display: grid; grid-template-columns: 208px minmax(0, 1fr); gap: 16px; padding: 0 24px; }
+.hib-c2__lead { position: relative; display: flex; flex-direction: column; justify-content: space-between; gap: 14px; padding: 18px; border-radius: 14px; overflow: hidden; color: #fff;
+  background: radial-gradient(120% 80% at 100% 0%, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 60%), linear-gradient(160deg, #8460E5 0%, #3B1782 100%); }
+.hib-c2__lead-ico { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 14px; background: rgba(255,255,255,0.92); }
+.hib-c2__lead h4 { margin: 0; font-size: 18px; line-height: 1.2; font-weight: 800; letter-spacing: -0.01em; }
+.hib-c2__lead p { margin: 6px 0 0; font-size: 13px; line-height: 1.4; color: rgba(255,255,255,0.86); }
+.hib-c2__main { display: grid; gap: 12px; min-width: 0; }
+.hib-c2__chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+.hib-c2__chips::-webkit-scrollbar { display: none; }
+.hib-c2__chip { flex: none; height: 30px; padding: 0 14px; border: 1px solid #e8ddff; border-radius: 999px; background: #fff; font: inherit; font-size: 12px; font-weight: 700; color: #3b1782; cursor: pointer; transition: background 0.2s, color 0.2s; }
+.hib-c2__chip:hover { background: #F3EFFD; }
+.hib-c2__chip[aria-pressed="true"] { border-color: transparent; color: #fff; background: linear-gradient(135deg, #8460E5, #3B1782); }
+.hib-c2__rail { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: none; padding: 2px 2px 4px; }
+.hib-c2__rail::-webkit-scrollbar { display: none; }
+.hib-c2__item { flex: 0 0 150px; scroll-snap-align: start; display: grid; gap: 2px; color: inherit; text-decoration: none; }
+.hib-c2__media { position: relative; aspect-ratio: 1; margin-bottom: 8px; border-radius: 14px; overflow: hidden; background: #F3EFFD; transition: box-shadow 0.25s, transform 0.25s; }
+.hib-c2__media img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
+.hib-c2__item:hover .hib-c2__media { transform: translateY(-2px); box-shadow: rgba(32,0,104,0.16) 0 8px 18px; }
+.hib-c2__item:hover .hib-c2__media img { transform: scale(1.05); }
+.hib-c2__cat { font-size: 11px; font-weight: 600; color: #8A879C; }
+.hib-c2__name { margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; line-height: 1.2; font-weight: 800; color: #14112B; }
+.hib-c2__item .lc-offer { margin-top: 4px; font-size: 13px; }
+.hib-c2__item .lc-offer svg { width: 18px; height: 18px; }
+.hib-c2__track { position: relative; height: 3px; border-radius: 999px; background: #EFEDF5; overflow: hidden; }
+.hib-c2__thumb { position: absolute; top: 0; bottom: 0; border-radius: 999px; background: linear-gradient(90deg, #8460E5, #3B1782); transition: left 0.15s linear, width 0.2s; }
+@media (max-width: 720px) {
+  .hib-c2__nav .hib-c2__arrow { display: none; }
+  .hib-c2__body { grid-template-columns: minmax(0, 1fr); padding: 0 16px; }
+  .hib-c2__lead { flex-direction: row; align-items: center; padding: 14px; }
+  .hib-c2__lead { gap: 12px; }
+  .hib-c2__lead-ico { width: 40px; height: 40px; border-radius: 12px; }
+  .hib-c2__lead h4 { font-size: 15px; }
+  .hib-c2__lead p { margin-top: 2px; font-size: 12px; }
+  /* En móvil la pieza entera es el enlace: el botón cede su lugar a una flecha. */
+  .hib-c2__lead-cta { display: none; }
+  .hib-c2__lead-go { display: grid !important; }
+  .hib-c2__item { flex-basis: 132px; }
+  .hib-c2__item .lc-offer { font-size: 12px; white-space: nowrap; }
+}
+`;
+function VendoMisCosasRail2(): JSX.Element {
+  const rail = useRef<HTMLDivElement>(null);
+  const [filter, setFilter] = useState<(typeof COSAS_FILTERS)[number]>("Todo");
+  const [pos, setPos] = useState({ start: true, end: false, left: 0, width: 100 });
+  const items = VMC_COSAS.filter(([, img]) => filter === "Todo" || COSAS_CAT[img] === filter);
+  const sync = useCallback(() => {
+    const el = rail.current;
+    if (!el) return;
+    const max = el.scrollWidth - el.clientWidth;
+    const width = (el.clientWidth / el.scrollWidth) * 100;
+    setPos({ start: el.scrollLeft < 4, end: el.scrollLeft >= max - 4, width, left: max > 0 ? (el.scrollLeft / max) * (100 - width) : 0 });
+  }, []);
+  useEffect(() => {
+    rail.current?.scrollTo({ left: 0 });
+    sync();
+    window.addEventListener("resize", sync);
+    return () => window.removeEventListener("resize", sync);
+  }, [sync, filter]);
+  const go = (dir: 1 | -1) => { const el = rail.current; if (el) el.scrollBy({ left: dir * (el.clientWidth - 160) }); };
+  return (
+    <section aria-label="Vendo Mis Cosas" style={{ boxSizing: "border-box", width: "100%", background: "#ffffff", borderRadius: 16, boxShadow: SHADOW, padding: "0 0 20px", display: "flex", flexDirection: "column", gap: 16, fontFamily: FONT }}>
+      <style>{VMC_COSAS2_CSS}</style>
+      <header className="hib-lots-head" style={{ boxSizing: "border-box", flex: "none", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, height: 68, padding: "0 24px", borderBottom: "1px solid #e8ddff" }}>
+        <div style={{ display: "grid", gap: 2, minWidth: 0 }}>
+          <h3 style={{ margin: 0, fontSize: 16, lineHeight: "20px", fontWeight: 700, letterSpacing: "-0.01em", color: "#3b1782", whiteSpace: "nowrap" }}>Vendo Mis Cosas</h3>
+          <p style={{ margin: 0, fontSize: 12, lineHeight: "16.8px", color: "#6B6878" }}>{VMC_COSAS.length} artículos</p>
+        </div>
+        <div className="hib-c2__nav">
+          <button type="button" className="hib-c2__arrow" aria-label="Anteriores" disabled={pos.start} onClick={() => go(-1)}><Chevron dir="prev" /></button>
+          <button type="button" className="hib-c2__arrow" aria-label="Siguientes" disabled={pos.end} onClick={() => go(1)}><Chevron dir="next" /></button>
+          <ProfileButton className="hib-lots-cta">Ver todo</ProfileButton>
+        </div>
+      </header>
+      <div className="hib-c2__body">
+        <aside className="hib-c2__lead">
+          <span className="hib-c2__lead-ico"><Vidrio s="publicar" size={30} /></span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <h4>¿Dejaste de usarlo?</h4>
+            <p>Publícalo en VMC y recibe propuestas.</p>
+          </div>
+          <div className="hib-c2__lead-cta" style={{ flex: "none" }}><Button variant="primary">Publicar</Button></div>
+          <a href="#" className="hib-c2__lead-go" aria-label="Publicar" style={{ display: "none", flex: "none", placeItems: "center", width: 32, height: 32, borderRadius: "50%", background: "#fff", color: "#6b3fe0" }}><Chevron dir="next" /></a>
+        </aside>
+        <div className="hib-c2__main">
+          <div className="hib-c2__chips" role="group" aria-label="Filtrar por categoría">
+            {COSAS_FILTERS.map((f) => <button key={f} type="button" className="hib-c2__chip" aria-pressed={filter === f} onClick={() => setFilter(f)}>{f}</button>)}
+          </div>
+          <div ref={rail} className="hib-c2__rail" onScroll={sync}>
+            {items.map(([name, img]) => (
+              <a key={img} href="#" className="hib-c2__item">
+                <div className="hib-c2__media">
+                  <img src={`/demo/vendo-mis-cosas/${img}.jpg`} alt={name} loading="lazy" />
+                  <button type="button" className="lc-like" aria-label={`Guardar ${name}`} onClick={(e) => e.preventDefault()}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" /></svg>
+                  </button>
+                </div>
+                <span className="hib-c2__cat">{COSAS_CAT[img]}</span>
+                <p className="hib-c2__name">{name}</p>
+                <span className="lc-offer">{HANDS}Haz tu propuesta</span>
+              </a>
+            ))}
+          </div>
+          <div className="hib-c2__track" aria-hidden><span className="hib-c2__thumb" style={{ left: `${pos.left}%`, width: `${pos.width}%` }} /></div>
+        </div>
+      </div>
+    </section>
+  );
+}
+const COSAS_VIEWS: { id: "v1" | "v2"; label: string; hint: string }[] = [
+  { id: "v1", label: "Variación 1", hint: "Tienda: cards cuadradas y flechas sobre la foto" },
+  { id: "v2", label: "Variación 2", hint: "Pieza para publicar, filtros, cards verticales y barra de avance" },
+];
+
 // «Vende tu vehículo» (réplica de vmc-index-final-review): dos opciones a la izquierda y el beneficio de
 // SubasCars a la derecha, con ProfileButton de Concorde y el botón de vidrio del hero.
 const SELL_CSS = `
@@ -2047,6 +2174,9 @@ export default function HomeIndexBlock({ hideFeed = false, feedSlot = false, onO
   hideFeed?: boolean; feedSlot?: boolean; onOpenFeed?: () => void; feedMore?: boolean;
 }): JSX.Element {
   // Cada tienda tiene su propio selector de vista de lotes y de Detail card.
+  // Vendo Mis Cosas: Variación 2 por defecto; ?cosas=v1 abre la 1 (para compartir el link de cada una).
+  const [cosasView, setCosasView] = useState<"v1" | "v2">("v2");
+  useEffect(() => { if (new URLSearchParams(window.location.search).get("cosas") === "v1") setCosasView("v1"); }, []);
   const [lotsView, setLotsView] = useState<LotsView>(() => initQa("lotsView", OPTION_A.lotsView));
   const [cardStyle, setCardStyle] = useState<CardStyle>(() => initQa("cardStyle", OPTION_A.cardStyle));
   const [lotsView2, setLotsView2] = useState<LotsView>(() => initQa("lotsView2", OPTION_A.lotsView2));
@@ -2184,7 +2314,10 @@ export default function HomeIndexBlock({ hideFeed = false, feedSlot = false, onO
           <ViewSwitch title="Tipo de oferta" options={OFFER_TYPE_VIEWS} value={offerView} onChange={setOfferView} />
         </Switches>
       </div>
-      <VendoMisCosasRail />
+      <div style={{ position: "relative", width: "100%" }}>
+        {cosasView === "v1" ? <VendoMisCosasRail /> : <VendoMisCosasRail2 />}
+        <Switches visible={controls}><ViewSwitch title="Vendo Mis Cosas" suffix="" options={COSAS_VIEWS} value={cosasView} onChange={setCosasView} /></Switches>
+      </div>
       <div style={{ position: "relative", width: "100%" }}>
         <LotsSection view={lotsView} card={cardStyle} store={STORES[0]} />
         <Switches visible={controls}>
