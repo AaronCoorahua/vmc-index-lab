@@ -979,8 +979,6 @@ const VMC_COSAS_CSS = `
 .hib-cosas--borde .hib-cosas__media img { border-radius: 12px; }
 .hib-cosas__like { position: absolute; top: 8px; right: 8px; z-index: 2; display: grid; }
 .hib-cosas__name { margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; line-height: 1.2; font-weight: 800; color: #14112B; }
-.hib-cosas__item .lc-offer { font-size: 13px; }
-.hib-cosas__item .lc-offer svg { width: 18px; height: 18px; }
 /* Flechas: círculo blanco con sombra, como los favoritos de las cards, centradas en la foto; se ocultan en el borde. */
 .hib-cosas__arrow { position: absolute; top: 60px; z-index: 3; display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 50%;
   color: #6b3fe0; background: #fff; box-shadow: rgba(32,0,104,0.18) 0 2px 8px; cursor: pointer; transition: opacity 0.2s, transform 0.2s; }
@@ -995,7 +993,6 @@ const VMC_COSAS_CSS = `
   .hib-cosas__media { height: 136px; }
 }
 `;
-const HANDS = <svg viewBox="0 0 24 24" aria-hidden><path d="M2 12l4-4 4 2 3-2 4 1 5 3-4 5-3-1-3 2-3-2-3 1z" fill="#00A8AB" opacity="0.9" /><path d="M9 12l2 2M12 11l2 2" stroke="#fff" strokeWidth="1.4" strokeLinecap="round" /></svg>;
 // Julio (27/11): sin «Recibe ofertas» ni «Haz tu propuesta»; dos versiones, con la línea cyan de Negociable abajo y sin ella.
 function VendoMisCosasRail({ deco }: { deco: "linea" | "borde" | null }): JSX.Element {
   const rail = useRef<HTMLDivElement>(null);
@@ -1081,8 +1078,6 @@ const VMC_COSAS2_CSS = `
 .hib-c2__media .hib-cosas__like { position: absolute; top: 8px; right: 8px; z-index: 2; display: grid; }
 .hib-c2__cat { font-size: 11px; font-weight: 600; color: #8A879C; }
 .hib-c2__name { margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; line-height: 1.2; font-weight: 800; color: #14112B; }
-.hib-c2__item .lc-offer { margin-top: 4px; font-size: 13px; }
-.hib-c2__item .lc-offer svg { width: 18px; height: 18px; }
 .hib-c2__track { position: relative; height: 3px; border-radius: 999px; background: #EFEDF5; overflow: hidden; }
 .hib-c2__thumb { position: absolute; top: 0; bottom: 0; border-radius: 999px; background: linear-gradient(90deg, #8460E5, #3B1782); transition: left 0.15s linear, width 0.2s; }
 @media (max-width: 720px) {
@@ -1097,7 +1092,6 @@ const VMC_COSAS2_CSS = `
   .hib-c2__lead-cta { display: none; }
   .hib-c2__lead-go { display: grid !important; }
   .hib-c2__item { flex-basis: 132px; }
-  .hib-c2__item .lc-offer { font-size: 12px; white-space: nowrap; }
 }
 `;
 function VendoMisCosasRail2(): JSX.Element {
@@ -1156,7 +1150,6 @@ function VendoMisCosasRail2(): JSX.Element {
                 </div>
                 <span className="hib-c2__cat">{COSAS_CAT[img]}</span>
                 <p className="hib-c2__name">{name}</p>
-                <span className="lc-offer">{HANDS}Haz tu propuesta</span>
               </a>
             ))}
           </div>
