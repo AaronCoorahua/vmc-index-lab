@@ -1051,19 +1051,21 @@ const COSAS_CAT: Record<string, "Tecnología" | "Electrodomésticos"> = {
 };
 const COSAS_FILTERS = ["Todo", "Tecnología", "Electrodomésticos"] as const;
 const VMC_COSAS2_CSS = `
+${GLASS_CSS}
 .hib-c2__nav { display: flex; align-items: center; gap: 8px; }
 .hib-c2__arrow { display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 1px solid #e8ddff; border-radius: 50%; background: #fff; color: #6b3fe0; cursor: pointer; transition: background 0.2s, color 0.2s, opacity 0.2s; }
 .hib-c2__arrow:hover:not([disabled]) { color: #fff; background: linear-gradient(135deg, #8460E5, #3B1782); border-color: transparent; }
 .hib-c2__arrow:focus-visible { outline: 2px solid #6b3fe0; outline-offset: 2px; }
 .hib-c2__arrow[disabled] { opacity: 0.35; cursor: default; }
-.hib-c2__body { display: grid; grid-template-columns: 208px minmax(0, 1fr); gap: 16px; padding: 0 24px; }
-.hib-c2__lead { position: relative; display: flex; flex-direction: column; justify-content: space-between; gap: 14px; min-height: 290px; padding: 18px; border-radius: 14px; overflow: hidden; color: #fff;
-  background: #3B1782 url(/demo/vendo-mis-cosas/banner-laptop.jpg) center bottom / cover no-repeat; }
+.hib-c2__body { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 16px; align-items: stretch; padding: 0 24px; }
+.hib-c2__lead .hib-glass { width: 100%; height: 34px; padding: 0 16px; font-size: 13px; }
+.hib-c2__lead { position: relative; display: flex; flex-direction: column; justify-content: space-between; gap: 10px; padding: 16px; border-radius: 14px; overflow: hidden; color: #fff;
+  background: #3B1782 url(/demo/vendo-mis-cosas/banner-laptop.jpg) center 78% / cover no-repeat; }
 /* Banner de Prisma (estudio, estela, ícono esmerilado). Velo arriba (titular) y abajo (botón); el centro queda limpio. */
-.hib-c2__lead::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(34,0,92,0.55) 0%, rgba(34,0,92,0) 42%, rgba(34,0,92,0) 70%, rgba(34,0,92,0.6) 100%); }
+.hib-c2__lead::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(34,0,92,0.6) 0%, rgba(34,0,92,0) 38%, rgba(34,0,92,0) 74%, rgba(34,0,92,0.55) 100%); }
 .hib-c2__lead > * { position: relative; }
-.hib-c2__lead h4 { margin: 0; font-size: 18px; line-height: 1.2; font-weight: 800; letter-spacing: -0.01em; text-shadow: rgba(20,0,60,0.35) 0 1px 6px; }
-.hib-c2__lead p { margin: 6px 0 0; font-size: 13px; line-height: 1.4; color: rgba(255,255,255,0.9); text-shadow: rgba(20,0,60,0.35) 0 1px 6px; }
+.hib-c2__lead h4 { margin: 0; font-size: 16px; line-height: 1.2; font-weight: 800; letter-spacing: -0.01em; text-shadow: rgba(20,0,60,0.35) 0 1px 6px; }
+.hib-c2__lead p { margin: 4px 0 0; font-size: 12px; line-height: 1.4; color: rgba(255,255,255,0.9); text-shadow: rgba(20,0,60,0.35) 0 1px 6px; }
 .hib-c2__main { display: grid; gap: 12px; min-width: 0; }
 .hib-c2__chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
 .hib-c2__chips::-webkit-scrollbar { display: none; }
@@ -1135,7 +1137,7 @@ function VendoMisCosasRail2(): JSX.Element {
             <h4>¿Dejaste de usarlo?</h4>
             <p>Publícalo en VMC y recibe propuestas.</p>
           </div>
-          <div className="hib-c2__lead-cta" style={{ flex: "none" }}><Button variant="primary">Publicar</Button></div>
+          <div className="hib-c2__lead-cta" style={{ flex: "none" }}><button type="button" className="hib-glass">Publicar</button></div>
           <a href="#" className="hib-c2__lead-go" aria-label="Publicar" style={{ display: "none", flex: "none", placeItems: "center", width: 32, height: 32, borderRadius: "50%", background: "#fff", color: "#6b3fe0" }}><Chevron dir="next" /></a>
         </aside>
         <div className="hib-c2__main">
