@@ -28,7 +28,7 @@ import {
 } from "@vmc/concorde-adapter";
 
 import {
-  CompactCurveCard, EbayLotRow, FichaCard, FichaLegend, FichaPlus, FichaPro, GlassCard, ImmersiveCard, LotCardStyles, ReliefCard, SummaryCard,
+  Clike, CompactCurveCard, EbayLotRow, FichaCard, FichaLegend, FichaPlus, FichaPro, GlassCard, ImmersiveCard, LotCardStyles, ReliefCard, SummaryCard,
   type FichaLayout, type LegendTier, type LotData, type ProTheme,
 } from "./LotCards";
 import VmcAhora, {
@@ -958,7 +958,7 @@ const FLAT: CSSProperties = { boxSizing: "border-box", width: "100%", fontFamily
 
 // «Vendo Mis Cosas»: carrusel horizontal (ref. «Ofertas del día» de eBay) con el catálogo de muestra de la landing de Julio
 // (apuherrerafo/ConcordeV2-Landing-Vendo-Mis-Cosas). Muestra visual: sin precios ni disponibilidad reales.
-// Mismo armazón que las tiendas (tarjeta, cabecera 68 px, ícono 56 × 44) y piezas de las cards de lotes (.lc-like, .lc-pill, .lc-offer).
+// Mismo armazón que las tiendas (tarjeta, cabecera 68 px, ícono 56 × 44) y el corazón de las cards de vehículos (Clike de Concorde, con su pop).
 const VMC_COSAS = [
   ["Nintendo Switch Lite", "nintendo-switch-lite"], ["PS5", "ps5"], ["Refrigerador LG", "refrigerador-lg"],
   ["Televisor Samsung", "televisor-samsung"], ["Lavadora LG", "lavadora-lg"], ["Cocina Bosch", "cocina-bosch"],
@@ -973,11 +973,15 @@ const VMC_COSAS_CSS = `
 .hib-cosas__media img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; }
 .hib-cosas__item:hover .hib-cosas__media img { transform: scale(1.05); }
 /* Línea cyan de las cards Negociables (.lc--negotiable::after), al pie de la foto. */
-.hib-cosas--line .hib-cosas__media::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 6px; background: linear-gradient(90deg, #00DAE0 0%, #008688 100%); }
+.hib-cosas--linea .hib-cosas__media::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 6px; background: linear-gradient(90deg, #00DAE0 0%, #008688 100%); }
+/* Borde cian (mismo degradado de Negociable) alrededor de la foto: borde transparente + fondo en border-box. */
+.hib-cosas--borde .hib-cosas__media { border: 2px solid transparent; background: linear-gradient(#F3EFFD, #F3EFFD) padding-box, linear-gradient(135deg, #00DAE0 0%, #008688 100%) border-box; }
+.hib-cosas--borde .hib-cosas__media img { border-radius: 12px; }
+.hib-cosas__like { position: absolute; top: 8px; right: 8px; z-index: 2; display: grid; }
 .hib-cosas__name { margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; line-height: 1.2; font-weight: 800; color: #14112B; }
 .hib-cosas__item .lc-offer { font-size: 13px; }
 .hib-cosas__item .lc-offer svg { width: 18px; height: 18px; }
-/* Flechas: mismo círculo blanco con sombra que el favorito (.lc-like), centradas en la foto; se ocultan en el borde. */
+/* Flechas: círculo blanco con sombra, como los favoritos de las cards, centradas en la foto; se ocultan en el borde. */
 .hib-cosas__arrow { position: absolute; top: 60px; z-index: 3; display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 50%;
   color: #6b3fe0; background: #fff; box-shadow: rgba(32,0,104,0.18) 0 2px 8px; cursor: pointer; transition: opacity 0.2s, transform 0.2s; }
 .hib-cosas__arrow:hover { transform: scale(1.08); }
@@ -993,7 +997,7 @@ const VMC_COSAS_CSS = `
 `;
 const HANDS = <svg viewBox="0 0 24 24" aria-hidden><path d="M2 12l4-4 4 2 3-2 4 1 5 3-4 5-3-1-3 2-3-2-3 1z" fill="#00A8AB" opacity="0.9" /><path d="M9 12l2 2M12 11l2 2" stroke="#fff" strokeWidth="1.4" strokeLinecap="round" /></svg>;
 // Julio (27/11): sin «Recibe ofertas» ni «Haz tu propuesta»; dos versiones, con la línea cyan de Negociable abajo y sin ella.
-function VendoMisCosasRail({ line }: { line: boolean }): JSX.Element {
+function VendoMisCosasRail({ deco }: { deco: "linea" | "borde" | null }): JSX.Element {
   const rail = useRef<HTMLDivElement>(null);
   const [edge, setEdge] = useState({ start: true, end: false });
   const sync = useCallback(() => {
@@ -1022,16 +1026,14 @@ function VendoMisCosasRail({ line }: { line: boolean }): JSX.Element {
         </div>
         <div style={{ flex: "none" }}><ProfileButton className="hib-lots-cta">Ver todo</ProfileButton></div>
       </header>
-      <div className={`hib-cosas__wrap${line ? " hib-cosas--line" : ""}`} style={{ padding: "0 24px" }}>
+      <div className={`hib-cosas__wrap${deco ? ` hib-cosas--${deco}` : ""}`} style={{ padding: "0 24px" }}>
         <button type="button" className="hib-cosas__arrow hib-cosas__arrow--prev" aria-label="Anteriores" disabled={edge.start} onClick={() => go(-1)}><Chevron dir="prev" /></button>
         <div ref={rail} className="hib-cosas__rail" onScroll={sync}>
           {VMC_COSAS.map(([name, img]) => (
             <a key={img} href="#" className="hib-cosas__item">
               <div className="hib-cosas__media">
                 <img src={`/demo/vendo-mis-cosas/${img}.jpg`} alt={name} loading="lazy" />
-                <button type="button" className="lc-like" aria-label={`Guardar ${name}`} onClick={(e) => e.preventDefault()}>
-                  <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" /></svg>
-                </button>
+                <span className="hib-cosas__like"><Clike name={name} /></span>
               </div>
               <p className="hib-cosas__name">{name}</p>
             </a>
@@ -1076,6 +1078,7 @@ const VMC_COSAS2_CSS = `
 .hib-c2__media img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
 .hib-c2__item:hover .hib-c2__media { transform: translateY(-2px); box-shadow: rgba(32,0,104,0.16) 0 8px 18px; }
 .hib-c2__item:hover .hib-c2__media img { transform: scale(1.05); }
+.hib-c2__media .hib-cosas__like { position: absolute; top: 8px; right: 8px; z-index: 2; display: grid; }
 .hib-c2__cat { font-size: 11px; font-weight: 600; color: #8A879C; }
 .hib-c2__name { margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; line-height: 1.2; font-weight: 800; color: #14112B; }
 .hib-c2__item .lc-offer { margin-top: 4px; font-size: 13px; }
@@ -1149,9 +1152,7 @@ function VendoMisCosasRail2(): JSX.Element {
               <a key={img} href="#" className="hib-c2__item">
                 <div className="hib-c2__media">
                   <img src={`/demo/vendo-mis-cosas/${img}.jpg`} alt={name} loading="lazy" />
-                  <button type="button" className="lc-like" aria-label={`Guardar ${name}`} onClick={(e) => e.preventDefault()}>
-                    <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" /></svg>
-                  </button>
+                  <span className="hib-cosas__like"><Clike name={name} /></span>
                 </div>
                 <span className="hib-c2__cat">{COSAS_CAT[img]}</span>
                 <p className="hib-c2__name">{name}</p>
@@ -1165,10 +1166,11 @@ function VendoMisCosasRail2(): JSX.Element {
     </section>
   );
 }
-type CosasView = "linea" | "sin-linea" | "v2";
+type CosasView = "linea" | "sin-linea" | "borde" | "v2";
 const COSAS_VIEWS: { id: CosasView; label: string; hint: string }[] = [
   { id: "linea", label: "V1 · con línea", hint: "Foto y nombre, línea cyan de Negociable abajo" },
   { id: "sin-linea", label: "V1 · sin línea", hint: "Foto y nombre, sin línea" },
+  { id: "borde", label: "V1 · borde cian", hint: "Foto y nombre con borde cian (ruta /borde)" },
   { id: "v2", label: "Variación 2", hint: "Pieza para publicar, filtros, cards verticales y barra de avance" },
 ];
 
@@ -2179,7 +2181,7 @@ export default function HomeIndexBlock({ hideFeed = false, feedSlot = false, onO
   // Vendo Mis Cosas: «V1 · con línea» por defecto; ?cosas=sin-linea | v2 abre las otras (para compartir el link de cada una).
   const [cosasView, setCosasView] = useState<CosasView>("linea");
   useEffect(() => {
-    const v = new URLSearchParams(window.location.search).get("cosas");
+    const v = new URLSearchParams(window.location.search).get("cosas") ?? (window.location.pathname.endsWith("/borde") ? "borde" : null);
     if (COSAS_VIEWS.some((o) => o.id === v)) setCosasView(v as CosasView);
   }, []);
   const [lotsView, setLotsView] = useState<LotsView>(() => initQa("lotsView", OPTION_A.lotsView));
@@ -2320,7 +2322,7 @@ export default function HomeIndexBlock({ hideFeed = false, feedSlot = false, onO
         </Switches>
       </div>
       <div style={{ position: "relative", width: "100%" }}>
-        {cosasView === "v2" ? <VendoMisCosasRail2 /> : <VendoMisCosasRail line={cosasView === "linea"} />}
+        {cosasView === "v2" ? <VendoMisCosasRail2 /> : <VendoMisCosasRail deco={cosasView === "sin-linea" ? null : cosasView} />}
         <Switches visible={controls}><ViewSwitch title="Vendo Mis Cosas" suffix="" options={COSAS_VIEWS} value={cosasView} onChange={setCosasView} /></Switches>
       </div>
       <div style={{ position: "relative", width: "100%" }}>

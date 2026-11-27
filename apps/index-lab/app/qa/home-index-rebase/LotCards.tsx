@@ -738,13 +738,13 @@ export function FichaLegend({ lot, tier, featured, width, height, mediaFill, cur
 }
 
 /** Like de Concorde (LikeButton): corazón con borde degradado lila; activo, relleno morado con pop. */
-function Clike({ name, size = 30 }: { name: string; size?: number }): JSX.Element {
+export function Clike({ name, size = 30 }: { name: string; size?: number }): JSX.Element {
   const [on, setOn] = useState(false);
   const [pop, setPop] = useState(0);
   return (
     <button type="button" className={`clike${on ? " clike--active" : ""}${pop ? " clike--pop" : ""}`} style={{ width: size, height: size }}
       aria-label={`Agregar a favoritos: ${name}`} aria-pressed={on}
-      onClick={(e) => { e.stopPropagation(); setOn((v) => !v); setPop((n) => n + 1); }} onAnimationEnd={() => setPop(0)}>
+      onClick={(e) => { e.stopPropagation(); e.preventDefault(); setOn((v) => !v); setPop((n) => n + 1); }} onAnimationEnd={() => setPop(0)}>
       <svg width="15" height="15" viewBox="0 0 24 24" fill={on ? "#ffffff" : "#ffffff"} stroke={on ? "#ffffff" : "#5a35c2"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
       </svg>
