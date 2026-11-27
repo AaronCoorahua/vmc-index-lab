@@ -972,6 +972,8 @@ const VMC_COSAS_CSS = `
 .hib-cosas__media { position: relative; height: 156px; margin-bottom: 7px; border-radius: 14px; overflow: hidden; background: #F3EFFD; }
 .hib-cosas__media img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; }
 .hib-cosas__item:hover .hib-cosas__media img { transform: scale(1.05); }
+/* Línea cyan de las cards Negociables (.lc--negotiable::after), al pie de la foto. */
+.hib-cosas--line .hib-cosas__media::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 6px; background: linear-gradient(90deg, #00DAE0 0%, #008688 100%); }
 .hib-cosas__name { margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; line-height: 1.2; font-weight: 800; color: #14112B; }
 .hib-cosas__item .lc-offer { font-size: 13px; }
 .hib-cosas__item .lc-offer svg { width: 18px; height: 18px; }
@@ -990,8 +992,8 @@ const VMC_COSAS_CSS = `
 }
 `;
 const HANDS = <svg viewBox="0 0 24 24" aria-hidden><path d="M2 12l4-4 4 2 3-2 4 1 5 3-4 5-3-1-3 2-3-2-3 1z" fill="#00A8AB" opacity="0.9" /><path d="M9 12l2 2M12 11l2 2" stroke="#fff" strokeWidth="1.4" strokeLinecap="round" /></svg>;
-const TAG = <svg viewBox="0 0 24 24" aria-hidden><path d="M3 12V4h8l10 10-8 8z" fill="currentColor" /><circle cx="7.5" cy="8.5" r="1.6" fill="#fff" /></svg>;
-function VendoMisCosasRail(): JSX.Element {
+// Julio (27/11): sin «Recibe ofertas» ni «Haz tu propuesta»; dos versiones, con la línea cyan de Negociable abajo y sin ella.
+function VendoMisCosasRail({ line }: { line: boolean }): JSX.Element {
   const rail = useRef<HTMLDivElement>(null);
   const [edge, setEdge] = useState({ start: true, end: false });
   const sync = useCallback(() => {
@@ -1020,20 +1022,18 @@ function VendoMisCosasRail(): JSX.Element {
         </div>
         <div style={{ flex: "none" }}><ProfileButton className="hib-lots-cta">Ver todo</ProfileButton></div>
       </header>
-      <div className="hib-cosas__wrap" style={{ padding: "0 24px" }}>
+      <div className={`hib-cosas__wrap${line ? " hib-cosas--line" : ""}`} style={{ padding: "0 24px" }}>
         <button type="button" className="hib-cosas__arrow hib-cosas__arrow--prev" aria-label="Anteriores" disabled={edge.start} onClick={() => go(-1)}><Chevron dir="prev" /></button>
         <div ref={rail} className="hib-cosas__rail" onScroll={sync}>
           {VMC_COSAS.map(([name, img]) => (
             <a key={img} href="#" className="hib-cosas__item">
               <div className="hib-cosas__media">
                 <img src={`/demo/vendo-mis-cosas/${img}.jpg`} alt={name} loading="lazy" />
-                <div className="lc-pills"><span className="lc-pill lc-pill--negotiable">{TAG}Recibe ofertas</span></div>
                 <button type="button" className="lc-like" aria-label={`Guardar ${name}`} onClick={(e) => e.preventDefault()}>
                   <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" /></svg>
                 </button>
               </div>
               <p className="hib-cosas__name">{name}</p>
-              <span className="lc-offer">{HANDS}Haz tu propuesta</span>
             </a>
           ))}
         </div>
@@ -1165,8 +1165,10 @@ function VendoMisCosasRail2(): JSX.Element {
     </section>
   );
 }
-const COSAS_VIEWS: { id: "v1" | "v2"; label: string; hint: string }[] = [
-  { id: "v1", label: "Variación 1", hint: "Tienda: cards cuadradas y flechas sobre la foto" },
+type CosasView = "linea" | "sin-linea" | "v2";
+const COSAS_VIEWS: { id: CosasView; label: string; hint: string }[] = [
+  { id: "linea", label: "V1 · con línea", hint: "Foto y nombre, línea cyan de Negociable abajo" },
+  { id: "sin-linea", label: "V1 · sin línea", hint: "Foto y nombre, sin línea" },
   { id: "v2", label: "Variación 2", hint: "Pieza para publicar, filtros, cards verticales y barra de avance" },
 ];
 
@@ -2174,9 +2176,12 @@ export default function HomeIndexBlock({ hideFeed = false, feedSlot = false, onO
   hideFeed?: boolean; feedSlot?: boolean; onOpenFeed?: () => void; feedMore?: boolean;
 }): JSX.Element {
   // Cada tienda tiene su propio selector de vista de lotes y de Detail card.
-  // Vendo Mis Cosas: Variación 2 por defecto; ?cosas=v1 abre la 1 (para compartir el link de cada una).
-  const [cosasView, setCosasView] = useState<"v1" | "v2">("v2");
-  useEffect(() => { if (new URLSearchParams(window.location.search).get("cosas") === "v1") setCosasView("v1"); }, []);
+  // Vendo Mis Cosas: «V1 · con línea» por defecto; ?cosas=sin-linea | v2 abre las otras (para compartir el link de cada una).
+  const [cosasView, setCosasView] = useState<CosasView>("linea");
+  useEffect(() => {
+    const v = new URLSearchParams(window.location.search).get("cosas");
+    if (COSAS_VIEWS.some((o) => o.id === v)) setCosasView(v as CosasView);
+  }, []);
   const [lotsView, setLotsView] = useState<LotsView>(() => initQa("lotsView", OPTION_A.lotsView));
   const [cardStyle, setCardStyle] = useState<CardStyle>(() => initQa("cardStyle", OPTION_A.cardStyle));
   const [lotsView2, setLotsView2] = useState<LotsView>(() => initQa("lotsView2", OPTION_A.lotsView2));
@@ -2315,7 +2320,7 @@ export default function HomeIndexBlock({ hideFeed = false, feedSlot = false, onO
         </Switches>
       </div>
       <div style={{ position: "relative", width: "100%" }}>
-        {cosasView === "v1" ? <VendoMisCosasRail /> : <VendoMisCosasRail2 />}
+        {cosasView === "v2" ? <VendoMisCosasRail2 /> : <VendoMisCosasRail line={cosasView === "linea"} />}
         <Switches visible={controls}><ViewSwitch title="Vendo Mis Cosas" suffix="" options={COSAS_VIEWS} value={cosasView} onChange={setCosasView} /></Switches>
       </div>
       <div style={{ position: "relative", width: "100%" }}>
