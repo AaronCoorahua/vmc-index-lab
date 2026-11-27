@@ -956,6 +956,93 @@ function SectionHead({ title, subtitle, action }: { title: string; subtitle: str
 }
 const FLAT: CSSProperties = { boxSizing: "border-box", width: "100%", fontFamily: FONT };
 
+// «Vendo Mis Cosas»: carrusel horizontal (ref. «Ofertas del día» de eBay) con el catálogo de muestra de la landing de Julio
+// (apuherrerafo/ConcordeV2-Landing-Vendo-Mis-Cosas). Muestra visual: sin precios ni disponibilidad reales.
+// Mismo armazón que las tiendas (tarjeta, cabecera 68 px, ícono 56 × 44) y piezas de las cards de lotes (.lc-like, .lc-pill, .lc-offer).
+const VMC_COSAS = [
+  ["Nintendo Switch Lite", "nintendo-switch-lite"], ["PS5", "ps5"], ["Refrigerador LG", "refrigerador-lg"],
+  ["Televisor Samsung", "televisor-samsung"], ["Lavadora LG", "lavadora-lg"], ["Cocina Bosch", "cocina-bosch"],
+  ["Macbook Pro", "macbook-pro"], ["iPhone 17", "iphone-17"],
+] as const;
+const VMC_COSAS_CSS = `
+.hib-cosas__wrap { position: relative; }
+.hib-cosas__rail { display: flex; gap: 14px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: none; }
+.hib-cosas__rail::-webkit-scrollbar { display: none; }
+.hib-cosas__item { flex: 0 0 156px; scroll-snap-align: start; display: grid; gap: 3px; color: inherit; text-decoration: none; }
+.hib-cosas__media { position: relative; height: 156px; margin-bottom: 7px; border-radius: 14px; overflow: hidden; background: #F3EFFD; }
+.hib-cosas__media img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; }
+.hib-cosas__item:hover .hib-cosas__media img { transform: scale(1.05); }
+.hib-cosas__name { margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; line-height: 1.2; font-weight: 800; color: #14112B; }
+.hib-cosas__item .lc-offer { font-size: 13px; }
+.hib-cosas__item .lc-offer svg { width: 18px; height: 18px; }
+/* Flechas: mismo círculo blanco con sombra que el favorito (.lc-like), centradas en la foto; se ocultan en el borde. */
+.hib-cosas__arrow { position: absolute; top: 60px; z-index: 3; display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 50%;
+  color: #6b3fe0; background: #fff; box-shadow: rgba(32,0,104,0.18) 0 2px 8px; cursor: pointer; transition: opacity 0.2s, transform 0.2s; }
+.hib-cosas__arrow:hover { transform: scale(1.08); }
+.hib-cosas__arrow:focus-visible { outline: 2px solid #6b3fe0; outline-offset: 2px; }
+.hib-cosas__arrow[disabled] { opacity: 0; pointer-events: none; }
+.hib-cosas__arrow--prev { left: -8px; }
+.hib-cosas__arrow--next { right: -8px; }
+@media (max-width: 720px) {
+  .hib-cosas__arrow { display: none; }
+  .hib-cosas__item { flex-basis: 136px; }
+  .hib-cosas__media { height: 136px; }
+}
+`;
+const HANDS = <svg viewBox="0 0 24 24" aria-hidden><path d="M2 12l4-4 4 2 3-2 4 1 5 3-4 5-3-1-3 2-3-2-3 1z" fill="#00A8AB" opacity="0.9" /><path d="M9 12l2 2M12 11l2 2" stroke="#fff" strokeWidth="1.4" strokeLinecap="round" /></svg>;
+const TAG = <svg viewBox="0 0 24 24" aria-hidden><path d="M3 12V4h8l10 10-8 8z" fill="currentColor" /><circle cx="7.5" cy="8.5" r="1.6" fill="#fff" /></svg>;
+function VendoMisCosasRail(): JSX.Element {
+  const rail = useRef<HTMLDivElement>(null);
+  const [edge, setEdge] = useState({ start: true, end: false });
+  const sync = useCallback(() => {
+    const el = rail.current;
+    if (el) setEdge({ start: el.scrollLeft < 4, end: el.scrollLeft + el.clientWidth >= el.scrollWidth - 4 });
+  }, []);
+  useEffect(() => {
+    sync();
+    window.addEventListener("resize", sync);
+    return () => window.removeEventListener("resize", sync);
+  }, [sync]);
+  // Avanza lo que se ve menos una card, para que la última visible quede como referencia.
+  const go = (dir: 1 | -1) => { const el = rail.current; if (el) el.scrollBy({ left: dir * (el.clientWidth - 170) }); };
+  return (
+    <section aria-label="Vendo Mis Cosas" style={{ boxSizing: "border-box", width: "100%", background: "#ffffff", borderRadius: 16, boxShadow: SHADOW, padding: "0 0 20px", display: "flex", flexDirection: "column", gap: 16, fontFamily: FONT }}>
+      <style>{VMC_COSAS_CSS}</style>
+      <header className="hib-lots-head" style={{ boxSizing: "border-box", flex: "none", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, height: 68, padding: "0 24px", borderBottom: "1px solid #e8ddff" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 0 }}>
+          <span style={{ flex: "none", display: "grid", placeItems: "center", width: 56, height: 44, boxSizing: "border-box", borderRadius: 8, border: "1px solid #e8ddff", background: "#fff" }}>
+            <Vidrio s="articulos" size={28} />
+          </span>
+          <div style={{ display: "grid", gap: 2, minWidth: 0 }}>
+            <h3 style={{ margin: 0, fontSize: 16, lineHeight: "20px", fontWeight: 700, letterSpacing: "-0.01em", color: "#3b1782", whiteSpace: "nowrap" }}>Vendo Mis Cosas</h3>
+            <p style={{ margin: 0, fontSize: 12, lineHeight: "16.8px", color: "#6B6878" }}>{VMC_COSAS.length} artículos</p>
+          </div>
+        </div>
+        <div style={{ flex: "none" }}><ProfileButton className="hib-lots-cta">Ver todo</ProfileButton></div>
+      </header>
+      <div className="hib-cosas__wrap" style={{ padding: "0 24px" }}>
+        <button type="button" className="hib-cosas__arrow hib-cosas__arrow--prev" aria-label="Anteriores" disabled={edge.start} onClick={() => go(-1)}><Chevron dir="prev" /></button>
+        <div ref={rail} className="hib-cosas__rail" onScroll={sync}>
+          {VMC_COSAS.map(([name, img]) => (
+            <a key={img} href="#" className="hib-cosas__item">
+              <div className="hib-cosas__media">
+                <img src={`/demo/vendo-mis-cosas/${img}.jpg`} alt={name} loading="lazy" />
+                <div className="lc-pills"><span className="lc-pill lc-pill--negotiable">{TAG}Recibe ofertas</span></div>
+                <button type="button" className="lc-like" aria-label={`Guardar ${name}`} onClick={(e) => e.preventDefault()}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" /></svg>
+                </button>
+              </div>
+              <p className="hib-cosas__name">{name}</p>
+              <span className="lc-offer">{HANDS}Haz tu propuesta</span>
+            </a>
+          ))}
+        </div>
+        <button type="button" className="hib-cosas__arrow hib-cosas__arrow--next" aria-label="Siguientes" disabled={edge.end} onClick={() => go(1)}><Chevron dir="next" /></button>
+      </div>
+    </section>
+  );
+}
+
 // «Vende tu vehículo» (réplica de vmc-index-final-review): dos opciones a la izquierda y el beneficio de
 // SubasCars a la derecha, con ProfileButton de Concorde y el botón de vidrio del hero.
 const SELL_CSS = `
@@ -2097,6 +2184,7 @@ export default function HomeIndexBlock({ hideFeed = false, feedSlot = false, onO
           <ViewSwitch title="Tipo de oferta" options={OFFER_TYPE_VIEWS} value={offerView} onChange={setOfferView} />
         </Switches>
       </div>
+      <VendoMisCosasRail />
       <div style={{ position: "relative", width: "100%" }}>
         <LotsSection view={lotsView} card={cardStyle} store={STORES[0]} />
         <Switches visible={controls}>
