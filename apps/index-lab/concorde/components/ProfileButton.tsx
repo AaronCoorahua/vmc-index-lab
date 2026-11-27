@@ -65,21 +65,21 @@ const PROFILEBUTTON_STYLES = `
   align-items: center;
   justify-content: center;
   background: transparent;
-  color: #ef852e;
+  color: #ed8936;
   transition:
     background 0.2s ease,
     color 0.2s ease,
     box-shadow 0.25s ease,
     transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
-/* Default: anillo gradiente naranja 1.5px (stroke #FF9C3B → #EF852E 40% → #BE3D00) — mask */
+/* Default: anillo gradiente naranja 1.5px (stroke #F4AC59 → #ED8936 40% → #B25614) — mask */
 .pprofilebtn__circle::before {
   content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
   padding: 1.5px;
-  background: linear-gradient(135deg, #ff9c3b 0%, #ef852e 40%, #be3d00 100%);
+  background: linear-gradient(135deg, #f4ac59 0%, #ed8936 40%, #b25614 100%);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
@@ -94,7 +94,7 @@ const PROFILEBUTTON_STYLES = `
 
 /* ── Hover: círculo RELLENO naranja + sombra, chevron blanco, lift ── */
 .pprofilebtn:hover:not(:disabled) .pprofilebtn__circle {
-  background: linear-gradient(90deg, #ff9639 0%, #ef852e 40%, #be3d00 100%);
+  background: linear-gradient(90deg, #f4ac59 0%, #ed8936 40%, #b25614 100%);
   color: #ffffff;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
   transform: translateY(-1px);

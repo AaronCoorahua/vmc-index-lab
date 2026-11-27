@@ -30,7 +30,7 @@ export interface OfferTypeProps {
 // ─── Defaults ─────────────────────────────────────────────────────────────────
 
 const LABEL_DEFAULTS: Record<OfferTypeVariant, string> = {
-  negotiable: "RECIBE OFERTAS",
+  negotiable: "NEGOCIABLE",
   live:       "EN VIVO",
 };
 
