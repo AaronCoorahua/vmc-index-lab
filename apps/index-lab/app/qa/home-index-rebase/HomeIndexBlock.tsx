@@ -1057,11 +1057,13 @@ const VMC_COSAS2_CSS = `
 .hib-c2__arrow:focus-visible { outline: 2px solid #6b3fe0; outline-offset: 2px; }
 .hib-c2__arrow[disabled] { opacity: 0.35; cursor: default; }
 .hib-c2__body { display: grid; grid-template-columns: 208px minmax(0, 1fr); gap: 16px; padding: 0 24px; }
-.hib-c2__lead { position: relative; display: flex; flex-direction: column; justify-content: space-between; gap: 14px; padding: 18px; border-radius: 14px; overflow: hidden; color: #fff;
-  background: radial-gradient(120% 80% at 100% 0%, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 60%), linear-gradient(160deg, #8460E5 0%, #3B1782 100%); }
-.hib-c2__lead-ico { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 14px; background: rgba(255,255,255,0.92); }
-.hib-c2__lead h4 { margin: 0; font-size: 18px; line-height: 1.2; font-weight: 800; letter-spacing: -0.01em; }
-.hib-c2__lead p { margin: 6px 0 0; font-size: 13px; line-height: 1.4; color: rgba(255,255,255,0.86); }
+.hib-c2__lead { position: relative; display: flex; flex-direction: column; justify-content: space-between; gap: 14px; min-height: 290px; padding: 18px; border-radius: 14px; overflow: hidden; color: #fff;
+  background: #3B1782 url(/demo/vendo-mis-cosas/banner-laptop.jpg) center bottom / cover no-repeat; }
+/* Banner de Prisma (estudio, estela, ícono esmerilado). Velo arriba (titular) y abajo (botón); el centro queda limpio. */
+.hib-c2__lead::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(34,0,92,0.55) 0%, rgba(34,0,92,0) 42%, rgba(34,0,92,0) 70%, rgba(34,0,92,0.6) 100%); }
+.hib-c2__lead > * { position: relative; }
+.hib-c2__lead h4 { margin: 0; font-size: 18px; line-height: 1.2; font-weight: 800; letter-spacing: -0.01em; text-shadow: rgba(20,0,60,0.35) 0 1px 6px; }
+.hib-c2__lead p { margin: 6px 0 0; font-size: 13px; line-height: 1.4; color: rgba(255,255,255,0.9); text-shadow: rgba(20,0,60,0.35) 0 1px 6px; }
 .hib-c2__main { display: grid; gap: 12px; min-width: 0; }
 .hib-c2__chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
 .hib-c2__chips::-webkit-scrollbar { display: none; }
@@ -1076,16 +1078,16 @@ const VMC_COSAS2_CSS = `
 .hib-c2__item:hover .hib-c2__media { transform: translateY(-2px); box-shadow: rgba(32,0,104,0.16) 0 8px 18px; }
 .hib-c2__item:hover .hib-c2__media img { transform: scale(1.05); }
 .hib-c2__media .hib-cosas__like { position: absolute; top: 8px; right: 8px; z-index: 2; display: grid; }
-.hib-c2__cat { font-size: 11px; font-weight: 600; color: #8A879C; }
-.hib-c2__name { margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; line-height: 1.2; font-weight: 800; color: #14112B; }
+.hib-c2__media::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 6px; background: linear-gradient(90deg, #00DAE0 0%, #008688 100%); }
+.hib-c2__name { margin: 2px 0 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; line-height: 1.2; font-weight: 800; color: #14112B; }
 .hib-c2__track { position: relative; height: 3px; border-radius: 999px; background: #EFEDF5; overflow: hidden; }
 .hib-c2__thumb { position: absolute; top: 0; bottom: 0; border-radius: 999px; background: linear-gradient(90deg, #8460E5, #3B1782); transition: left 0.15s linear, width 0.2s; }
 @media (max-width: 720px) {
   .hib-c2__nav .hib-c2__arrow { display: none; }
   .hib-c2__body { grid-template-columns: minmax(0, 1fr); padding: 0 16px; }
-  .hib-c2__lead { flex-direction: row; align-items: center; padding: 14px; }
+  .hib-c2__lead { flex-direction: row; align-items: center; min-height: 0; padding: 14px; background-position: center 62%; }
+  .hib-c2__lead::before { background: linear-gradient(90deg, rgba(34,0,92,0.78) 0%, rgba(34,0,92,0.2) 100%); }
   .hib-c2__lead { gap: 12px; }
-  .hib-c2__lead-ico { width: 40px; height: 40px; border-radius: 12px; }
   .hib-c2__lead h4 { font-size: 15px; }
   .hib-c2__lead p { margin-top: 2px; font-size: 12px; }
   /* En móvil la pieza entera es el enlace: el botón cede su lugar a una flecha. */
@@ -1129,7 +1131,6 @@ function VendoMisCosasRail2(): JSX.Element {
       </header>
       <div className="hib-c2__body">
         <aside className="hib-c2__lead">
-          <span className="hib-c2__lead-ico"><Vidrio s="publicar" size={30} /></span>
           <div style={{ flex: 1, minWidth: 0 }}>
             <h4>¿Dejaste de usarlo?</h4>
             <p>Publícalo en VMC y recibe propuestas.</p>
@@ -1148,7 +1149,6 @@ function VendoMisCosasRail2(): JSX.Element {
                   <img src={`/demo/vendo-mis-cosas/${img}.jpg`} alt={name} loading="lazy" />
                   <span className="hib-cosas__like"><Clike name={name} /></span>
                 </div>
-                <span className="hib-c2__cat">{COSAS_CAT[img]}</span>
                 <p className="hib-c2__name">{name}</p>
               </a>
             ))}
@@ -1164,7 +1164,7 @@ const COSAS_VIEWS: { id: CosasView; label: string; hint: string }[] = [
   { id: "linea", label: "V1 · con línea", hint: "Foto y nombre, línea cyan de Negociable abajo" },
   { id: "sin-linea", label: "V1 · sin línea", hint: "Foto y nombre, sin línea" },
   { id: "borde", label: "V1 · borde cian", hint: "Foto y nombre con borde cian (ruta /borde)" },
-  { id: "v2", label: "Variación 2", hint: "Pieza para publicar, filtros, cards verticales y barra de avance" },
+  { id: "v2", label: "Variación 2", hint: "Banner Prisma para publicar, filtros, línea cian y barra de avance" },
 ];
 
 // «Vende tu vehículo» (réplica de vmc-index-final-review): dos opciones a la izquierda y el beneficio de
@@ -2174,7 +2174,9 @@ export default function HomeIndexBlock({ hideFeed = false, feedSlot = false, onO
   // Vendo Mis Cosas: «V1 · con línea» por defecto; ?cosas=sin-linea | v2 abre las otras (para compartir el link de cada una).
   const [cosasView, setCosasView] = useState<CosasView>("linea");
   useEffect(() => {
-    const v = new URLSearchParams(window.location.search).get("cosas") ?? (window.location.pathname.endsWith("/borde") ? "borde" : null);
+    // El teléfono de la vista móvil es un iframe sin ?cosas: lo toma de la página que lo contiene (mismo origen).
+    const v = new URLSearchParams(window.location.search).get("cosas") ?? new URLSearchParams(window.parent.location.search).get("cosas")
+      ?? (window.location.pathname.endsWith("/borde") ? "borde" : null);
     if (COSAS_VIEWS.some((o) => o.id === v)) setCosasView(v as CosasView);
   }, []);
   const [lotsView, setLotsView] = useState<LotsView>(() => initQa("lotsView", OPTION_A.lotsView));
